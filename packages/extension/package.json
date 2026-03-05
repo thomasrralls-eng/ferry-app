@@ -1,0 +1,7 @@
+{
+  "name": "@ferry/extension",
+  "version": "0.1.0",
+  "description": "Ferry Chrome Extension — data quality inspector for GA4 and Google Ads",
+  "private": true,
+  "license": "UNLICENSED"
+}

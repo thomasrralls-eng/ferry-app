@@ -1,0 +1,16 @@
+{
+  "name": "ferry-app",
+  "version": "0.1.0",
+  "description": "Ferry — bridge messy data into Google products",
+  "private": true,
+  "workspaces": [
+    "packages/core",
+    "packages/extension",
+    "packages/cloud",
+    "packages/web"
+  ],
+  "scripts": {
+    "test": "npm test --workspaces --if-present"
+  },
+  "license": "UNLICENSED"
+}

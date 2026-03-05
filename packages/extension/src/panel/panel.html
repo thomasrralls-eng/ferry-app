@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 12px; }
+      .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+      button { padding: 6px 10px; cursor: pointer; }
+      .pill { padding: 2px 8px; border: 1px solid #ccc; border-radius: 999px; font-size: 12px; }
+      .pill.recording { background: #fee; border-color: #e55; color: #c33; }
+      .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+      .card { border: 1px solid #ddd; border-radius: 8px; padding: 10px; }
+      .card h3 { margin: 0 0 8px; font-size: 13px; }
+      pre { margin: 0; white-space: pre-wrap; word-break: break-word; font-size: 11px; max-height: 600px; overflow-y: auto; }
+      .muted { color: #666; font-size: 12px; }
+      .count { font-weight: 600; }
+    </style>
+  </head>
+  <body>
+    <div class="row">
+      <button id="startBtn">Start recording</button>
+      <button id="stopBtn" disabled>Stop</button>
+      <button id="exportBtn">Export JSON</button>
+      <button id="clearBtn">Clear all</button>
+      <span class="pill" id="statusPill">Stopped</span>
+    </div>
+
+    <div class="cols">
+      <div class="card">
+        <h3>DataLayer Events <span class="count" id="eventsCount">0</span></h3>
+        <pre id="eventsPre">[]</pre>
+      </div>
+
+      <div class="card">
+        <h3>Network Hits <span class="count" id="hitsCount">0</span></h3>
+        <pre id="hitsPre">[]</pre>
+      </div>
+    </div>
+
+    <script src="panel.js"></script>
+  </body>
+</html>

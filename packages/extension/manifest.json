@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Ferry — Data Quality Inspector",
+  "version": "0.1.0",
+  "description": "Monitor, record, and analyze dataLayer events and GA4/Google Ads network hits in real-time.",
+  "permissions": ["storage"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "src/background/service-worker.js"
+  },
+  "devtools_page": "src/devtools/devtools.html",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/content-script.js"],
+      "run_at": "document_start",
+      "all_frames": true,
+      "match_about_blank": true
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["src/content/injected-hook.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "icons": {}
+}
