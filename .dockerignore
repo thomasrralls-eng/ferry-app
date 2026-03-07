@@ -1,0 +1,16 @@
+node_modules
+.git
+.github
+docs
+*.md
+.DS_Store
+packages/web
+packages/extension/src/popup
+packages/extension/src/panel
+packages/extension/src/background
+packages/extension/src/content
+packages/extension/icons
+packages/extension/manifest.json
+packages/scraper/tests
+packages/cloud/terraform
+packages/cloud/functions

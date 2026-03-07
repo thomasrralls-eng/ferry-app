@@ -1,0 +1,17 @@
+{
+  "name": "@ferry/scraper-api",
+  "version": "0.1.0",
+  "description": "gd ferry — Cloud Run API for the GA4/GTM scraper",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "@ferry/scraper": "*",
+    "express": "^4.21.0"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}
