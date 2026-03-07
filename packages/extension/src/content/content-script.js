@@ -17,7 +17,7 @@
       s.type = "text/javascript";
       s.async = false;
       (document.documentElement || document.head || document.body).appendChild(s);
-      s.remove();
+      s.onload = () => s.remove();  // remove AFTER load, not before
       return true;
     } catch (e) {
       console.warn("[Ferry] Failed to inject", file, e);
@@ -41,6 +41,25 @@
     }
   });
 
+  // Respond to FERRY_GET_LINKS requests from the crawler
+  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (msg?.type !== "FERRY_GET_LINKS") return;
+
+    try {
+      const links = Array.from(document.querySelectorAll("a[href]"))
+        .map(a => {
+          try { return new URL(a.href, window.location.href).href; }
+          catch { return null; }
+        })
+        .filter(Boolean);
+      sendResponse({ links });
+    } catch (e) {
+      sendResponse({ links: [] });
+    }
+
+    return true; // keep channel open for async response
+  });
+
   // Inject our hook into this frame
-  injectScriptFile("src/content/injected-hook.js");
+  injectScriptFile("injected-hook.js");
 })();

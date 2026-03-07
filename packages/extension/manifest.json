@@ -1,18 +1,28 @@
 {
   "manifest_version": 3,
-  "name": "Ferry — Data Quality Inspector",
-  "version": "0.1.0",
-  "description": "Monitor, record, and analyze dataLayer events and GA4/Google Ads network hits in real-time.",
-  "permissions": ["storage"],
+  "name": "gd ferry",
+  "version": "0.3.0",
+  "description": "Monitor, record, and analyze dataLayer events, GA4 hits, and GTM containers in real-time.",
+  "permissions": ["storage", "tabs", "scripting", "sidePanel", "webRequest"],
   "host_permissions": ["<all_urls>"],
   "background": {
-    "service_worker": "src/background/service-worker.js"
+    "service_worker": "service-worker.js"
   },
-  "devtools_page": "src/devtools/devtools.html",
+  "action": {
+    "default_title": "Open gd ferry",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "side_panel": {
+    "default_path": "panel/index.html"
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["src/content/content-script.js"],
+      "js": ["content-script.js"],
       "run_at": "document_start",
       "all_frames": true,
       "match_about_blank": true
@@ -20,9 +30,13 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["src/content/injected-hook.js"],
+      "resources": ["injected-hook.js", "rules/index.js"],
       "matches": ["<all_urls>"]
     }
   ],
-  "icons": {}
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
 }

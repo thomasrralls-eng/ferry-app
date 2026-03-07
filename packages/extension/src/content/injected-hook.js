@@ -112,6 +112,11 @@
   }
 
   // --------------------------
+  // Event buffer (polled by the DevTools panel directly)
+  // --------------------------
+  window.__ferryEvents = window.__ferryEvents || [];
+
+  // --------------------------
   // Messaging
   // --------------------------
   function frameUrl() {
@@ -120,6 +125,9 @@
 
   function post(payload) {
     const safePayload = safeClone(payload, DEFAULT_LIMITS);
+    // Store in page-level buffer for direct polling by DevTools panel
+    window.__ferryEvents.push(safePayload);
+    // Also post to content script for the crawler / service worker path
     window.postMessage({ type: "FERRY_EVENT", payload: safePayload }, "*");
   }
 

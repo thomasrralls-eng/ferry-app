@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1"/>
+      <stop offset="100%" style="stop-color:#4f46e5"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#a5b4fc;stop-opacity:0.6"/>
+      <stop offset="100%" style="stop-color:#818cf8;stop-opacity:0.8"/>
+    </linearGradient>
+    <linearGradient id="wing" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.95"/>
+      <stop offset="100%" style="stop-color:#e0e7ff;stop-opacity:0.85"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softShadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#312e81" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect x="16" y="16" width="480" height="480" rx="96" ry="96" fill="url(#bg)"/>
+
+  <!-- Water waves at bottom -->
+  <path d="M16 380 Q80 360, 140 375 T270 370 T400 378 T496 365 L496 440 Q496 480, 456 496 L56 496 Q16 496, 16 456 Z"
+        fill="url(#water)" opacity="0.5"/>
+  <path d="M16 395 Q90 380, 160 392 T300 385 T430 393 T496 382 L496 440 Q496 480, 456 496 L56 496 Q16 496, 16 456 Z"
+        fill="url(#water)" opacity="0.35"/>
+
+  <!-- Ferry boat hull -->
+  <path d="M120 340 L145 380 L367 380 L392 340 Z"
+        fill="#ffffff" filter="url(#softShadow)"/>
+
+  <!-- Hull stripe -->
+  <path d="M130 355 L140 375 L372 375 L382 355 Z"
+        fill="#c7d2fe" opacity="0.5"/>
+
+  <!-- Boat cabin -->
+  <rect x="175" y="290" width="162" height="50" rx="6" ry="6" fill="#ffffff"/>
+
+  <!-- Cabin windows -->
+  <circle cx="210" cy="315" r="10" fill="#6366f1" opacity="0.6"/>
+  <circle cx="256" cy="315" r="10" fill="#6366f1" opacity="0.6"/>
+  <circle cx="302" cy="315" r="10" fill="#6366f1" opacity="0.6"/>
+
+  <!-- Smokestack / mast -->
+  <rect x="248" y="240" width="16" height="50" rx="3" ry="3" fill="#e0e7ff"/>
+
+  <!-- Fairy wings (left) -->
+  <path d="M248 230
+           C200 180, 150 190, 140 150
+           C130 110, 170 80, 210 100
+           C230 110, 245 150, 248 200 Z"
+        fill="url(#wing)" filter="url(#glow)" opacity="0.9"/>
+  <path d="M248 240
+           C215 220, 175 230, 160 200
+           C148 175, 175 158, 205 170
+           C225 178, 242 205, 248 230 Z"
+        fill="url(#wing)" opacity="0.7"/>
+
+  <!-- Fairy wings (right) -->
+  <path d="M264 230
+           C312 180, 362 190, 372 150
+           C382 110, 342 80, 302 100
+           C282 110, 267 150, 264 200 Z"
+        fill="url(#wing)" filter="url(#glow)" opacity="0.9"/>
+  <path d="M264 240
+           C297 220, 337 230, 352 200
+           C364 175, 337 158, 307 170
+           C287 178, 270 205, 264 230 Z"
+        fill="url(#wing)" opacity="0.7"/>
+
+  <!-- Sparkles around wings -->
+  <circle cx="165" cy="120" r="4" fill="#ffffff" opacity="0.8"/>
+  <circle cx="350" cy="115" r="3.5" fill="#ffffff" opacity="0.7"/>
+  <circle cx="130" cy="170" r="3" fill="#ffffff" opacity="0.6"/>
+  <circle cx="385" cy="165" r="3" fill="#ffffff" opacity="0.6"/>
+  <circle cx="195" cy="90" r="2.5" fill="#ffffff" opacity="0.5"/>
+  <circle cx="320" cy="85" r="2.5" fill="#ffffff" opacity="0.5"/>
+
+  <!-- Star sparkles -->
+  <path d="M155 145 l2-6 2 6 6 2-6 2-2 6-2-6-6-2z" fill="#ffffff" opacity="0.7"/>
+  <path d="M360 140 l2-5 2 5 5 2-5 2-2 5-2-5-5-2z" fill="#ffffff" opacity="0.7"/>
+  <path d="M256 75 l2-6 2 6 6 2-6 2-2 6-2-6-6-2z" fill="#ffffff" opacity="0.6"/>
+
+  <!-- Wand / antenna on mast top with star -->
+  <circle cx="256" cy="235" r="6" fill="#fbbf24" filter="url(#glow)"/>
+  <path d="M256 229 l1.5-4.5 1.5 4.5 4.5 1.5-4.5 1.5-1.5 4.5-1.5-4.5-4.5-1.5z"
+        fill="#ffffff" opacity="0.9"/>
+</svg>

@@ -2,6 +2,6 @@
 chrome.devtools.panels.create(
   "Ferry",
   "",
-  "src/panel/panel.html",
+  "panel/index.html",
   () => {}
 );

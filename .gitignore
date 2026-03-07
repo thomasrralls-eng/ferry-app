@@ -138,6 +138,9 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
+# Build output
+packages/extension/dist/
+
 # Terraform
 packages/cloud/terraform/.terraform/
 packages/cloud/terraform/*.tfstate*
