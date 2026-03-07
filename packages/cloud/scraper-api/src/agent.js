@@ -5,39 +5,26 @@
  * actionable GA4/GTM recommendations.
  */
 
+import { GoogleAuth } from "google-auth-library";
 import { buildSystemPrompt, buildAnalysisPrompt, buildFullAnalysisPrompt } from "./agent-prompt.js";
 
 const VERTEX_API_BASE = "https://us-central1-aiplatform.googleapis.com/v1";
 const MODEL = "gemini-2.0-flash-001";
 
+// Reusable auth client — handles metadata server, ADC, service accounts automatically
+const auth = new GoogleAuth({
+  scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+});
+
 /**
- * Get an access token from the GCP metadata server (works on Cloud Run)
- * or fall back to local gcloud auth for development.
+ * Get an access token using Google's official auth library.
+ * Automatically discovers credentials (metadata server on Cloud Run,
+ * application default credentials locally).
  */
 async function getAccessToken() {
-  // On Cloud Run, use the metadata server
-  try {
-    const res = await fetch(
-      "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/access_token",
-      { headers: { "Metadata-Flavor": "Google" } }
-    );
-    if (res.ok) {
-      const data = await res.json();
-      return data.access_token;
-    }
-  } catch {
-    // Not on Cloud Run — fall through to env var or error
-  }
-
-  // For local dev, use GOOGLE_ACCESS_TOKEN env var
-  if (process.env.GOOGLE_ACCESS_TOKEN) {
-    return process.env.GOOGLE_ACCESS_TOKEN;
-  }
-
-  throw new Error(
-    "No access token available. On Cloud Run, the metadata server should provide one. " +
-    "For local dev, set GOOGLE_ACCESS_TOKEN=$(gcloud auth print-access-token)"
-  );
+  const client = await auth.getClient();
+  const tokenResponse = await client.getAccessToken();
+  return tokenResponse.token;
 }
 
 /**
