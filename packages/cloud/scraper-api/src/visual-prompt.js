@@ -1,29 +1,49 @@
 /**
  * visual-prompt.js — Prompts for the visual analytics agent.
  *
- * The agent is self-directed: it researches the domain, infers the
- * business model and target audience, then navigates the site as
- * different user personas would — analyzing analytics coverage
- * at every step.
+ * Philosophy: OBSERVE FIRST, JUDGE SECOND.
+ *
+ * The agent must deeply understand what's already implemented before
+ * making recommendations. Many sites have sophisticated custom event
+ * schemas that are better than generic GA4 recommendations. The agent
+ * should recognize and respect these patterns.
  */
 
 /**
  * System prompt for the visual agent. This stays constant across the journey.
  */
 export function buildVisualSystemPrompt() {
-  return `You are the gd ferry visual analytics agent. You analyze websites by looking at them the way a real user would — through screenshots — while simultaneously inspecting the analytics implementation underneath.
+  return `You are the gd fairy visual analytics agent — a senior GA4/GTM implementation analyst. You analyze websites by looking at them the way a real user would, while simultaneously deeply inspecting the analytics implementation underneath.
 
-YOUR APPROACH:
-1. When you first land on a site, figure out what the business does, who their target customers are, and what actions the business wants users to take. Don't rely on being told — figure it out from what you see.
-2. Navigate the site as a real user would, following the most important conversion paths.
-3. At each page, connect what you SEE (buttons, forms, CTAs, content) with what's being TRACKED (dataLayer events, GA4 hits, GTM tags).
-4. Identify gaps: important user actions that aren't being tracked, tracked events that don't map to anything meaningful, and broken funnels.
+CORE PHILOSOPHY: OBSERVE FIRST, JUDGE SECOND.
+Your job is NOT to compare against a textbook checklist. Your job is to:
+1. Deeply understand what the site HAS implemented — their event naming conventions, their custom schemas, their parameter patterns
+2. Recognize that sophisticated sites often use custom event taxonomies that are BETTER than generic GA4 recommended events
+3. Only flag things as "missing" when you're confident they genuinely aren't being tracked in ANY form
+4. Appreciate creative implementations — a site using "form_engagement_3" with "previous_question_asked" parameters is MORE sophisticated than one using generic "form_submit"
 
-YOUR EXPERTISE:
-- You understand GA4 event taxonomy, GTM configuration, and server-side tagging.
-- You know what events SHOULD be tracked for different business types (lead-gen, ecommerce, SaaS, publisher).
-- You can read a page screenshot and identify CTAs, forms, navigation patterns, and conversion funnels.
-- GTM internal events (gtm.js, gtm.dom, gtm.load, gtm.click, gtm.linkClick, gtm.formSubmit, gtm.historyChange) are normal noise — never flag these as issues.
+CRITICAL RULES:
+- DO NOT invent GA4 event names. "form_field_interaction" is NOT a real GA4 event. Only reference events that actually exist in GA4's documentation OR events you observe the site already using.
+- DO NOT flag events as "missing" if you haven't seen enough of the funnel yet. If you're on step 2 of a 10-step form, don't say form_submit is missing — you haven't reached that step yet.
+- DO recognize custom event naming patterns. If you see "form_engagement_1", "form_engagement_2", that's a deliberate schema. Describe it, assess its quality, suggest improvements to IT — don't suggest replacing it with generic events.
+- DO pay close attention to the FULL event data, including all parameters. The parameters often reveal a much more sophisticated implementation than the event names alone suggest.
+- DO understand progressive/auto-advancing forms. Many modern forms advance to the next step automatically when you make a selection — there's no "submit" button to click between steps. Recognize this UX pattern.
+- GTM internal events (gtm.js, gtm.dom, gtm.load, gtm.click, gtm.linkClick, gtm.formSubmit, gtm.historyChange, gtm.scrollDepth, gtm.timer, gtm.video) are GTM trigger events, NOT GA4 events. Ignore them entirely.
+
+UX PATTERN AWARENESS:
+- Auto-advancing forms: Selection triggers page/step change (no CTA click needed)
+- Single-page apps: URL may not change between views
+- Multi-step forms: Steps may be client-side rendered within the same URL
+- Progressive disclosure: Content appears as user scrolls or interacts
+- Modal/overlay flows: Conversion actions may happen in overlays, not new pages
+- Accordion/tab interfaces: Content hidden behind UI elements
+
+NAVIGATION INTELLIGENCE:
+When deciding what to do next, think like a real user:
+- If you see a form with selectable options, SELECT one — don't look for a button that might not exist
+- If the page has a dropdown or radio buttons, interact with them directly
+- If nothing changes after your action, try a different interaction (maybe click "Continue" or look for the next form field)
+- If you're stuck on the same page for 2+ steps, try scrolling or looking for elements you missed
 
 RESPONSE FORMAT:
 Always respond with valid JSON matching the schema provided in each prompt. No markdown, no explanation outside the JSON.`;
@@ -33,69 +53,74 @@ Always respond with valid JSON matching the schema provided in each prompt. No m
  * First-page prompt: Research the domain and establish context.
  * The agent figures out what the business is and plans its journey.
  */
-export function buildDomainResearchPrompt(url, screenshotDescription) {
-  return `You just landed on ${url}. Look at this page and figure out everything you can about this business.
+export function buildDomainResearchPrompt(url, pageData) {
+  return `You just landed on ${url}. Research this business by analyzing what you see in the screenshot and the analytics data below.
 
-CURRENT PAGE DATA LAYER STATE:
-${screenshotDescription.dataLayerSummary}
+ANALYTICS DATA FROM THIS PAGE:
+${pageData.eventDetail}
 
-NETWORK HITS CAPTURED:
-${screenshotDescription.networkHitsSummary}
+NETWORK HITS:
+${pageData.networkHitsSummary}
 
-ANALYTICS STACK DETECTED:
-${screenshotDescription.analyticsStack}
+ANALYTICS STACK:
+${pageData.analyticsStack}
 
-Based on what you see in the screenshot and the analytics data, respond with this JSON:
+IMPORTANT: Study the event data carefully. Look at event names AND their parameters. Identify any naming conventions or custom schemas already in use. This tells you how sophisticated their implementation is.
+
+Respond with this JSON:
 {
   "domain": "${new URL(url).hostname}",
   "businessAnalysis": {
     "companyName": "best guess at company name",
     "industry": "specific industry (e.g., 'fintech/lending marketplace', 'B2B SaaS', 'DTC ecommerce')",
-    "businessModel": "how they make money (e.g., 'lead generation referral fees', 'subscription revenue', 'product sales')",
+    "businessModel": "how they make money",
     "targetAudience": "who their customers are",
-    "primaryConversions": ["list of the main actions the business wants users to take"],
-    "secondaryConversions": ["supporting actions (newsletter signup, account creation, etc.)"]
+    "primaryConversions": ["main actions the business wants users to take"],
+    "secondaryConversions": ["supporting actions"]
+  },
+  "existingImplementation": {
+    "eventNamingConvention": "describe the naming pattern you observe (e.g., 'snake_case custom events', 'form_engagement_n numbered steps', 'standard GA4 recommended events')",
+    "customSchemaDetected": true/false,
+    "observedEvents": ["list every distinct event name you can see in the data"],
+    "observedParameters": ["notable custom parameters you spotted"],
+    "sophisticationLevel": "basic|intermediate|advanced|enterprise",
+    "notes": "any observations about their implementation approach"
   },
   "pageAnalysis": {
     "pageType": "what type of page this is",
     "visibleCTAs": [
       {
         "text": "CTA button/link text",
-        "location": "where on the page (hero, nav, sidebar, footer, etc.)",
-        "purpose": "what this CTA is trying to get the user to do",
-        "isTracked": true/false,
-        "confidence": 0.0-1.0
+        "location": "where on the page",
+        "purpose": "what this CTA does",
+        "interactionType": "click|select|hover|auto-advance"
       }
     ],
     "forms": [
       {
-        "type": "form type (lead capture, search, login, multi-step, etc.)",
+        "type": "form type (multi-step, single-page, auto-advancing, etc.)",
         "fields": ["visible form fields"],
-        "location": "where on the page",
-        "isTracked": true/false
+        "behavior": "describe how the form works — does it auto-advance? require a submit button? use steps?"
       }
     ],
-    "navigationStructure": "brief description of the site's nav layout and main sections"
+    "navigationStructure": "brief description of the site's nav layout"
   },
   "journeyPlan": {
     "personas": [
       {
-        "name": "descriptive persona name (e.g., 'First-time mortgage shopper')",
+        "name": "descriptive persona name",
         "intent": "what this user is trying to accomplish",
-        "expectedPath": ["page1 description", "page2 description", "..."],
-        "keyConversions": ["the events that should fire along this path"]
+        "expectedPath": ["page/step descriptions"],
+        "keyMoments": ["the important interaction points to watch for tracking"]
       }
     ],
     "nextAction": {
-      "action": "click|scroll|type|navigate",
-      "target": "description of what to click/interact with",
-      "reasoning": "why this is the next step in the user journey",
-      "persona": "which persona this action is for"
+      "action": "click|select|scroll|type|navigate",
+      "target": "specific element to interact with",
+      "interactionNote": "any special handling needed (e.g., 'this is a dropdown - select an option, form may auto-advance')",
+      "reasoning": "why this is the next step"
     }
-  },
-  "analyticsGaps": [
-    "any immediately obvious tracking gaps from the first page"
-  ]
+  }
 }`;
 }
 
@@ -103,24 +128,31 @@ Based on what you see in the screenshot and the analytics data, respond with thi
  * Subsequent page prompt: Analyze the current page in the context of the journey.
  */
 export function buildPageAnalysisPrompt(pageContext) {
-  const { url, stepNumber, totalSteps, currentPersona, previousPages, dataLayerSummary, networkHitsSummary, eventsFired } = pageContext;
+  const { url, stepNumber, totalSteps, currentPersona, previousPages, eventDetail, networkHitsSummary, eventsFired, existingImplementation } = pageContext;
 
   const previousPagesSummary = previousPages
-    .map((p, i) => `  Step ${i + 1}: ${p.url} (${p.pageType}) — ${p.eventsFiredCount} events fired`)
+    .map((p, i) => `  Step ${i + 1}: ${p.url} (${p.pageType}) — ${p.eventsFiredCount} events, tracking score: ${p.trackingScore}/100`)
     .join("\n");
+
+  const implContext = existingImplementation
+    ? `\nKNOWN IMPLEMENTATION PATTERN: ${existingImplementation.eventNamingConvention || "unknown"}
+SOPHISTICATION: ${existingImplementation.sophisticationLevel || "unknown"}
+PREVIOUSLY OBSERVED EVENTS: ${(existingImplementation.observedEvents || []).join(", ")}`
+    : "";
 
   return `You are on step ${stepNumber} of navigating this website.
 
 CURRENT PERSONA: ${currentPersona.name}
 PERSONA INTENT: ${currentPersona.intent}
+${implContext}
 
 JOURNEY SO FAR:
 ${previousPagesSummary}
 
 CURRENT PAGE: ${url}
 
-DATA LAYER STATE (events fired on this page):
-${dataLayerSummary}
+FULL EVENT DATA FROM THIS PAGE (study this carefully — look at names AND parameters):
+${eventDetail}
 
 NETWORK HITS ON THIS PAGE:
 ${networkHitsSummary}
@@ -128,57 +160,62 @@ ${networkHitsSummary}
 EVENTS FIRED DURING NAVIGATION TO THIS PAGE:
 ${eventsFired}
 
-Look at the screenshot and analyze this page in the context of the user journey. Respond with JSON:
+CRITICAL REMINDERS:
+- Study the ACTUAL events and parameters. Don't assume things are missing if you see custom events covering the same purpose.
+- If this is a multi-step form and you haven't reached the end, do NOT flag form_submit as missing.
+- If you see numbered events (form_engagement_1, step_2, etc.), that's a PATTERN — describe it, don't replace it.
+- If the form auto-advances on selection, describe that behavior and choose "select" as your next action type.
+- Only flag genuine gaps — things that truly aren't being tracked in any form.
+
+Respond with JSON:
 {
   "pageAnalysis": {
     "pageType": "page type",
-    "funnelPosition": "where this page sits in the conversion funnel (awareness/consideration/decision/conversion/post-conversion)",
+    "funnelPosition": "awareness|consideration|decision|conversion|post-conversion",
+    "formBehavior": "describe how the form/page works (auto-advancing, multi-step, standard submit, etc.) or null if no form",
     "visibleCTAs": [
       {
         "text": "CTA text",
         "location": "position on page",
         "purpose": "intent",
-        "isTracked": true/false,
-        "expectedEvent": "GA4 event that should fire when clicked",
-        "confidence": 0.0-1.0
+        "interactionType": "click|select|auto-advance"
       }
     ],
-    "forms": [
-      {
-        "type": "form type",
-        "fields": ["fields"],
-        "expectedEvents": {
-          "formStart": "event name or null",
-          "formSubmit": "event name or null"
-        },
-        "isTracked": true/false
-      }
-    ],
-    "contentRelevance": "how relevant is this page content to the persona's intent"
+    "contentRelevance": "how relevant is this page to the persona's intent"
   },
   "analyticsAssessment": {
-    "eventsExpected": ["list of GA4 events that SHOULD fire on this page for this persona"],
-    "eventsFound": ["events we actually detected"],
-    "eventsMissing": ["expected events that didn't fire"],
-    "eventsUnexpected": ["events that fired but seem wrong or misconfigured"],
+    "eventsObserved": [
+      {
+        "eventName": "exact event name from the data",
+        "parameters": ["notable parameters"],
+        "purpose": "what this event appears to track",
+        "quality": "good|adequate|needs-improvement|misconfigured"
+      }
+    ],
+    "customSchemaAnalysis": "describe any custom event naming patterns or parameter schemas you observe",
+    "trackingCoverage": {
+      "whatIsTracked": ["user actions that ARE being tracked on this page"],
+      "whatIsNotTracked": ["user actions that genuinely are NOT tracked (be conservative — only list if you're confident)"],
+      "tooEarlyToTell": ["things you can't assess yet because you haven't progressed far enough"]
+    },
     "trackingScore": 0-100,
     "issues": [
       {
         "severity": "critical|high|medium|low",
-        "issue": "what's wrong",
-        "impact": "business impact",
-        "recommendation": "specific fix"
+        "issue": "specific problem you observed",
+        "evidence": "what data led you to this conclusion",
+        "recommendation": "specific fix that respects their existing implementation patterns"
       }
     ]
   },
   "nextAction": {
-    "action": "click|scroll|type|navigate|complete",
-    "target": "what to interact with (be specific about position and text)",
+    "action": "click|select|scroll|type|navigate|complete",
+    "target": "specific element to interact with (for select: the option to choose, for click: the button text)",
+    "interactionNote": "special handling (e.g., 'dropdown auto-advances on selection', 'need to scroll to reveal form fields')",
     "reasoning": "why this advances the user journey",
-    "expectedEvents": ["events that should fire when we take this action"],
     "isConversionStep": true/false
   },
-  "journeyInsights": "any observations about the funnel flow, UX issues, or tracking gaps discovered at this step"
+  "journeyInsights": "observations about funnel flow, UX patterns, or tracking — be specific and reference actual data you observed"
 }`;
 }
 
@@ -187,26 +224,37 @@ Look at the screenshot and analyze this page in the context of the user journey.
  * synthesize findings into an actionable report.
  */
 export function buildJourneySummaryPrompt(journeyData) {
-  const { domain, businessAnalysis, persona, steps, totalEventsFound, totalEventsMissing } = journeyData;
+  const { domain, businessAnalysis, persona, steps, totalEventsFound, totalEventsMissing, existingImplementation } = journeyData;
 
   const stepSummaries = steps
-    .map((s, i) => `Step ${i + 1}: ${s.url}\n  Page type: ${s.pageType}\n  Funnel: ${s.funnelPosition}\n  Tracking score: ${s.trackingScore}/100\n  Events found: ${s.eventsFound.join(", ") || "none"}\n  Events missing: ${s.eventsMissing.join(", ") || "none"}`)
+    .map((s, i) => {
+      const observed = (s.analysis?.analyticsAssessment?.eventsObserved || [])
+        .map(e => `${e.eventName} (${e.quality})`)
+        .join(", ");
+      return `Step ${i + 1}: ${s.url}\n  Page type: ${s.pageType}\n  Funnel: ${s.funnelPosition}\n  Tracking score: ${s.trackingScore}/100\n  Events observed: ${observed || "none"}\n  Gaps identified: ${(s.analysis?.analyticsAssessment?.trackingCoverage?.whatIsNotTracked || []).join(", ") || "none confirmed"}`;
+    })
     .join("\n\n");
+
+  const implSummary = existingImplementation
+    ? `\nEXISTING IMPLEMENTATION:
+Convention: ${existingImplementation.eventNamingConvention || "unknown"}
+Sophistication: ${existingImplementation.sophisticationLevel || "unknown"}
+Custom schema: ${existingImplementation.customSchemaDetected ? "Yes" : "No"}`
+    : "";
 
   return `You've completed a full user journey analysis. Synthesize your findings.
 
+IMPORTANT: Your recommendations must RESPECT the site's existing implementation patterns. Don't suggest replacing a working custom schema with generic GA4 events. Instead, suggest improvements WITHIN their existing framework. If they use "form_engagement_n" events, suggest adding parameters to those events — don't suggest switching to "form_submit".
+
 DOMAIN: ${domain}
 BUSINESS: ${JSON.stringify(businessAnalysis)}
+${implSummary}
 
 PERSONA: ${persona.name}
 INTENT: ${persona.intent}
 
 JOURNEY STEPS:
 ${stepSummaries}
-
-TOTALS:
-- Events found across journey: ${totalEventsFound}
-- Events missing across journey: ${totalEventsMissing}
 
 Produce a final journey report as JSON:
 {
@@ -215,33 +263,42 @@ Produce a final journey report as JSON:
     "pathCompleted": true/false,
     "stepsCompleted": ${steps.length},
     "overallTrackingScore": 0-100,
-    "funnelIntegrity": "assessment of whether the full funnel is properly instrumented"
+    "implementationMaturity": "basic|intermediate|advanced|enterprise",
+    "funnelIntegrity": "assessment of the full funnel instrumentation"
   },
-  "criticalGaps": [
+  "implementationStrengths": [
+    "things their implementation does well — be specific"
+  ],
+  "genuineGaps": [
     {
-      "step": "which step in the journey",
-      "gap": "what's missing",
-      "businessImpact": "revenue/data impact of not tracking this",
+      "step": "which step",
+      "gap": "what's actually missing (not just different from textbook)",
+      "evidence": "how you know it's missing vs. just implemented differently",
+      "businessImpact": "revenue/data impact",
       "priority": "critical|high|medium",
       "implementation": {
-        "eventName": "GA4 event to implement",
-        "trigger": "GTM trigger description",
+        "approach": "describe the fix in terms of their existing patterns",
+        "eventName": "event name that fits their naming convention",
         "parameters": {"param": "description"},
-        "notes": "implementation specifics"
+        "notes": "implementation specifics using their GTM setup"
       }
+    }
+  ],
+  "improvementOpportunities": [
+    {
+      "observation": "something that works but could be better",
+      "currentState": "how it works now",
+      "suggestedImprovement": "specific enhancement",
+      "effort": "low|medium|high",
+      "impact": "low|medium|high"
     }
   ],
   "funnelRecommendations": [
     {
-      "observation": "what you noticed about the funnel UX or tracking",
+      "observation": "funnel flow or UX observation",
       "recommendation": "what to change",
       "type": "tracking|ux|architecture"
     }
-  ],
-  "implementationPlan": {
-    "immediate": ["things to fix right now"],
-    "shortTerm": ["fixes for this week"],
-    "longTerm": ["architectural improvements"]
-  }
+  ]
 }`;
 }

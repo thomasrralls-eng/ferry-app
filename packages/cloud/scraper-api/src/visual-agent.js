@@ -142,22 +142,77 @@ async function capturePageState(page) {
 }
 
 /**
- * Summarize page data for the prompt (to keep token count manageable).
+ * Build detailed event data for the prompt.
+ * Shows full event payloads so the agent can analyze parameters,
+ * naming conventions, and custom schemas — not just event names.
  */
-function summarizePageData(dataLayerState, networkHits, analyticsStack) {
-  const eventNames = dataLayerState.ferryEvents
-    .map(e => e.eventName || e.type || "unknown")
-    .filter(Boolean);
+function buildEventDetail(dataLayerState, networkHits, analyticsStack) {
+  // Filter out GTM noise, keep real events with full detail
+  const gtmNoise = new Set(["gtm.js", "gtm.dom", "gtm.load", "gtm.click",
+    "gtm.linkClick", "gtm.formSubmit", "gtm.historyChange",
+    "gtm.scrollDepth", "gtm.timer", "gtm.video"]);
 
-  const uniqueEvents = [...new Set(eventNames)];
+  const meaningfulEvents = [];
+  const noiseCount = { total: 0, types: {} };
+
+  for (const evt of dataLayerState.ferryEvents) {
+    const name = evt.eventName || evt.event || evt.type || "";
+    if (gtmNoise.has(name)) {
+      noiseCount.total++;
+      noiseCount.types[name] = (noiseCount.types[name] || 0) + 1;
+      continue;
+    }
+    // Keep full payload but truncate very long values
+    const cleaned = JSON.parse(JSON.stringify(evt, (key, val) => {
+      if (typeof val === "string" && val.length > 200) return val.slice(0, 200) + "...";
+      return val;
+    }));
+    meaningfulEvents.push(cleaned);
+  }
+
+  // Also include raw dataLayer entries (these often have the custom event names)
+  const rawDlEvents = [];
+  for (const entry of dataLayerState.dataLayerRecent) {
+    if (entry && typeof entry === "object") {
+      const name = entry.event || "";
+      if (!gtmNoise.has(name)) {
+        const cleaned = JSON.parse(JSON.stringify(entry, (key, val) => {
+          if (typeof val === "string" && val.length > 200) return val.slice(0, 200) + "...";
+          return val;
+        }));
+        rawDlEvents.push(cleaned);
+      }
+    }
+  }
+
+  let eventDetail = "";
+
+  if (meaningfulEvents.length > 0 || rawDlEvents.length > 0) {
+    eventDetail += `CAPTURED EVENTS (${meaningfulEvents.length} meaningful, ${noiseCount.total} GTM noise filtered out):\n`;
+    // Show full payloads for up to 15 events to stay within token limits
+    const eventsToShow = meaningfulEvents.slice(0, 15);
+    eventDetail += JSON.stringify(eventsToShow, null, 2);
+
+    if (rawDlEvents.length > 0) {
+      eventDetail += `\n\nRAW DATALAYER ENTRIES (most recent):\n`;
+      eventDetail += JSON.stringify(rawDlEvents.slice(0, 10), null, 2);
+    }
+  } else {
+    eventDetail = `No meaningful events detected (${noiseCount.total} GTM internal events filtered).`;
+  }
+
+  const networkHitsSummary = networkHits.length > 0
+    ? networkHits.map(h => {
+        const parts = [`type: ${h.hitType || "unknown"}`];
+        if (h.hasUserId) parts.push("has_user_id");
+        if (h.customDimensionCount) parts.push(`custom_dims: ${h.customDimensionCount}`);
+        return `  - ${parts.join(", ")}`;
+      }).join("\n")
+    : "No GA4 network hits detected.";
 
   return {
-    dataLayerSummary: uniqueEvents.length > 0
-      ? `Events detected: ${uniqueEvents.join(", ")} (${eventNames.length} total fires)`
-      : "No dataLayer events detected on this page.",
-    networkHitsSummary: networkHits.length > 0
-      ? `${networkHits.length} network hits: ${networkHits.map(h => h.hitType || "unknown").join(", ")}`
-      : "No GA4 network hits detected.",
+    eventDetail,
+    networkHitsSummary,
     analyticsStack: JSON.stringify(analyticsStack),
   };
 }
@@ -254,6 +309,78 @@ async function executeAction(page, action) {
           return false;
         }, target);
         return typed;
+      }
+
+      case "select": {
+        // Select an option from a dropdown, radio button, or clickable option
+        const selected = await page.evaluate((targetText) => {
+          const lower = targetText.toLowerCase();
+
+          // Try select/option elements first
+          const selects = document.querySelectorAll("select");
+          for (const sel of selects) {
+            for (const opt of sel.options) {
+              if (opt.text.toLowerCase().includes(lower) || opt.value.toLowerCase().includes(lower)) {
+                sel.value = opt.value;
+                sel.dispatchEvent(new Event("change", { bubbles: true }));
+                return "select-option";
+              }
+            }
+          }
+
+          // Try radio buttons / checkboxes
+          const labels = document.querySelectorAll("label");
+          for (const label of labels) {
+            if (label.textContent.toLowerCase().includes(lower)) {
+              const input = label.querySelector("input") || document.getElementById(label.htmlFor);
+              if (input) {
+                input.click();
+                return "radio-or-checkbox";
+              }
+              label.click();
+              return "label-click";
+            }
+          }
+
+          // Try clickable divs/cards that look like options
+          const allEls = document.querySelectorAll("[role='option'], [role='radio'], [data-value], .option, .choice, [class*='option'], [class*='select']");
+          for (const el of allEls) {
+            if (el.textContent.toLowerCase().includes(lower)) {
+              el.scrollIntoView({ behavior: "instant", block: "center" });
+              el.click();
+              return "custom-option";
+            }
+          }
+
+          // Fallback: any clickable element with matching text
+          const all = document.querySelectorAll("*");
+          for (const el of all) {
+            const text = el.textContent?.trim().toLowerCase() || "";
+            const directText = el.childNodes.length <= 2 ? text : "";
+            if (directText && directText.includes(lower) && el.offsetParent !== null) {
+              el.scrollIntoView({ behavior: "instant", block: "center" });
+              el.click();
+              return "text-match-click";
+            }
+          }
+
+          return null;
+        }, target);
+
+        if (!selected) {
+          console.warn(`[visual] Could not find selectable element: "${target}"`);
+          return false;
+        }
+
+        console.log(`[visual] Selected via ${selected}: "${target}"`);
+
+        // Wait for potential auto-advance or UI update
+        await Promise.race([
+          page.waitForNavigation({ waitUntil: "domcontentloaded", timeout: 8000 }),
+          new Promise(r => setTimeout(r, 3000)),
+        ]).catch(() => {});
+
+        return true;
       }
 
       case "complete": {
@@ -356,7 +483,7 @@ export async function visualScan(url, options = {}) {
 
     // Capture initial page state
     const homeState = await capturePageState(page);
-    const homeSummary = summarizePageData(homeState.dataLayerState, networkHits, homeState.analyticsStack);
+    const homeData = buildEventDetail(homeState.dataLayerState, networkHits, homeState.analyticsStack);
 
     // Store homepage screenshot
     report.screenshots.push({
@@ -369,14 +496,16 @@ export async function visualScan(url, options = {}) {
     // Ask Gemini to research the domain
     const domainResearch = await callGeminiVision(
       systemPrompt,
-      buildDomainResearchPrompt(url, homeSummary),
+      buildDomainResearchPrompt(url, homeData),
       homeState.screenshot,
       { maxTokens: 4096 }
     );
 
     report.businessAnalysis = domainResearch.businessAnalysis;
+    report.existingImplementation = domainResearch.existingImplementation || null;
     progress("research", {
       message: `Identified: ${domainResearch.businessAnalysis?.industry}`,
+      implementation: domainResearch.existingImplementation?.sophisticationLevel,
       personas: domainResearch.journeyPlan?.personas?.length || 0,
     });
 
@@ -437,7 +566,7 @@ export async function visualScan(url, options = {}) {
         const state = await capturePageState(journeyPage);
         const currentUrl = journeyPage.url();
         const hitsSinceLastStep = journeyNetworkHits.slice(stepStartHits);
-        const summary = summarizePageData(state.dataLayerState, hitsSinceLastStep, state.analyticsStack);
+        const pageData = buildEventDetail(state.dataLayerState, hitsSinceLastStep, state.analyticsStack);
 
         // Store screenshot
         report.screenshots.push({
@@ -475,8 +604,9 @@ export async function visualScan(url, options = {}) {
           totalSteps: maxSteps,
           currentPersona: persona,
           previousPages: journey.steps,
-          dataLayerSummary: summary.dataLayerSummary,
-          networkHitsSummary: summary.networkHitsSummary,
+          eventDetail: pageData.eventDetail,
+          networkHitsSummary: pageData.networkHitsSummary,
+          existingImplementation: report.existingImplementation,
           eventsFired: hitsSinceLastStep.length > 0
             ? `${hitsSinceLastStep.length} network hits fired during navigation`
             : "No network hits fired during navigation to this page",
@@ -489,15 +619,17 @@ export async function visualScan(url, options = {}) {
           { maxTokens: 4096 }
         );
 
-        // Record step
+        // Record step — using new schema fields
+        const assessment = pageAnalysis.analyticsAssessment || {};
         journey.steps.push({
           url: journeyPage.url(),
           pageType: pageAnalysis.pageAnalysis?.pageType || "unknown",
           funnelPosition: pageAnalysis.pageAnalysis?.funnelPosition || "unknown",
-          trackingScore: pageAnalysis.analyticsAssessment?.trackingScore || 0,
-          eventsFound: pageAnalysis.analyticsAssessment?.eventsFound || [],
-          eventsMissing: pageAnalysis.analyticsAssessment?.eventsMissing || [],
-          issues: pageAnalysis.analyticsAssessment?.issues || [],
+          formBehavior: pageAnalysis.pageAnalysis?.formBehavior || null,
+          trackingScore: assessment.trackingScore || 0,
+          eventsObserved: assessment.eventsObserved || [],
+          trackingCoverage: assessment.trackingCoverage || {},
+          issues: assessment.issues || [],
           eventsFiredCount: state.dataLayerState.ferryEvents.length,
           analysis: pageAnalysis,
         });
@@ -518,8 +650,8 @@ export async function visualScan(url, options = {}) {
       }
 
       // Generate journey summary
-      const totalEventsFound = journey.steps.reduce((sum, s) => sum + s.eventsFound.length, 0);
-      const totalEventsMissing = journey.steps.reduce((sum, s) => sum + s.eventsMissing.length, 0);
+      const totalEventsObserved = journey.steps.reduce((sum, s) => sum + (s.eventsObserved?.length || 0), 0);
+      const totalGaps = journey.steps.reduce((sum, s) => sum + (s.trackingCoverage?.whatIsNotTracked?.length || 0), 0);
 
       const journeySummary = await callGeminiVision(
         systemPrompt,
@@ -528,8 +660,9 @@ export async function visualScan(url, options = {}) {
           businessAnalysis: report.businessAnalysis,
           persona,
           steps: journey.steps,
-          totalEventsFound,
-          totalEventsMissing,
+          totalEventsFound: totalEventsObserved,
+          totalEventsMissing: totalGaps,
+          existingImplementation: report.existingImplementation,
         }),
         null, // No screenshot needed for summary
         { maxTokens: 8192 }
