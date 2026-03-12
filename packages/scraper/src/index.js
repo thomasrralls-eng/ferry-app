@@ -1,5 +1,5 @@
 /**
- * @ferry/scraper — gd ferry cloud scraper
+ * @ferry/scraper — gd fairy cloud scraper
  *
  * Headless browser crawler that visits websites, captures GA4/GTM
  * events from the dataLayer, and runs them through the lint rules

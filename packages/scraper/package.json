@@ -1,7 +1,7 @@
 {
   "name": "@ferry/scraper",
   "version": "0.1.0",
-  "description": "gd ferry cloud scraper — headless browser crawler for GA4/GTM data quality analysis",
+  "description": "gd fairy cloud scraper — headless browser crawler for GA4/GTM data quality analysis",
   "type": "module",
   "main": "src/index.js",
   "scripts": {

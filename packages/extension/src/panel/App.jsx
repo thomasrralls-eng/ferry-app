@@ -11,6 +11,17 @@ import useFerryRecorder from "./hooks/useFerryRecorder.js";
 import useFerryCrawler from "./hooks/useFerryCrawler.js";
 import { analyzeSession } from "./analysis-agent.js";
 
+// ── Fairy logo — loaded via chrome.runtime.getURL for extension compatibility ──
+function FairyLogo({ size = 28 }) {
+  const src = typeof chrome !== "undefined" && chrome.runtime
+    ? chrome.runtime.getURL("icons/gdfairy_square.png")
+    : "../icons/gdfairy_square.png";
+  return (
+    <img src={src} alt="gd fairy" width={size} height={size}
+      style={{ display: "block", flexShrink: 0, borderRadius: 8 }} />
+  );
+}
+
 const GA4_TABS = [
   { id: "findings", label: "Findings" },
   { id: "events",   label: "Events" },
@@ -191,8 +202,8 @@ export default function App() {
       <EmptyState
         title={recording ? "No issues found yet" : "Start recording to analyze events"}
         subtitle={recording
-          ? "Browse the site and Ferry will flag data quality issues in real time."
-          : "Click Record, then browse the site. Ferry analyzes every dataLayer push and GA4 network hit."
+          ? "Browse the site — gd fairy will flag data quality issues in real time."
+          : "Click Record, then browse the site. gd fairy catches every dataLayer push and GA4 hit."
         }
       />
     ) : (
@@ -248,11 +259,11 @@ export default function App() {
   return (
     <div className="p-4 min-h-screen">
       {/* ── Header ── */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center">
-          <span className="text-[15px] font-extrabold tracking-tight">
-            <span style={{ color: "#4285F4", fontStyle: "italic" }}>g</span>
-            <span className="text-indigo-600">d ferry</span>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-0.5">
+          <FairyLogo size={22} />
+          <span className="text-[14px] font-bold tracking-tight text-slate-800">
+            gd fairy<span className="text-indigo-400 ml-0.5">✦</span>
           </span>
         </div>
         <Toolbar
@@ -265,23 +276,23 @@ export default function App() {
       </div>
 
       {/* ── Mode Selector ── */}
-      <div className="flex gap-1 mb-3 bg-indigo-50/60 rounded-lg p-0.5 border border-indigo-100/50">
+      <div className="flex gap-1 mb-3 bg-slate-100 rounded-lg p-0.5">
         <button
           onClick={() => handleModeChange("ga4")}
-          className={`flex-1 px-3 py-1.5 text-xs font-semibold rounded-md transition ${
+          className={`flex-1 px-3 py-1.5 text-[12px] font-semibold rounded-md transition ${
             mode === "ga4"
               ? "bg-white text-indigo-600 shadow-sm"
-              : "text-indigo-300 hover:text-indigo-500"
+              : "text-slate-400 hover:text-slate-600"
           }`}
         >
           GA4
         </button>
         <button
           onClick={() => handleModeChange("gtm")}
-          className={`flex-1 px-3 py-1.5 text-xs font-semibold rounded-md transition ${
+          className={`flex-1 px-3 py-1.5 text-[12px] font-semibold rounded-md transition ${
             mode === "gtm"
               ? "bg-white text-indigo-600 shadow-sm"
-              : "text-indigo-300 hover:text-indigo-500"
+              : "text-slate-400 hover:text-slate-600"
           }`}
         >
           GTM
@@ -321,7 +332,7 @@ export default function App() {
       {hasData && !showAgentReport && !recording && !crawling && (
         <button
           onClick={runAnalysis}
-          className="w-full mb-3 py-2 text-xs font-semibold text-indigo-600 bg-gradient-to-r from-indigo-50 to-violet-50 border border-indigo-200/60 rounded-lg hover:from-indigo-100 hover:to-violet-100 transition flex items-center justify-center gap-1.5"
+          className="w-full mb-3 py-2 text-[12px] font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-lg hover:bg-indigo-100 hover:border-indigo-200 transition flex items-center justify-center gap-1.5"
         >
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />

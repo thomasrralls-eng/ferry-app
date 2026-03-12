@@ -1,8 +1,8 @@
-# Ferry
+# gd fairy
 
-Bridge messy data into Google products — optimally.
+A little magic for your Google data quality.
 
-Ferry is a suite of tools that monitor, transform, and stream data between websites, CRMs, and Google's marketing and analytics platforms (GA4, Google Ads, BigQuery).
+gd fairy is a suite of tools that monitor, transform, and stream data between websites, CRMs, and Google's marketing and analytics platforms (GA4, Google Ads, BigQuery).
 
 ## Repository Structure
 
@@ -23,7 +23,7 @@ packages/
 3. Click "Load unpacked"
 4. Select the `packages/extension/` directory
 
-Open DevTools on any page → click the "Ferry" tab → Start recording.
+Open DevTools on any page → click the "gd fairy" tab → Start recording.
 
 ### Core Library
 

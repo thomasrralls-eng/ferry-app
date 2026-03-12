@@ -162,6 +162,12 @@
     window.dataLayer = window.dataLayer || [];
     const dl = window.dataLayer;
     if (dl.__ferry_hooked) return;
+
+    // Some sites (e.g. Marriott) define dataLayer via Object.defineProperty with
+    // a getter, so the assignment above silently fails and dl may be a custom
+    // object with no push/forEach. Bail out gracefully rather than throwing.
+    if (typeof dl.push !== "function") return;
+
     dl.__ferry_hooked = true;
 
     const originalPush = dl.push.bind(dl);
@@ -176,12 +182,14 @@
     };
 
     // Backfill existing items
-    dl.forEach((item) => {
-      if (item && typeof item === "object" && Object.prototype.toString.call(item) === "[object Arguments]") {
-        item = Array.from(item);
-      }
-      post(normalizeItem(item));
-    });
+    if (typeof dl.forEach === "function") {
+      dl.forEach((item) => {
+        if (item && typeof item === "object" && Object.prototype.toString.call(item) === "[object Arguments]") {
+          item = Array.from(item);
+        }
+        post(normalizeItem(item));
+      });
+    }
   }
 
   // --------------------------

@@ -1,16 +1,14 @@
 /**
- * server.js — gd ferry scraper API
+ * server.js — gd fairy scraper API
  *
  * Cloud Run HTTP service that exposes the scraper as a REST API.
  *
  * Endpoints:
  *   POST /scan/recon   — Quick recon scan (~5 pages, <60s)
  *   POST /scan/full    — Full scan (recon + deep crawl + report)
+ *   POST /scan/visual  — AI-guided visual journey analysis
  *   POST /analyze      — Run AI analysis on previously collected scan data
  *   GET  /health       — Health check
- *
- * Query params:
- *   ?analyze=true      — Automatically run AI analysis after scan
  */
 
 import express from "express";
@@ -23,17 +21,66 @@ app.use(express.json({ limit: "5mb" }));
 
 const PORT = process.env.PORT || 8080;
 
+// ─── Request tracking for basic rate limiting ────────────────────
+const requestLog = new Map(); // ip -> { count, resetAt }
+const RATE_LIMIT = 30; // requests per minute per IP
+const RATE_WINDOW = 60_000;
+
+function rateLimit(req, res, next) {
+  const ip = req.ip || req.headers["x-forwarded-for"] || "unknown";
+  const now = Date.now();
+  const entry = requestLog.get(ip);
+
+  if (!entry || now > entry.resetAt) {
+    requestLog.set(ip, { count: 1, resetAt: now + RATE_WINDOW });
+    return next();
+  }
+
+  entry.count++;
+  if (entry.count > RATE_LIMIT) {
+    return res.status(429).json({ error: "Rate limit exceeded. Max 30 requests per minute." });
+  }
+  return next();
+}
+
+// Clean up stale rate limit entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, entry] of requestLog) {
+    if (now > entry.resetAt) requestLog.delete(ip);
+  }
+}, 300_000);
+
+// Apply rate limiting to scan endpoints
+app.use("/scan", rateLimit);
+app.use("/analyze", rateLimit);
+
+// ─── URL validation ──────────────────────────────────────────────
+function validateUrl(url) {
+  if (!url || typeof url !== "string") return null;
+  try {
+    const parsed = new URL(url.trim());
+    if (!["http:", "https:"].includes(parsed.protocol)) return null;
+    const h = parsed.hostname;
+    if (h === "localhost" || h === "127.0.0.1" || h.startsWith("192.168.") || h.startsWith("10.") || h.startsWith("172.16.")) return null;
+    return parsed.href;
+  } catch {
+    return null;
+  }
+}
+
 // ─── Health check ───────────────────────────────────────────────
 app.get("/health", (_req, res) => {
-  res.json({ status: "ok", service: "ferry-scraper", version: "0.2.0", agent: "gemini-2.0-flash" });
+  res.json({ status: "ok", service: "fairy-scraper", version: "0.4.0", agent: "gemini-2.0-flash" });
 });
 
 // ─── Recon scan (quick) ─────────────────────────────────────────
 app.post("/scan/recon", async (req, res) => {
-  const { url, analyze = false } = req.body;
+  const { url: rawUrl, analyze = false } = req.body;
+  const url = validateUrl(rawUrl);
 
   if (!url) {
-    return res.status(400).json({ error: "Missing required field: url" });
+    return res.status(400).json({ error: "Missing or invalid URL. Must be a valid http/https URL." });
   }
 
   try {
@@ -41,11 +88,9 @@ app.post("/scan/recon", async (req, res) => {
     console.log(`[recon] Starting scan: ${url}`);
 
     const report = await reconScan(url);
-
     const scanDuration = ((Date.now() - startTime) / 1000).toFixed(1);
     console.log(`[recon] Scan complete: ${url} (${scanDuration}s)`);
 
-    // Run AI analysis if requested
     let aiAnalysis = null;
     if (analyze) {
       aiAnalysis = await analyzeReconScan(report);
@@ -73,10 +118,11 @@ app.post("/scan/recon", async (req, res) => {
 
 // ─── Full scan (recon + deep crawl + report) ────────────────────
 app.post("/scan/full", async (req, res) => {
-  const { url, maxPages = 50, analyze = false } = req.body;
+  const { url: rawUrl, maxPages = 50, analyze = false } = req.body;
+  const url = validateUrl(rawUrl);
 
   if (!url) {
-    return res.status(400).json({ error: "Missing required field: url" });
+    return res.status(400).json({ error: "Missing or invalid URL. Must be a valid http/https URL." });
   }
 
   const pageLimit = Math.min(maxPages, 200);
@@ -86,11 +132,9 @@ app.post("/scan/full", async (req, res) => {
     console.log(`[full] Starting scan: ${url} (max ${pageLimit} pages)`);
 
     const report = await scanSite(url, { maxPages: pageLimit });
-
     const scanDuration = ((Date.now() - startTime) / 1000).toFixed(1);
     console.log(`[full] Scan complete: ${url} — ${scanDuration}s`);
 
-    // Run AI analysis if requested
     let aiAnalysis = null;
     if (analyze) {
       aiAnalysis = await analyzeFullScan(report);
@@ -117,8 +161,6 @@ app.post("/scan/full", async (req, res) => {
 });
 
 // ─── Standalone AI analysis ─────────────────────────────────────
-// Accepts a previously collected scan report and runs AI analysis.
-// Useful for re-analyzing without re-crawling.
 app.post("/analyze", async (req, res) => {
   const { report, scanType = "recon" } = req.body;
 
@@ -146,10 +188,11 @@ app.post("/analyze", async (req, res) => {
 
 // ─── Visual scan (AI-guided journey analysis) ──────────────────
 app.post("/scan/visual", async (req, res) => {
-  const { url, maxSteps = 12, maxPersonas = 2, includeScreenshots = false } = req.body;
+  const { url: rawUrl, maxSteps = 12, maxPersonas = 2, includeScreenshots = false } = req.body;
+  const url = validateUrl(rawUrl);
 
   if (!url) {
-    return res.status(400).json({ error: "Missing required field: url" });
+    return res.status(400).json({ error: "Missing or invalid URL. Must be a valid http/https URL." });
   }
 
   try {
@@ -186,9 +229,20 @@ app.post("/scan/visual", async (req, res) => {
   }
 });
 
+// ─── 404 handler ────────────────────────────────────────────────
+app.use((_req, res) => {
+  res.status(404).json({ error: "Not found. Available endpoints: /scan/recon, /scan/full, /scan/visual, /analyze, /health" });
+});
+
+// ─── Global error handler ───────────────────────────────────────
+app.use((err, _req, res, _next) => {
+  console.error("[server] Unhandled error:", err);
+  res.status(500).json({ error: "Internal server error" });
+});
+
 // ─── Start server ───────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`gd ferry scraper API v0.3.0 listening on port ${PORT}`);
+  console.log(`gd fairy scraper API v0.4.0 listening on port ${PORT}`);
   console.log(`AI agent: Gemini 2.0 Flash via Vertex AI`);
   console.log(`Endpoints: /scan/recon, /scan/full, /scan/visual, /analyze, /health`);
 });

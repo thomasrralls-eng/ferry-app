@@ -17,7 +17,9 @@ export default function AgentReportPanel({ report, onDismiss, onViewFindings }) 
 
   if (!report) return null;
 
-  const { health, riskBuckets, actionItems, insights, crawlAnalysis, summary, tierBreakdown, ga4Version } = report;
+  const { health, mode, riskBuckets, actionItems, insights, crawlAnalysis, summary, tierBreakdown, ga4Version } = report;
+  const scoreLabel = mode === "gtm" ? "GTM Implementation Score" : "GA4 Implementation Score";
+  const analysisLabel = mode === "gtm" ? "GTM Analysis" : "GA4 Analysis";
 
   const toggleBucket = (key) => {
     setCollapsedBuckets(prev => ({ ...prev, [key]: !prev[key] }));
@@ -34,7 +36,7 @@ export default function AgentReportPanel({ report, onDismiss, onViewFindings }) 
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-indigo-900">
-              Analysis Complete
+              {analysisLabel}
             </span>
             {ga4Version && ga4Version.version !== "free" && (
               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
@@ -68,7 +70,7 @@ export default function AgentReportPanel({ report, onDismiss, onViewFindings }) 
 
         {/* Score ring */}
         <div className="flex items-center gap-4">
-          <HealthRing score={health.score} label={health.label} />
+          <HealthRing score={health.score} label={health.label} scoreLabel={scoreLabel} />
           <div className="flex-1">
             <div className="flex gap-3 text-center">
               <StatPill value={summary.totalEvents || 0} label="Events" color="indigo" />
@@ -211,7 +213,7 @@ export default function AgentReportPanel({ report, onDismiss, onViewFindings }) 
               </h4>
               <p className="text-xs text-gray-500 leading-relaxed mb-2">
                 Medium- and high-risk changes require connecting your GTM container or GA4 property
-                so Ferry can safely apply changes, preview them, and roll back if needed.
+                so gd fairy can safely apply changes, preview them, and roll back if needed.
               </p>
               <button className="px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-indigo-500 to-violet-500 rounded-lg hover:from-indigo-600 hover:to-violet-600 shadow-sm transition">
                 Connect GTM/GA4 — Coming Soon
@@ -285,7 +287,7 @@ function ExternalLinkIcon() {
 // Sub-components
 // ──────────────────────────────────────────────
 
-function HealthRing({ score, label }) {
+function HealthRing({ score, label, scoreLabel = "Implementation Score" }) {
   const size = 96;
   const center = size / 2;
   const radius = 40;
@@ -315,7 +317,7 @@ function HealthRing({ score, label }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-xl font-bold text-gray-800" style={{ lineHeight: 1 }}>{score}</span>
-        <span className="text-[8px] text-gray-400 font-medium uppercase mt-1 tracking-wide">Health Score</span>
+        <span className="text-[8px] text-gray-400 font-medium uppercase mt-1 tracking-wide leading-tight text-center px-1">{scoreLabel}</span>
       </div>
     </div>
   );

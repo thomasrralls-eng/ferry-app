@@ -1,7 +1,7 @@
 /**
  * robots.txt — Fetch, parse, and enforce robots.txt compliance.
  *
- * gd ferry respects every site's robots.txt. Before visiting any URL,
+ * gd fairy respects every site's robots.txt. Before visiting any URL,
  * the scraper checks `isAllowed()` and obeys `Crawl-delay`.
  *
  * Uses a simple built-in parser (no external dependency) that handles
@@ -9,7 +9,7 @@
  * Crawl-delay, and Sitemap.
  */
 
-const USER_AGENT = "FerryBot/1.0 (+https://gdferry.com/bot)";
+const USER_AGENT = "GdFairyBot/1.0 (+https://gdfairy.com/bot)";
 const DEFAULT_CRAWL_DELAY = 2; // seconds — our minimum politeness floor
 
 /**

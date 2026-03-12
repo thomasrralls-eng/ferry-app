@@ -1,7 +1,7 @@
 {
   "name": "@ferry/scraper-api",
   "version": "0.1.0",
-  "description": "gd ferry — Cloud Run API for the GA4/GTM scraper",
+  "description": "gd fairy — Cloud Run API for the GA4/GTM scraper",
   "type": "module",
   "main": "src/server.js",
   "scripts": {

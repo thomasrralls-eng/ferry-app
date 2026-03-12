@@ -3,985 +3,575 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>gd ferry — the bridge between your data and google</title>
-  <meta name="description" content="gd ferry inspects the data you're sending to Google platforms — GA4, GTM, Google Ads, and more. Find broken events, missing parameters, and implementation issues before they corrupt your reports. Free Chrome extension." />
-
-  <!-- Fonts -->
+  <title>gd fairy — Google Data Fairy for GA4 & GTM</title>
+  <meta name="description" content="gd fairy (Google Data Fairy) audits your GA4 and GTM implementation, finds broken tracking, and tells you exactly what to fix." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --indigo: #6366f1;
-      --indigo-dark: #4f46e5;
-      --indigo-deeper: #4338ca;
-      --indigo-light: #e0e7ff;
-      --violet: #8b5cf6;
-      --lavender: #c4b5fd;
-      --gold: #fbbf24;
-      --slate-900: #0f172a;
-      --slate-800: #1e293b;
-      --slate-700: #334155;
-      --slate-500: #64748b;
-      --slate-400: #94a3b8;
-      --slate-300: #cbd5e1;
-      --slate-100: #f1f5f9;
-      --slate-50: #f8fafc;
-      --white: #ffffff;
-      --green: #22c55e;
-      --amber: #f59e0b;
-      --red: #ef4444;
-      /* Google brand colors */
-      --g-blue: #4285F4;
-      --g-red: #EA4335;
-      --g-yellow: #FBBC05;
-      --g-green: #34A853;
+      --indigo:      #6366f1;
+      --indigo-mid:  #4f46e5;
+      --indigo-deep: #3730a3;
+      --gold:        #f59e0b;
+      --slate-950:   #020617;
+      --slate-900:   #0f172a;
+      --slate-800:   #1e293b;
+      --slate-700:   #334155;
+      --slate-600:   #475569;
+      --slate-500:   #64748b;
+      --slate-400:   #94a3b8;
+      --slate-300:   #cbd5e1;
+      --slate-200:   #e2e8f0;
+      --slate-100:   #f1f5f9;
+      --slate-50:    #f8fafc;
+      --white:       #ffffff;
+      --green:       #22c55e;
+      --amber:       #f59e0b;
+      --red:         #ef4444;
+      --radius-xl:   24px;
+      --radius-lg:   18px;
+      --shadow:      0 1px 3px rgba(15,23,42,0.06), 0 8px 24px rgba(15,23,42,0.06);
+      --shadow-lg:   0 2px 8px rgba(15,23,42,0.06), 0 24px 64px rgba(15,23,42,0.09);
     }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 15px; line-height: 1.6;
       color: var(--slate-700);
-      line-height: 1.6;
       background: var(--white);
       -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
     }
+    img { max-width: 100%; display: block; }
+    a { color: inherit; text-decoration: none; }
+    .container { width: min(1120px, calc(100% - 48px)); margin: 0 auto; }
 
-    /* ─── Layout ─── */
-    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
-    section { padding: 96px 0; }
-
-    /* ─── Nav ─── */
-    nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      background: rgba(15, 23, 42, 0.7);
+    /* HEADER */
+    .site-header {
+      position: sticky; top: 0; z-index: 50;
       backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      transition: background 0.3s;
+      background: rgba(255,255,255,0.88);
+      border-bottom: 1px solid var(--slate-200);
     }
-    .nav-inner {
+    .header-inner {
       display: flex; align-items: center; justify-content: space-between;
-      height: 64px;
+      height: 64px; gap: 24px;
     }
-    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-    .nav-logo-mark {
-      width: 34px; height: 34px; border-radius: 10px;
-      background: linear-gradient(135deg, var(--indigo) 0%, var(--indigo-dark) 100%);
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 2px 8px rgba(99,102,241,0.4);
+    .brand {
+      display: inline-flex; align-items: center; gap: 2px;
+      font-weight: 700; letter-spacing: -0.03em; color: var(--slate-900); font-size: 17px;
     }
-    .nav-wordmark { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
-    .nav-gd-g { color: var(--g-blue); font-style: italic; }
-    .nav-gd-d { color: var(--white); }
-    .nav-ferry { color: var(--white); }
-    .nav-cta {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 9px 22px; border-radius: 10px; font-size: 14px; font-weight: 700;
-      background: linear-gradient(135deg, var(--indigo) 0%, var(--violet) 100%);
-      color: white; text-decoration: none;
-      transition: transform 0.2s, box-shadow 0.2s;
-      box-shadow: 0 2px 12px rgba(99,102,241,0.3);
+    .brand-mark { width: 36px; height: 36px; border-radius: 12px; overflow: hidden; flex: 0 0 auto; }
+    .brand-mark img { width: 36px; height: 36px; object-fit: contain; }
+    .brand-name { display: inline-flex; align-items: center; gap: 4px; }
+    .brand-name .spark { color: var(--gold); font-size: 13px; transform: translateY(-3px); }
+    .nav-links {
+      display: inline-flex; align-items: center; gap: 24px;
+      color: var(--slate-500); font-size: 13px; font-weight: 500;
     }
-    .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(99,102,241,0.4); }
+    .nav-links a:hover { color: var(--slate-900); }
+    .header-actions { display: inline-flex; align-items: center; gap: 10px; }
 
-    /* ─── gd stylization ─── */
-    .gd-g { color: var(--g-blue); font-style: italic; }
-    .gd-d { font-style: normal; }
+    /* BUTTONS */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      border-radius: 12px; padding: 10px 18px;
+      font-weight: 600; font-size: 13px; font-family: inherit;
+      transition: 0.15s ease; border: 1px solid transparent; cursor: pointer;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: var(--indigo); color: var(--white); box-shadow: 0 4px 14px rgba(99,102,241,0.25); }
+    .btn-primary:hover { background: var(--indigo-mid); box-shadow: 0 4px 18px rgba(99,102,241,0.35); }
+    .btn-secondary { background: var(--white); color: var(--slate-800); border-color: var(--slate-200); }
+    .btn-secondary:hover { border-color: var(--slate-300); }
+    .btn-lg { padding: 13px 24px; font-size: 14px; border-radius: 14px; }
+    .btn-disabled { background: var(--slate-100); color: var(--slate-400); border-color: var(--slate-200); cursor: not-allowed; }
+    .btn-disabled:hover { transform: none; box-shadow: none; }
 
-    /* ─── Hero ─── */
+    /* HERO */
     .hero {
-      padding: 140px 0 100px;
-      text-align: center;
-      background: linear-gradient(165deg, var(--slate-900) 0%, #1e1b4b 40%, var(--indigo-deeper) 100%);
-      position: relative;
-      overflow: hidden;
+      padding: 80px 0 96px;
+      background: linear-gradient(180deg, var(--slate-50) 0%, var(--white) 100%);
     }
-    .hero::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: radial-gradient(ellipse at 50% 0%, rgba(139,92,246,0.15) 0%, transparent 70%);
-      pointer-events: none;
+    .hero-grid {
+      display: grid; grid-template-columns: minmax(0,1.05fr) minmax(340px,0.95fr);
+      gap: 48px; align-items: center;
     }
-    .hero .container { position: relative; z-index: 2; }
-    .hero-badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 7px 16px; border-radius: 100px; font-size: 13px; font-weight: 600;
-      background: rgba(139,92,246,0.15); color: var(--lavender);
-      border: 1px solid rgba(139,92,246,0.2); margin-bottom: 28px;
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px;
+      border-radius: 999px; background: rgba(99,102,241,0.07);
+      color: var(--indigo-deep); font-size: 12px; font-weight: 600;
+      border: 1px solid rgba(99,102,241,0.12); margin-bottom: 20px;
     }
-    .hero-badge .sparkle { font-size: 14px; }
-    .hero h1 {
-      font-size: clamp(38px, 5.5vw, 62px); font-weight: 900; line-height: 1.08;
-      color: var(--white); letter-spacing: -2px; margin-bottom: 24px;
-      max-width: 780px; margin-left: auto; margin-right: auto;
-    }
-    .hero h1 .gd { letter-spacing: -1px; }
-    .hero h1 .accent { color: var(--lavender); }
-    .hero p {
-      font-size: 19px; color: var(--slate-400); max-width: 560px;
-      margin: 0 auto 44px; line-height: 1.7;
-    }
-    .hero p strong { color: var(--lavender); font-weight: 600; }
+    h1 { color: var(--slate-950); letter-spacing: -0.045em; font-size: clamp(34px,5vw,52px); line-height: 1.02; margin-bottom: 18px; }
+    .hero-copy > p { font-size: 16px; line-height: 1.7; color: var(--slate-600); max-width: 540px; margin-bottom: 28px; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--slate-500); font-size: 13px; }
+    .hero-meta span::before { content: '·'; color: var(--gold); margin-right: 7px; font-weight: 800; font-size: 16px; vertical-align: middle; }
 
-    /* ─── Hero Logo ─── */
-    .hero-logo {
-      width: 140px; height: 140px; margin: 0 auto 36px;
-      border-radius: 36px;
-      background: linear-gradient(135deg, rgba(99,102,241,0.25) 0%, rgba(139,92,246,0.2) 100%);
-      border: 1px solid rgba(196,181,253,0.2);
-      display: flex; align-items: center; justify-content: center;
-      position: relative;
-      animation: fairy-breathe 4s ease-in-out infinite;
+    /* Hero panel */
+    .hero-panel {
+      border-radius: 28px; overflow: hidden; background: #2e2b6e;
+      color: var(--white); padding: 22px;
+      box-shadow: 0 32px 64px rgba(46,43,110,0.22);
+      border: 1px solid rgba(255,255,255,0.06);
     }
-    .hero-logo::before {
-      content: '';
-      position: absolute; inset: -20px; border-radius: 50px;
-      background: radial-gradient(circle, rgba(139,92,246,0.2) 0%, transparent 70%);
-      animation: fairy-glow 4s ease-in-out infinite;
+    .panel-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+    .panel-brand { display: inline-flex; align-items: center; gap: 2px; font-weight: 700; font-size: 14px; letter-spacing: -0.02em; }
+    .panel-brand .mark { font-size: 18px; line-height: 1; color: var(--gold); }
+    .pill { padding: 5px 10px; border-radius: 999px; background: rgba(255,255,255,0.1); font-size: 11px; color: rgba(255,255,255,0.78); border: 1px solid rgba(255,255,255,0.08); }
+    .score-card {
+      display: grid; grid-template-columns: 106px 1fr; gap: 16px;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px; padding: 18px; margin-bottom: 14px;
     }
-    /* orb glow now lives inside the SVG — no external pseudo-element needed */
-    @keyframes fairy-breathe {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
+    .score-ring {
+      width: 106px; height: 106px; border-radius: 50%; position: relative;
+      background: conic-gradient(var(--gold) 0 72%, rgba(255,255,255,0.1) 72% 100%);
+      display: grid; place-items: center;
     }
-    @keyframes fairy-glow {
-      0%, 100% { opacity: 0.5; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.08); }
+    .score-ring-inner { width: 76px; height: 76px; border-radius: 50%; background: #26246e; position: absolute; }
+    .score-value { position: relative; z-index: 1; text-align: center; }
+    .score-value strong { display: block; font-size: 30px; line-height: 1; }
+    .score-value span { font-size: 11px; color: rgba(255,255,255,0.6); }
+    .score-copy h3 { margin-bottom: 8px; font-size: 16px; letter-spacing: -0.025em; }
+    .score-copy p { color: rgba(255,255,255,0.72); font-size: 13px; line-height: 1.6; }
+    .issue-list { list-style: none; display: grid; gap: 8px; }
+    .issue-row {
+      display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px; padding: 10px 12px;
     }
-    @keyframes sparkle-pulse {
-      0%, 100% { transform: scale(1); opacity: 0.8; }
-      50% { transform: scale(1.3); opacity: 1; }
-    }
+    .severity { width: 8px; height: 8px; border-radius: 999px; box-shadow: 0 0 0 3px rgba(255,255,255,0.05); }
+    .severity.critical { background: var(--red); }
+    .severity.high { background: var(--amber); }
+    .severity.ok { background: var(--green); }
+    .issue-row strong { display: block; font-size: 13px; }
+    .issue-row small { color: rgba(255,255,255,0.55); font-size: 11px; }
+    .tag { padding: 4px 9px; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: 0.03em; background: rgba(255,255,255,0.1); }
 
-    /* ─── Fairy Wing Particles ─── */
-    .sparkles {
-      position: absolute; inset: 0; pointer-events: none; overflow: hidden;
-    }
-    .fairy-particle {
-      position: absolute;
-      animation: fairy-float 8s ease-in-out infinite;
-    }
-    .fairy-particle svg { display: block; }
-    @keyframes fairy-float {
-      0%, 100% { opacity: 0; transform: translateY(0) rotate(0deg) scale(0.4); }
-      25% { opacity: 0.8; transform: translateY(-20px) rotate(8deg) scale(0.9); }
-      50% { opacity: 1; transform: translateY(-45px) rotate(-5deg) scale(1); }
-      75% { opacity: 0.6; transform: translateY(-65px) rotate(10deg) scale(0.8); }
-    }
+    /* PROOF STRIP */
 
-    /* ─── Waitlist / CTA Buttons ─── */
-    .hero-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
-    .btn-primary {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 14px 32px; border-radius: 12px; font-size: 16px; font-weight: 700;
-      background: linear-gradient(135deg, var(--indigo) 0%, var(--violet) 100%);
-      color: white; border: none; cursor: pointer; text-decoration: none;
-      transition: transform 0.2s, box-shadow 0.2s; font-family: inherit;
-      box-shadow: 0 4px 20px rgba(99,102,241,0.35);
-    }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.4); }
-    .btn-ghost {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 14px 32px; border-radius: 12px; font-size: 16px; font-weight: 600;
-      background: rgba(255,255,255,0.06); color: var(--slate-300);
-      border: 1px solid rgba(255,255,255,0.1); cursor: pointer; text-decoration: none;
-      transition: background 0.2s, border-color 0.2s; font-family: inherit;
-    }
-    .btn-ghost:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
-    .hero-note { font-size: 13px; color: var(--slate-500); margin-top: 16px; }
 
-    /* ─── Waitlist Form (inline in hero) ─── */
-    .waitlist-form {
-      display: flex; gap: 10px; max-width: 460px; margin: 0 auto;
-    }
-    .waitlist-form input {
-      flex: 1; padding: 14px 18px; border-radius: 12px; font-size: 15px;
-      border: 1.5px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06);
-      color: white; outline: none; font-family: inherit;
-      transition: border-color 0.2s;
-    }
-    .waitlist-form input::placeholder { color: var(--slate-500); }
-    .waitlist-form input:focus { border-color: var(--violet); }
-    .waitlist-form button {
-      padding: 14px 28px; border-radius: 12px; font-size: 15px; font-weight: 700;
-      background: linear-gradient(135deg, var(--indigo) 0%, var(--violet) 100%);
-      color: white; border: none; cursor: pointer; white-space: nowrap;
-      font-family: inherit; transition: transform 0.2s;
-      box-shadow: 0 4px 20px rgba(99,102,241,0.35);
-    }
-    .waitlist-form button:hover { transform: translateY(-1px); }
-    .waitlist-success {
-      display: none; padding: 14px 24px; border-radius: 12px;
-      background: rgba(34,197,94,0.1); color: #4ade80; font-weight: 600;
-      font-size: 15px; max-width: 460px; margin: 0 auto;
-      border: 1px solid rgba(34,197,94,0.2);
-    }
+    /* SECTIONS */
+    section { padding: 96px 0; }
+    .section-head { max-width: 640px; margin: 0 auto 56px; text-align: center; }
+    .section-kicker { color: var(--indigo); text-transform: uppercase; letter-spacing: 0.12em; font-size: 11px; font-weight: 700; margin-bottom: 10px; }
+    h2 { color: var(--slate-950); letter-spacing: -0.04em; font-size: clamp(26px,3.2vw,38px); line-height: 1.1; margin-bottom: 12px; }
+    .section-head p { font-size: 16px; line-height: 1.7; color: var(--slate-500); }
 
-    /* ─── Domain Scanner CTA ─── */
-    .scanner-section {
-      background: linear-gradient(165deg, #1e1b4b 0%, var(--indigo-deeper) 100%);
-      position: relative; overflow: hidden;
-    }
-    .scanner-section::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: radial-gradient(ellipse at 50% 50%, rgba(139,92,246,0.1) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .scanner-section .container { position: relative; z-index: 2; }
-    .scanner-section h2 {
-      text-align: center; font-size: clamp(28px, 4vw, 40px); font-weight: 900;
-      color: var(--white); letter-spacing: -1px; margin-bottom: 12px;
-    }
-    .scanner-section .subtitle {
-      text-align: center; font-size: 17px; color: var(--slate-400);
-      max-width: 520px; margin: 0 auto 36px; line-height: 1.7;
-    }
-    .scanner-form {
-      display: flex; gap: 10px; max-width: 520px; margin: 0 auto;
-    }
-    .scanner-form input {
-      flex: 1; padding: 16px 20px; border-radius: 14px; font-size: 16px;
-      border: 2px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.08);
-      color: white; outline: none; font-family: inherit;
-      transition: border-color 0.3s;
-    }
-    .scanner-form input::placeholder { color: var(--slate-500); }
-    .scanner-form input:focus { border-color: var(--violet); }
-    .scanner-form button {
-      padding: 16px 32px; border-radius: 14px; font-size: 16px; font-weight: 700;
-      background: linear-gradient(135deg, var(--gold) 0%, #f59e0b 100%);
-      color: var(--slate-900); border: none; cursor: pointer; white-space: nowrap;
-      font-family: inherit; transition: transform 0.2s;
-      box-shadow: 0 4px 20px rgba(251,191,36,0.3);
-    }
-    .scanner-form button:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(251,191,36,0.4); }
-    .scanner-note {
-      text-align: center; font-size: 13px; color: var(--slate-500); margin-top: 14px;
-    }
-    .scanner-note strong { color: var(--lavender); }
+    /* PROBLEM / SOLUTION */
+    .split-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 20px; }
+    .panel { background: var(--white); border: 1px solid var(--slate-200); border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow); }
+    .panel h3 { margin-bottom: 20px; font-size: 18px; letter-spacing: -0.025em; color: var(--slate-900); }
+    .bullet-list { list-style: none; display: grid; gap: 14px; }
+    .bullet-list li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; color: var(--slate-600); font-size: 14px; }
+    .bullet-list .dot { width: 22px; height: 22px; border-radius: 8px; background: var(--slate-100); display: grid; place-items: center; color: var(--indigo); font-weight: 800; font-size: 12px; margin-top: 1px; }
+    .bullet-list strong { color: var(--slate-900); display: block; margin-bottom: 1px; font-size: 14px; }
 
-    /* ─── Problem Stats ─── */
-    .problems { background: var(--slate-50); }
-    .problems h2 {
-      text-align: center; font-size: 14px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 1.5px; color: var(--slate-400);
-      margin-bottom: 48px;
-    }
-    .problem-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-    .problem-card {
-      text-align: center; padding: 36px 24px; border-radius: 16px;
-      background: var(--white); border: 1px solid rgba(0,0,0,0.04);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    }
-    .problem-num {
-      font-size: 48px; font-weight: 900; letter-spacing: -2px;
-      background: linear-gradient(135deg, var(--indigo), var(--violet));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text; line-height: 1;
-    }
-    .problem-card h3 { font-size: 15px; font-weight: 700; color: var(--slate-900); margin: 12px 0 6px; }
-    .problem-card p { font-size: 13px; color: var(--slate-500); line-height: 1.5; }
+    /* HOW IT WORKS */
+    .steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; }
+    .step-card { background: var(--white); border: 1px solid var(--slate-200); border-radius: var(--radius-xl); padding: 24px; box-shadow: var(--shadow); }
+    .step-num { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: rgba(99,102,241,0.08); color: var(--indigo-deep); font-weight: 800; font-size: 13px; margin-bottom: 14px; }
+    .step-card h3 { margin-bottom: 8px; font-size: 17px; letter-spacing: -0.025em; color: var(--slate-900); }
+    .step-card p { color: var(--slate-500); line-height: 1.7; font-size: 14px; }
 
-    /* ─── Features ─── */
-    .features { background: var(--white); }
-    .section-label {
-      text-align: center; font-size: 13px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 2px; color: var(--violet);
-      margin-bottom: 12px;
-    }
-    .features h2 {
-      text-align: center; font-size: clamp(28px, 4vw, 38px); font-weight: 800;
-      color: var(--slate-900); letter-spacing: -0.8px; margin-bottom: 16px;
-    }
-    .features .subtitle {
-      text-align: center; font-size: 17px; color: var(--slate-500);
-      max-width: 540px; margin: 0 auto 56px; line-height: 1.7;
-    }
-    .feature-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-    }
-    .feature-card {
-      padding: 28px; border-radius: 16px;
-      border: 1px solid rgba(0,0,0,0.05);
-      background: var(--white);
-      transition: all 0.3s ease;
-      position: relative; overflow: hidden;
-    }
-    .feature-card::before {
-      content: ''; position: absolute; inset: 0; border-radius: 16px;
-      background: linear-gradient(135deg, rgba(99,102,241,0.04) 0%, rgba(139,92,246,0.04) 100%);
-      opacity: 0; transition: opacity 0.3s;
-    }
-    .feature-card:hover::before { opacity: 1; }
-    .feature-card:hover {
-      border-color: rgba(99,102,241,0.15);
-      box-shadow: 0 8px 30px rgba(99,102,241,0.08);
-      transform: translateY(-3px);
-    }
-    .feature-icon {
-      width: 48px; height: 48px; border-radius: 14px; margin-bottom: 18px;
-      display: flex; align-items: center; justify-content: center; font-size: 22px;
-    }
-    .feature-card h3 {
-      font-size: 16px; font-weight: 700; color: var(--slate-900); margin-bottom: 8px;
-      position: relative;
-    }
-    .feature-card p { font-size: 14px; color: var(--slate-500); line-height: 1.65; position: relative; }
+    /* FEATURES */
+    .feature-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; }
+    .feature-card { background: var(--white); border: 1px solid var(--slate-200); border-radius: var(--radius-xl); padding: 24px; box-shadow: var(--shadow); }
+    .feature-icon { width: 44px; height: 44px; border-radius: 14px; margin-bottom: 14px; display: grid; place-items: center; background: var(--slate-50); font-size: 22px; }
+    .feature-card h3 { margin-bottom: 8px; font-size: 16px; color: var(--slate-900); letter-spacing: -0.02em; }
+    .feature-card p { color: var(--slate-500); line-height: 1.65; font-size: 13.5px; }
 
-    /* ─── How It Works ─── */
-    .how-it-works { background: var(--slate-50); }
-    .how-it-works h2 {
-      text-align: center; font-size: clamp(28px, 4vw, 38px); font-weight: 800;
-      color: var(--slate-900); letter-spacing: -0.8px; margin-bottom: 56px;
-    }
-    .steps {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px;
-      position: relative;
-    }
-    .steps::before {
-      content: ''; position: absolute; top: 32px; left: 15%; right: 15%;
-      height: 2px; background: linear-gradient(90deg, var(--indigo), var(--violet), var(--lavender));
-      border-radius: 1px; opacity: 0.3;
-    }
-    .step { text-align: center; position: relative; }
-    .step-num {
-      width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 20px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 24px; font-weight: 900; color: white;
-      background: linear-gradient(135deg, var(--indigo) 0%, var(--violet) 100%);
-      box-shadow: 0 4px 16px rgba(99,102,241,0.3);
-      position: relative; z-index: 1;
-    }
-    .step h3 { font-size: 17px; font-weight: 700; color: var(--slate-900); margin-bottom: 8px; }
-    .step p { font-size: 14px; color: var(--slate-500); max-width: 280px; margin: 0 auto; line-height: 1.6; }
+    /* SAMPLE REPORT */
+    .report-shell { border-radius: var(--radius-xl); overflow: hidden; border: 1px solid var(--slate-200); box-shadow: var(--shadow-lg); }
+    .report-topbar { padding: 16px 20px; border-bottom: 1px solid var(--slate-200); background: var(--slate-50); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .report-title { font-weight: 600; color: var(--slate-900); font-size: 14px; letter-spacing: -0.02em; }
+    .report-body { display: grid; grid-template-columns: 260px 1fr; }
+    .report-sidebar { padding: 20px; background: linear-gradient(180deg,#f0f4ff 0%,var(--slate-50) 100%); border-right: 1px solid var(--slate-200); }
+    .report-main { padding: 22px; background: var(--white); }
+    .metric-stack { display: grid; gap: 10px; margin-bottom: 18px; }
+    .metric { background: var(--white); border: 1px solid var(--slate-200); border-radius: var(--radius-lg); padding: 14px; }
+    .metric small { display: block; color: var(--slate-500); margin-bottom: 4px; font-size: 12px; }
+    .metric strong { color: var(--slate-950); font-size: 24px; letter-spacing: -0.04em; }
+    .report-main h3 { margin-bottom: 14px; color: var(--slate-900); font-size: 17px; letter-spacing: -0.025em; }
+    .finding { border: 1px solid var(--slate-200); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 12px; }
+    .finding-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+    .finding-title { font-weight: 600; color: var(--slate-900); font-size: 14px; }
+    .finding > p { color: var(--slate-600); line-height: 1.65; font-size: 13.5px; }
+    .finding-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-top: 12px; }
+    .finding-box { border-radius: 12px; padding: 12px; background: var(--slate-50); border: 1px solid var(--slate-200); }
+    .finding-box small { display: block; color: var(--slate-500); margin-bottom: 4px; font-size: 11px; }
+    .finding-box strong { color: var(--slate-800); font-size: 13px; }
 
-    /* ─── Risk Framework ─── */
-    .risk-section { background: var(--white); }
-    .risk-section h2 {
-      text-align: center; font-size: clamp(28px, 4vw, 38px); font-weight: 800;
-      color: var(--slate-900); letter-spacing: -0.8px; margin-bottom: 16px;
-    }
-    .risk-section .subtitle {
-      text-align: center; font-size: 17px; color: var(--slate-500);
-      max-width: 560px; margin: 0 auto 56px; line-height: 1.7;
-    }
-    .risk-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 20px;
-    }
-    .risk-card {
-      padding: 28px; border-radius: 16px; border: 2px solid;
-      transition: transform 0.2s;
-    }
-    .risk-card:hover { transform: translateY(-2px); }
-    .risk-card.safe { border-color: #bbf7d0; background: #f0fdf4; }
-    .risk-card.low { border-color: #ddd6fe; background: #f5f3ff; }
-    .risk-card.medium { border-color: #fde68a; background: #fffbeb; }
-    .risk-card.high { border-color: #fecaca; background: #fef2f2; }
-    .risk-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-    .risk-card.safe h3 { color: #16a34a; }
-    .risk-card.low h3 { color: #7c3aed; }
-    .risk-card.medium h3 { color: #d97706; }
-    .risk-card.high h3 { color: #dc2626; }
-    .risk-card p { font-size: 13px; color: var(--slate-500); line-height: 1.65; }
-    .risk-tag {
-      display: inline-block; padding: 4px 12px; border-radius: 100px;
-      font-size: 11px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.5px; margin-bottom: 14px;
-    }
-    .risk-card.safe .risk-tag { background: #dcfce7; color: #16a34a; }
-    .risk-card.low .risk-tag { background: #ede9fe; color: #7c3aed; }
-    .risk-card.medium .risk-tag { background: #fef3c7; color: #d97706; }
-    .risk-card.high .risk-tag { background: #fee2e2; color: #dc2626; }
-
-    /* ─── Pricing ─── */
-    .pricing { background: var(--slate-50); }
-    .pricing h2 {
-      text-align: center; font-size: clamp(28px, 4vw, 38px); font-weight: 800;
-      color: var(--slate-900); letter-spacing: -0.8px; margin-bottom: 16px;
-    }
-    .pricing .subtitle {
-      text-align: center; font-size: 17px; color: var(--slate-500);
-      max-width: 560px; margin: 0 auto 56px;
-    }
-    .pricing-grid {
-      display: grid; grid-template-columns: repeat(3, 1fr);
-      gap: 20px; max-width: 960px; margin: 0 auto;
-    }
+    /* PRICING */
+    .pricing-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; align-items: stretch; }
     .pricing-card {
-      padding: 32px; border-radius: 20px; background: var(--white);
-      border: 1px solid rgba(0,0,0,0.06);
-      transition: transform 0.2s;
+      background: var(--white); border: 1px solid var(--slate-200);
+      border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow);
       display: flex; flex-direction: column;
     }
-    .pricing-card:hover { transform: translateY(-2px); }
-    .pricing-card.featured {
-      border: 2px solid var(--indigo); position: relative;
-      box-shadow: 0 8px 30px rgba(99,102,241,0.1);
-    }
-    .pricing-card.featured::before {
-      content: "Most Popular";
-      position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-      padding: 5px 16px; border-radius: 100px; font-size: 11px; font-weight: 700;
-      background: linear-gradient(135deg, var(--indigo), var(--violet)); color: white;
-      text-transform: uppercase; letter-spacing: 0.5px;
-    }
-    .pricing-card.coming-soon {
-      opacity: 0.85; position: relative;
-    }
-    .pricing-card.coming-soon::before {
-      content: "Coming Soon";
-      position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-      padding: 5px 16px; border-radius: 100px; font-size: 11px; font-weight: 700;
-      background: linear-gradient(135deg, var(--gold), var(--amber)); color: var(--slate-900);
-      text-transform: uppercase; letter-spacing: 0.5px;
-    }
-    .pricing-tier-label {
-      font-size: 11px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 1.5px; color: var(--slate-400); margin-bottom: 6px;
-    }
-    .pricing-card h3 { font-size: 20px; font-weight: 800; color: var(--slate-900); margin-bottom: 4px; }
-    .pricing-card .pricing-desc {
-      font-size: 13px; color: var(--slate-500); line-height: 1.5; margin-bottom: 16px;
-    }
-    .pricing-price { font-size: 38px; font-weight: 900; color: var(--slate-900); margin-bottom: 20px; letter-spacing: -1px; }
-    .pricing-price span { font-size: 15px; font-weight: 500; color: var(--slate-500); letter-spacing: 0; }
-    .pricing-divider {
-      height: 1px; background: rgba(0,0,0,0.06); margin-bottom: 20px;
-    }
-    .pricing-list { list-style: none; padding: 0; margin-bottom: 28px; flex: 1; }
-    .pricing-list li {
-      padding: 7px 0; font-size: 13px; color: var(--slate-700);
-      display: flex; align-items: flex-start; gap: 10px;
-    }
-    .pricing-list li::before { content: "✓"; color: var(--green); font-weight: 700; flex-shrink: 0; }
-    .pricing-list li.addon::before { content: "+"; color: var(--violet); }
-    .pricing-card .btn {
-      display: block; text-align: center; padding: 13px; border-radius: 12px;
-      font-size: 15px; font-weight: 700; text-decoration: none;
-      transition: all 0.2s; font-family: inherit; border: none; cursor: pointer; width: 100%;
-      margin-top: auto;
-    }
-    .pricing-card .btn-outline {
-      background: var(--slate-100); color: var(--slate-700);
-    }
-    .pricing-card .btn-outline:hover { background: var(--indigo-light); color: var(--indigo); }
-    .pricing-card .btn-pro {
-      background: linear-gradient(135deg, var(--indigo), var(--violet));
-      color: white; box-shadow: 0 2px 12px rgba(99,102,241,0.2);
-    }
-    .pricing-card .btn-pro:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(99,102,241,0.3); }
-    .pricing-card .btn-coming {
-      background: var(--slate-100); color: var(--slate-400); cursor: default;
-    }
+    .pricing-card.featured { border-color: rgba(99,102,241,0.3); box-shadow: 0 0 0 1px rgba(99,102,241,0.15), var(--shadow-lg); }
+    .pricing-badge { display: inline-flex; padding: 5px 10px; border-radius: 999px; margin-bottom: 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; align-self: flex-start; }
+    .pricing-badge.popular { background: var(--indigo); color: var(--white); }
+    .pricing-badge.soon { background: var(--amber); color: #78350f; }
+    .pricing-tier { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: var(--slate-400); text-transform: uppercase; margin-bottom: 8px; }
+    .pricing-card h3 { font-size: 24px; color: var(--slate-950); letter-spacing: -0.03em; margin-bottom: 8px; }
+    .pricing-card > p { color: var(--slate-500); font-size: 13.5px; line-height: 1.65; margin-bottom: 20px; }
+    .price-row { display: flex; align-items: baseline; gap: 4px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--slate-200); }
+    .price-num { font-size: 40px; font-weight: 800; color: var(--slate-950); letter-spacing: -0.05em; line-height: 1; }
+    .price-per { font-size: 13px; color: var(--slate-500); }
+    .price-custom { font-size: 36px; font-weight: 800; color: var(--slate-950); letter-spacing: -0.04em; }
+    .feature-list { list-style: none; display: grid; gap: 9px; margin-bottom: 24px; flex: 1; }
+    .feature-list li { color: var(--slate-600); font-size: 13.5px; padding-left: 20px; position: relative; }
+    .feature-list li::before { content: '✓'; position: absolute; left: 0; color: var(--green); font-weight: 700; }
 
-    /* ─── Add-ons ─── */
-    .addons-row {
-      display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
-      margin-top: 40px; max-width: 960px; margin-left: auto; margin-right: auto;
-    }
-    .addon-chip {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 12px 20px; border-radius: 12px;
-      background: var(--white); border: 1px solid rgba(0,0,0,0.06);
-      font-size: 14px; color: var(--slate-700);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    }
-    .addon-chip .addon-icon { font-size: 18px; }
-    .addon-chip .addon-price {
-      font-weight: 700; color: var(--indigo); font-size: 13px;
-    }
-    .addon-chip .addon-soon {
-      font-size: 10px; font-weight: 700; text-transform: uppercase;
-      color: var(--slate-400); letter-spacing: 0.5px;
-    }
+    /* CTA BAND */
+    .cta-band { padding: 40px; border-radius: 28px; background: var(--slate-950); color: var(--white); box-shadow: 0 24px 64px rgba(2,6,23,0.16); display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center; }
+    .cta-band h2 { color: var(--white); font-size: clamp(24px,3vw,34px); margin-bottom: 8px; }
+    .cta-band p { color: rgba(255,255,255,0.6); font-size: 15px; line-height: 1.6; }
 
-    /* ─── Bottom CTA ─── */
-    .cta-section {
-      padding: 100px 0;
-      background: linear-gradient(165deg, var(--slate-900) 0%, #1e1b4b 50%, var(--indigo-deeper) 100%);
-      text-align: center; position: relative; overflow: hidden;
-    }
-    .cta-section::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: radial-gradient(ellipse at 50% 100%, rgba(139,92,246,0.12) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .cta-section .container { position: relative; z-index: 2; }
-    .cta-section h2 {
-      font-size: clamp(28px, 4vw, 40px); font-weight: 900; color: white;
-      margin-bottom: 16px; letter-spacing: -1px;
-    }
-    .cta-section p {
-      font-size: 17px; color: var(--slate-400); margin-bottom: 40px;
-      max-width: 500px; margin-left: auto; margin-right: auto; line-height: 1.7;
-    }
+    /* FOOTER */
+    footer { padding: 32px 0 48px; color: var(--slate-400); font-size: 13px; }
+    .footer-row { display: flex; justify-content: space-between; gap: 20px; align-items: center; flex-wrap: wrap; padding-top: 24px; border-top: 1px solid var(--slate-200); }
+    .footer-links { display: inline-flex; gap: 16px; flex-wrap: wrap; }
+    .footer-links a:hover { color: var(--slate-700); }
 
-    /* ─── Footer ─── */
-    footer {
-      padding: 48px 0; text-align: center;
-      border-top: 1px solid rgba(0,0,0,0.04);
-      background: var(--slate-50);
+    /* RESPONSIVE */
+    @media (max-width: 960px) {
+      .hero-grid, .split-grid, .report-body { grid-template-columns: 1fr; }
+      .report-sidebar { border-right: none; border-bottom: 1px solid var(--slate-200); }
+      .feature-grid, .pricing-grid { grid-template-columns: repeat(2,1fr); }
+      .steps { grid-template-columns: repeat(2,1fr); }
+      .cta-band { grid-template-columns: 1fr; }
     }
-    footer .footer-logo {
-      font-size: 15px; font-weight: 800; margin-bottom: 8px;
-    }
-    footer p { font-size: 13px; color: var(--slate-400); }
-    footer .footer-tagline { font-style: italic; margin-bottom: 4px; }
-
-    /* ─── Scroll Reveal ─── */
-    .reveal {
-      opacity: 0; transform: translateY(24px);
-      transition: opacity 0.6s ease, transform 0.6s ease;
-    }
-    .reveal.visible { opacity: 1; transform: translateY(0); }
-
-    /* ─── Responsive ─── */
-    @media (max-width: 768px) {
-      .problem-grid { grid-template-columns: 1fr; }
-      .steps { grid-template-columns: 1fr; gap: 32px; }
-      .steps::before { display: none; }
-      .pricing-grid { grid-template-columns: 1fr; max-width: 400px; }
-      .waitlist-form, .scanner-form { flex-direction: column; }
-      .hero-actions { flex-direction: column; align-items: center; }
-      .addons-row { flex-direction: column; align-items: center; }
-      section { padding: 64px 0; }
-      .hero { padding: 100px 0 64px; }
-    }
-    @media (max-width: 480px) {
-      .nav-cta { padding: 8px 16px; font-size: 13px; }
+    @media (max-width: 640px) {
+      .nav-links, .header-actions .btn-secondary { display: none; }
+      .feature-grid, .pricing-grid, .steps { grid-template-columns: 1fr; }
+      .score-card, .finding-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-<!-- ─── Nav ─── -->
-<nav>
-  <div class="container nav-inner">
-    <a href="#" class="nav-logo">
-      <div class="nav-logo-mark">
-        <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
-          <defs>
-            <filter id="nav-orb-glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur"/>
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
-          <path d="M15 13C13 10 10.5 10.5 10 9C9.5 7.5 11 6.5 12.5 7.5C13.5 8.2 14.5 10 15 12Z" fill="white" opacity="0.9"/>
-          <path d="M17 13C19 10 21.5 10.5 22 9C22.5 7.5 21 6.5 19.5 7.5C18.5 8.2 17.5 10 17 12Z" fill="white" opacity="0.9"/>
-          <path d="M15 14.5C13.5 13 11.5 13.5 11 12.5C10.5 11.5 12 11 13 11.8C13.8 12.3 14.5 13.5 15 14.5Z" fill="white" opacity="0.65"/>
-          <path d="M17 14.5C18.5 13 20.5 13.5 21 12.5C21.5 11.5 20 11 19 11.8C18.2 12.3 17.5 13.5 17 14.5Z" fill="white" opacity="0.65"/>
-          <circle cx="16" cy="12.5" r="2.5" fill="#fbbf24" opacity="0.25"/>
-          <circle cx="16" cy="12.5" r="1.2" fill="#fbbf24" filter="url(#nav-orb-glow)"/>
-          <rect x="12.5" y="16" width="7" height="3" rx="0.8" fill="white"/>
-          <circle cx="14.5" cy="17.5" r="0.7" fill="#818cf8"/>
-          <circle cx="17.5" cy="17.5" r="0.7" fill="#818cf8"/>
-          <path d="M10 20L11.5 23H20.5L22 20Z" fill="white"/>
-          <path d="M8 24.5Q11 23.5 14 24.5T20 24.5T26 23.5" stroke="#a5b4fc" stroke-width="1" fill="none" opacity="0.7"/>
-        </svg>
-      </div>
-      <span class="nav-wordmark">
-        <span class="nav-gd-g">g</span><span class="nav-gd-d">d</span>
-        <span class="nav-ferry"> ferry</span>
-      </span>
-    </a>
-    <a href="#waitlist" class="nav-cta">Get Early Access</a>
-  </div>
-</nav>
-
-<!-- ─── Hero ─── -->
-<section class="hero" id="top">
-  <div class="sparkles" id="sparkles"></div>
-  <div class="container">
-    <div class="hero-logo">
-      <svg width="80" height="80" viewBox="0 0 32 32" fill="none">
-        <defs>
-          <filter id="hero-orb-glow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
-            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-        </defs>
-        <path d="M15 13C13 10 10.5 10.5 10 9C9.5 7.5 11 6.5 12.5 7.5C13.5 8.2 14.5 10 15 12Z" fill="white" opacity="0.9"/>
-        <path d="M17 13C19 10 21.5 10.5 22 9C22.5 7.5 21 6.5 19.5 7.5C18.5 8.2 17.5 10 17 12Z" fill="white" opacity="0.9"/>
-        <path d="M15 14.5C13.5 13 11.5 13.5 11 12.5C10.5 11.5 12 11 13 11.8C13.8 12.3 14.5 13.5 15 14.5Z" fill="white" opacity="0.65"/>
-        <path d="M17 14.5C18.5 13 20.5 13.5 21 12.5C21.5 11.5 20 11 19 11.8C18.2 12.3 17.5 13.5 17 14.5Z" fill="white" opacity="0.65"/>
-        <circle cx="16" cy="12.5" r="3.5" fill="#fbbf24" opacity="0.2"/>
-        <circle cx="16" cy="12.5" r="1.8" fill="#fbbf24" filter="url(#hero-orb-glow)"/>
-        <rect x="12.5" y="16" width="7" height="3" rx="0.8" fill="white"/>
-        <circle cx="14.5" cy="17.5" r="0.7" fill="#818cf8"/>
-        <circle cx="17.5" cy="17.5" r="0.7" fill="#818cf8"/>
-        <path d="M10 20L11.5 23H20.5L22 20Z" fill="white"/>
-        <path d="M8 24.5Q11 23.5 14 24.5T20 24.5T26 23.5" stroke="#c4b5fd" stroke-width="1.2" fill="none" opacity="0.8"/>
-        <path d="M9 25.5Q12 24.8 15 25.5T21 25.5T27 24.8" stroke="#c4b5fd" stroke-width="0.8" fill="none" opacity="0.5"/>
-      </svg>
-    </div>
-    <div class="hero-badge">
-      <span class="sparkle">&#x2728;</span>
-      Free Chrome Extension
-    </div>
-    <h1>
-      The data you're sending Google is broken.<br/>
-      <span class="accent"><span class="gd"><span class="gd-g">g</span><span class="gd-d">d</span></span> ferry fixes it.</span>
-    </h1>
-    <p>
-      She's your website's google data fairy &mdash; a <strong>constantly growing</strong> rules and best practices
-      ai knowledge base that watches what your website is sending to Google,
-      catches the stuff that's broken, and waves a wand to fix it.
-    </p>
-    <div id="waitlist">
-      <form class="waitlist-form" id="heroForm" onsubmit="return handleWaitlist(event, 'heroForm')">
-        <input type="email" name="email" placeholder="you@company.com" required />
-        <button type="submit">Get Early Access</button>
-      </form>
-      <div class="waitlist-success" id="heroSuccess">You're on the list! Your gd fairy godmother will be in touch.</div>
-      <p class="hero-note">Free forever for individuals. No credit card. No fairy dust required.</p>
-    </div>
-  </div>
-</section>
-
-<!-- ─── Domain Scanner ─── -->
-<section class="scanner-section">
-  <div class="container">
-    <div class="section-label reveal" style="color: var(--gold);">&#x1FA84; Free instant audit</div>
-    <h2 class="reveal">See what your site is sending Google right now</h2>
-    <p class="subtitle reveal">
-      Enter your domain and she'll crawl it, inspect every tag and event, and deliver a health report before she ferries a single byte to Google. No signup required.
-    </p>
-    <form class="scanner-form reveal" id="scannerForm" onsubmit="return handleScan(event)">
-      <input type="text" name="domain" placeholder="yoursite.com" required />
-      <button type="submit">Scan My Site</button>
-    </form>
-    <p class="scanner-note reveal"><strong>Free tier:</strong> 1 crawl report per month &middot; Upgrade for full prescriptive reports</p>
-  </div>
-</section>
-
-<!-- ─── Problem Stats ─── -->
-<section class="problems">
-  <div class="container">
-    <h2>The mess you're sending Google (and don't even know it)</h2>
-    <div class="problem-grid">
-      <div class="problem-card reveal">
-        <div class="problem-num">40%</div>
-        <h3>Events silently dropped</h3>
-        <p>Invalid names, reserved prefixes, and malformed parameters flying out of your site like bats out of hell. Nobody told you. She will.</p>
-      </div>
-      <div class="problem-card reveal">
-        <div class="problem-num">(not set)</div>
-        <h3>The report killer</h3>
-        <p>Misconfigured page views, wrong scoping, duplicate enhanced measurement. It's not Google's fault &mdash; it's your implementation, babe.</p>
-      </div>
-      <div class="problem-card reveal">
-        <div class="problem-num">$0</div>
-        <h3>Revenue goes missing</h3>
-        <p>Purchases sent without transaction IDs. Values sent without currency. Revenue vanishes into thin air and nobody notices for weeks. Poof.</p>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#top" class="brand">
+        <span class="brand-mark"><img src="gdfairy_square.png" alt="gd fairy" /></span>
+        <span class="brand-name">gd fairy <span class="spark">✦</span></span>
+      </a>
+      <nav class="nav-links">
+        <a href="#product">Product</a>
+        <a href="#how">How it works</a>
+        <a href="#report">Sample report</a>
+        <a href="#pricing">Pricing</a>
+      </nav>
+      <div class="header-actions">
+        <a href="#pricing" class="btn btn-secondary">Pricing</a>
+        <a href="#cta" class="btn btn-primary">Start free audit</a>
       </div>
     </div>
-  </div>
-</section>
+  </header>
 
-<!-- ─── Features ─── -->
-<section class="features">
-  <div class="container">
-    <div class="section-label reveal">&#x2728; What your fairy catches</div>
-    <h2 class="reveal">She sees everything you're sending. And she learns new spells every week.</h2>
-    <p class="subtitle reveal">
-      From GA4 to Google Ads to DV360 &mdash; your fairy inspects the data leaving your site before it ever reaches Google. Consider it a quality checkpoint with wings.
-    </p>
-    <div class="feature-grid">
-      <div class="feature-card reveal">
-        <div class="feature-icon" style="background: #fef2f2;">&#x1F6A8;</div>
-        <h3>Silent Data Loss</h3>
-        <p>Your implementation sends invalid names, reserved prefixes, and malformed parameters. The events vanish. Your fairy sees them go &mdash; and tells you where they went.</p>
+  <main id="top">
+
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow">Google Data Fairy ✦ GA4 &amp; GTM</div>
+          <h1>Your GA4 &amp; GTM has issues. Find them before they cost you.</h1>
+          <p>Meet your Google Data Fairy. She audits your analytics implementation in real time, scores it, and tells you exactly what to fix.</p>
+          <div class="hero-actions">
+            <a href="#cta" class="btn btn-primary btn-lg">Start free audit</a>
+            <a href="#report" class="btn btn-secondary btn-lg">See sample report</a>
+          </div>
+          <div class="hero-meta">
+            <span>No setup required</span>
+            <span>Plain-English findings</span>
+            <span>Free to start</span>
+          </div>
+        </div>
+
+        <div class="hero-panel">
+          <div class="panel-top">
+            <div class="panel-brand">
+              <span class="mark">✦</span>
+              gd fairy audit preview
+            </div>
+            <span class="pill">sampledomain.com</span>
+          </div>
+          <div class="score-card">
+            <div class="score-ring">
+              <div class="score-ring-inner"></div>
+              <div class="score-value"><strong>72</strong><span>of 100</span></div>
+            </div>
+            <div class="score-copy">
+              <h3>GA4 implementation score</h3>
+              <p>High-impact issues are affecting conversion data and attribution.</p>
+            </div>
+          </div>
+          <ul class="issue-list">
+            <li class="issue-row">
+              <span class="severity critical"></span>
+              <div><strong>Purchase event missing on confirmation page</strong><small>Revenue not attributed in GA4.</small></div>
+              <span class="tag">Critical</span>
+            </li>
+            <li class="issue-row">
+              <span class="severity high"></span>
+              <div><strong>Duplicate page_view firing through GTM</strong><small>Inflates sessions and funnel data.</small></div>
+              <span class="tag">High</span>
+            </li>
+            <li class="issue-row">
+              <span class="severity ok"></span>
+              <div><strong>dataLayer present on core templates</strong><small>Strong baseline for event coverage.</small></div>
+              <span class="tag">Passing</span>
+            </li>
+          </ul>
+        </div>
       </div>
-      <div class="feature-card reveal">
-        <div class="feature-icon" style="background: #fffbeb;">&#x1F4CA;</div>
-        <h3>(not set) Dimensions</h3>
-        <p>Duplicated enhanced measurement, wrong event scoping, misconfigured page views. The villain of every analyst's nightmares. She vanquishes it.</p>
+    </section>
+
+
+    <section id="product">
+      <div class="container">
+        <div class="section-head">
+          <div class="section-kicker">Why teams use it</div>
+          <h2>Your analytics is probably broken. You just don't know it yet.</h2>
+          <p>Most teams find out when the numbers stop making sense.</p>
+        </div>
+        <div class="split-grid">
+          <div class="panel">
+            <h3>Why GA4 &amp; GTM setups break</h3>
+            <ul class="bullet-list">
+              <li><span class="dot">!</span><div><strong>Events fire inconsistently</strong>Different templates send different data — or nothing at all.</div></li>
+              <li><span class="dot">!</span><div><strong>Conversions are misconfigured</strong>Key actions are missing, duplicated, or unattributable.</div></li>
+              <li><span class="dot">!</span><div><strong>Containers drift over time</strong>Agency work and quick fixes leave fragile setups behind.</div></li>
+              <li><span class="dot">!</span><div><strong>No clear priority</strong>It's hard to know which issues actually matter.</div></li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>What gd fairy does</h3>
+            <ul class="bullet-list">
+              <li><span class="dot">&#10003;</span><div><strong>Crawls your site</strong>Inspects pages and analytics behavior — no engineering work required.</div></li>
+              <li><span class="dot">&#10003;</span><div><strong>Catches implementation issues</strong>Broken, missing, duplicated, and suspicious tagging — all flagged.</div></li>
+              <li><span class="dot">&#10003;</span><div><strong>GA4 &amp; GTM implementation score</strong>A single number that shows how much you can trust your analytics data.</div></li>
+              <li><span class="dot">&#10003;</span><div><strong>Explains what to fix</strong>Plain-English steps your whole team can act on immediately.</div></li>
+            </ul>
+          </div>
+        </div>
       </div>
-      <div class="feature-card reveal">
-        <div class="feature-icon" style="background: #f5f3ff;">&#x1F4B0;</div>
-        <h3>Ecommerce & Revenue</h3>
-        <p>Missing items arrays, purchases without transaction IDs, values without currency codes. Money is literally disappearing. No magic involved &mdash; just bad data.</p>
+    </section>
+
+    <section id="how" style="background:var(--slate-50);">
+      <div class="container">
+        <div class="section-head">
+          <div class="section-kicker">How it works</div>
+          <h2>Audit in three steps</h2>
+          <p>A URL is all she needs.</p>
+        </div>
+        <div class="steps">
+          <div class="step-card">
+            <div class="step-num">01</div>
+            <h3>Scan your site</h3>
+            <p>Start with a URL. gd fairy crawls your pages and inspects how GA4 and GTM are actually behaving.</p>
+          </div>
+          <div class="step-card">
+            <div class="step-num">02</div>
+            <h3>Catch hidden issues</h3>
+            <p>Checks events, GTM behavior, conversions, and implementation consistency across key user journeys.</p>
+          </div>
+          <div class="step-card">
+            <div class="step-num">03</div>
+            <h3>Get a prioritized report</h3>
+            <p>Severity, business impact, and recommended fixes — in language your team can actually use.</p>
+          </div>
+        </div>
       </div>
-      <div class="feature-card reveal">
-        <div class="feature-icon" style="background: #eff6ff;">&#x1F6E1;&#xFE0F;</div>
-        <h3>Privacy & Compliance</h3>
-        <p>Unhashed PII in user_id, missing Consent Mode v2. Your implementation is leaking things it shouldn't. Your fairy catches it before compliance does.</p>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="section-head">
+          <div class="section-kicker">Core capabilities</div>
+          <h2>Everything your data team needs</h2>
+          <p>From real-time browser inspection to full-site scans — all in one place.</p>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-icon">&#127913;</div>
+            <h3>Your site-specific AI agent</h3>
+            <p>She doesn't just know GA4 — she knows <em>your</em> GA4. Trained on your event structure, GTM containers, and conversion flows.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">&#128172;</div>
+            <h3>Chat with your fairy</h3>
+            <p>Ask questions in plain English and get answers grounded in your actual setup — not generic docs.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">&#128123;</div>
+            <h3>Shadow environments</h3>
+            <p>Test new tagging before going live. See exactly what events will fire — without touching production.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">&#128269;</div>
+            <h3>Continuous GA4 audit</h3>
+            <p>Not a one-time scan. Your fairy watches every event and catches silent data loss as it appears.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">&#128202;</div>
+            <h3>GTM container intelligence</h3>
+            <p>Misfiring tags, redundant triggers, dataLayer conflicts — caught before your GTM debugger even blinks.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">&#128301;</div>
+            <h3>Visual journey scanner</h3>
+            <p>Your fairy walks actual user flows — filling forms, clicking CTAs — and inspects every event along the way.</p>
+          </div>
+        </div>
       </div>
-      <div class="feature-card reveal">
-        <div class="feature-icon" style="background: #f0fdf4;">&#x1F3F7;&#xFE0F;</div>
-        <h3>She Ferries Your Data to Google</h3>
-        <p>Your website, your CRM, your first-party data &mdash; inspected, blessed, and ferried safely to GA4, GTM, Google Ads, DV360, CM360. One fairy for the whole kingdom.</p>
+    </section>
+
+    <section id="report" style="background:var(--slate-50);">
+      <div class="container">
+        <div class="section-head">
+          <div class="section-kicker">Sample report</div>
+          <h2>See what an audit actually looks like</h2>
+          <p>GA4 &amp; GTM implementation score, severity, business impact, and fixes — not vague promises.</p>
+        </div>
+        <div class="report-shell">
+          <div class="report-topbar">
+            <div class="report-title">Audit report &middot; sampledomain.com</div>
+            <a href="#cta" class="btn btn-secondary">Request a full diagnostic</a>
+          </div>
+          <div class="report-body">
+            <aside class="report-sidebar">
+              <div class="metric-stack">
+                <div class="metric"><small>GA4 implementation score</small><strong>72 / 100</strong></div>
+                <div class="metric"><small>GA4 &amp; GTM issues found</small><strong>14</strong></div>
+                <div class="metric"><small>Critical GA4 &amp; GTM issues</small><strong>3</strong></div>
+              </div>
+              <p style="color:var(--slate-500);font-size:13px;line-height:1.65;">Revenue measurement and session quality are both affected by avoidable GTM and event configuration issues.</p>
+            </aside>
+            <div class="report-main">
+              <h3>Top findings</h3>
+              <div class="finding">
+                <div class="finding-head">
+                  <div class="finding-title">Purchase event not detected after checkout</div>
+                  <span class="tag" style="background:#fee2e2;color:#991b1b;font-size:11px;">Critical</span>
+                </div>
+                <p>The thank-you page loads, but no purchase event was observed. Revenue and order attribution in GA4 will be incomplete.</p>
+                <div class="finding-grid">
+                  <div class="finding-box"><small>Recommended fix</small><strong>Implement purchase event on the confirmation step and validate event parameters.</strong></div>
+                  <div class="finding-box"><small>Business impact</small><strong>Paid media, conversion rate, and LTV analysis are all affected.</strong></div>
+                </div>
+              </div>
+              <div class="finding">
+                <div class="finding-head">
+                  <div class="finding-title">page_view firing twice on high-traffic templates</div>
+                  <span class="tag" style="background:#fef3c7;color:#92400e;font-size:11px;">High</span>
+                </div>
+                <p>GTM and direct gtag overlap on core templates, inflating sessions and breaking engagement metrics.</p>
+                <div class="finding-grid">
+                  <div class="finding-box"><small>Recommended fix</small><strong>Remove the duplicate trigger path and standardize pageview ownership.</strong></div>
+                  <div class="finding-box"><small>Business impact</small><strong>Session counts, funnel rates, and landing page performance are all distorted.</strong></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="feature-card reveal">
-        <div class="feature-icon" style="background: #fef9c3;">&#x1F50D;</div>
-        <h3>More Spells Every Week</h3>
-        <p>New rules ship constantly. New platform support drops regularly. Your fairy gets smarter every week &mdash; so your data gets cleaner every week.</p>
+    </section>
+
+    <section id="pricing">
+      <div class="container">
+        <div class="section-head">
+          <div class="section-kicker">Pricing</div>
+          <h2>Start free. Upgrade when you need more.</h2>
+          <p>A Chrome extension today, with a full agent platform coming soon.</p>
+        </div>
+        <div class="pricing-grid">
+          <div class="pricing-card">
+            <div class="pricing-tier">Free forever</div>
+            <h3>Fairy Lite</h3>
+            <p>Real-time GA4 &amp; GTM auditing in your browser.</p>
+            <div class="price-row"><span class="price-num">$0</span></div>
+            <ul class="feature-list">
+              <li>Chrome extension with real-time GA4 event inspection</li>
+              <li>GTM tag &amp; trigger validation</li>
+              <li>GA4 &amp; GTM implementation score &amp; risk-bucketed findings</li>
+              <li>1 site audit per month</li>
+              <li>Safe &amp; low-risk fix guidance</li>
+              <li>Export findings as JSON</li>
+            </ul>
+            <a href="#cta" class="btn btn-secondary" style="width:100%;justify-content:center;">Get early access</a>
+          </div>
+          <div class="pricing-card featured">
+            <div class="pricing-badge popular">Most popular</div>
+            <div class="pricing-tier">For teams &amp; agencies</div>
+            <h3>Fairy Pro</h3>
+            <p>Your own AI agent trained on your site's GA4, GTM, and user flows.</p>
+            <div class="price-row"><span class="price-num">$49</span><span class="price-per">&thinsp;/ mo</span></div>
+            <ul class="feature-list">
+              <li>Everything in Free</li>
+              <li>Site-specific fairy agent &mdash; trained on your GA4 events &amp; GTM containers</li>
+              <li>Chat interface &mdash; ask questions about your implementation</li>
+              <li>Shadow environments for testing new tagging</li>
+              <li>Continuous audit &amp; alerting</li>
+              <li>Visual journey scanner &mdash; walks your funnels like a real user</li>
+              <li>Unlimited audit reports</li>
+            </ul>
+            <a href="#cta" class="btn btn-primary" style="width:100%;justify-content:center;">Join Pro waitlist</a>
+          </div>
+          <div class="pricing-card">
+            <div class="pricing-badge soon">Coming soon</div>
+            <div class="pricing-tier">Full platform access</div>
+            <h3>Fairy Godmother</h3>
+            <p>One-click GTM fixes. Shadow CI/CD for tagging. White-glove measurement strategy.</p>
+            <div class="price-row"><span class="price-custom">Custom</span></div>
+            <ul class="feature-list">
+              <li>Everything in Pro</li>
+              <li>One-click GTM changes &mdash; fairy pushes fixes to your container</li>
+              <li>Shadow CI/CD &mdash; test tagging changes in PR-like environments</li>
+              <li>GA4 property monitoring &amp; automated rollback</li>
+              <li>Measurement strategy consulting via your fairy agent</li>
+              <li>Priority support &amp; onboarding</li>
+            </ul>
+            <button class="btn btn-disabled" style="width:100%;justify-content:center;" disabled>Coming soon</button>
+          </div>
+        </div>
       </div>
+    </section>
+
+    <section id="cta" style="padding-bottom:96px;">
+      <div class="container">
+        <div class="cta-band">
+          <div>
+            <h2>Stop guessing. Start knowing.</h2>
+            <p>Run a free audit. See what your Google Data Fairy finds.</p>
+          </div>
+          <a href="mailto:hello@gdfairy.com?subject=Free%20audit%20request" class="btn btn-primary btn-lg">Start free audit &rarr;</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container footer-row">
+      <div class="brand">
+        <span class="brand-mark"><img src="gdfairy_square.png" alt="gd fairy" /></span>
+        <span class="brand-name">gd fairy <span class="spark">✦</span></span>
+      </div>
+      <div class="footer-links">
+        <a href="#product">Product</a>
+        <a href="#report">Sample report</a>
+        <a href="#pricing">Pricing</a>
+        <a href="mailto:hello@gdfairy.com">Contact</a>
+      </div>
+      <span>&copy; 2025 DataFairy LLC</span>
     </div>
-  </div>
-</section>
-
-<!-- ─── How It Works ─── -->
-<section class="how-it-works">
-  <div class="container">
-    <div class="section-label reveal">&#x1FA84; It takes 10 seconds</div>
-    <h2 class="reveal">Three steps. A little bit of magic.</h2>
-    <div class="steps">
-      <div class="step reveal">
-        <div class="step-num">1</div>
-        <h3>Summon Your Fairy</h3>
-        <p>Add the extension, open the side panel, hit Record. Browse your site like normal. Your fairy watches every signal leaving your page.</p>
-      </div>
-      <div class="step reveal">
-        <div class="step-num">2</div>
-        <h3>See the Damage</h3>
-        <p>Health score, risk-bucketed issues, and plain-English explanations of what your implementation is doing wrong. No more staring at raw JSON.</p>
-      </div>
-      <div class="step reveal">
-        <div class="step-num">3</div>
-        <h3>Wave the Wand</h3>
-        <p>Start with safe, zero-risk quick wins. Each fix tells you exactly what to do. She holds your hand the whole way &mdash; and ferries your data along clean.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ─── Risk Framework ─── -->
-<section class="risk-section">
-  <div class="container">
-    <div class="section-label reveal">&#x1F9ED; Not all fixes are equal</div>
-    <h2 class="reveal">Every fix classified by risk</h2>
-    <p class="subtitle reveal">
-      Your fairy tells you what's safe to fix right now and what needs a plan.
-      No more guessing if a "quick fix" will make things worse.
-    </p>
-    <div class="risk-grid">
-      <div class="risk-card safe reveal">
-        <div class="risk-tag">Safe</div>
-        <h3>Quick Wins</h3>
-        <p>Data currently being lost. Fixing it only gains new data &mdash; nothing in your reports changes. Do these first.</p>
-      </div>
-      <div class="risk-card low reveal">
-        <div class="risk-tag">Low Risk</div>
-        <h3>Add Missing Data</h3>
-        <p>Missing parameters, IDs, and currency codes. Your existing tracking stays exactly the same.</p>
-      </div>
-      <div class="risk-card medium reveal">
-        <div class="risk-tag">Medium Risk</div>
-        <h3>Active Changes</h3>
-        <p>Renaming events or restructuring parameters that are currently captured. Expect a data discontinuity.</p>
-      </div>
-      <div class="risk-card high reveal">
-        <div class="risk-tag">High Risk</div>
-        <h3>Structural</h3>
-        <p>Container consolidation, consent mode, PII remediation. Requires platform access and careful staging.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ─── Pricing ─── -->
-<section class="pricing">
-  <div class="container">
-    <div class="section-label reveal">&#x1F4AB; Pick your fairy powers</div>
-    <h2 class="reveal">Start free. Add powers when you need them.</h2>
-    <p class="subtitle reveal">
-      The free tier isn't a teaser &mdash; it's a real fairy. Paid tiers give her more powers, more depth, and a direct line to your platforms.
-    </p>
-    <div class="pricing-grid">
-
-      <!-- Free -->
-      <div class="pricing-card reveal">
-        <div class="pricing-tier-label">Free forever</div>
-        <h3>Fairy Lite</h3>
-        <p class="pricing-desc">See what's broken. Start fixing it yourself.</p>
-        <div class="pricing-price">$0</div>
-        <div class="pricing-divider"></div>
-        <ul class="pricing-list">
-          <li>Chrome extension with real-time inspection</li>
-          <li>Health score &amp; AI analysis</li>
-          <li>1 crawl report per month</li>
-          <li>Safe &amp; low-risk fix guidance</li>
-          <li>New rules added weekly</li>
-          <li>Export findings as JSON</li>
-        </ul>
-        <a href="#waitlist" class="btn btn-outline">Get Early Access</a>
-      </div>
-
-      <!-- Pro -->
-      <div class="pricing-card featured reveal">
-        <div class="pricing-tier-label">For teams &amp; agencies</div>
-        <h3>Fairy Pro</h3>
-        <p class="pricing-desc">Full reports, prescriptive fixes, and an AI agent that walks you through every change.</p>
-        <div class="pricing-price">$49<span> / mo</span></div>
-        <div class="pricing-divider"></div>
-        <ul class="pricing-list">
-          <li>Everything in Free</li>
-          <li>Full prescriptive crawl reports with fix instructions</li>
-          <li>Fairy Agent &mdash; ask questions, get GTM/GA4 guidance</li>
-          <li>Unlimited crawl reports</li>
-          <li>Medium &amp; high-risk guided fixes</li>
-          <li>Cross-platform data validation</li>
-          <li>1P data &rarr; Google pipeline inspection</li>
-        </ul>
-        <a href="#waitlist" class="btn btn-pro">Join Pro Waitlist</a>
-      </div>
-
-      <!-- Enterprise / Platform -->
-      <div class="pricing-card coming-soon reveal">
-        <div class="pricing-tier-label">Full platform access</div>
-        <h3>Fairy Godmother</h3>
-        <p class="pricing-desc">One-click fixes pushed directly to your GTM and GA4. White-glove data quality.</p>
-        <div class="pricing-price">Custom</div>
-        <div class="pricing-divider"></div>
-        <ul class="pricing-list">
-          <li>Everything in Pro</li>
-          <li>One-click implementation &mdash; changes pushed to GTM &amp; GA4</li>
-          <li>Automated fix previews &amp; rollback</li>
-          <li>Continuous monitoring &amp; alerts</li>
-          <li>Measurement strategy consulting via AI agent</li>
-          <li>Priority support &amp; onboarding</li>
-        </ul>
-        <button class="btn btn-coming" disabled>Coming Soon</button>
-      </div>
-
-    </div>
-
-    <!-- Add-on Products -->
-    <div class="addons-row reveal">
-      <div class="addon-chip">
-        <span class="addon-icon">&#x1F4E3;</span>
-        Google Ads Optimization
-        <span class="addon-soon">Coming Soon</span>
-      </div>
-      <div class="addon-chip">
-        <span class="addon-icon">&#x1F4FA;</span>
-        CM360 Optimization
-        <span class="addon-soon">Coming Soon</span>
-      </div>
-      <div class="addon-chip">
-        <span class="addon-icon">&#x1F3AF;</span>
-        DV360 Optimization
-        <span class="addon-soon">Coming Soon</span>
-      </div>
-    </div>
-
-  </div>
-</section>
-
-<!-- ─── Bottom CTA ─── -->
-<section class="cta-section">
-  <div class="sparkles" id="sparkles2"></div>
-  <div class="container">
-    <h2>Your data deserves a fairy godmother.</h2>
-    <p>You're sending Google broken data. She finds the problems, explains them in plain English, and ferries your data to Google the way it was meant to arrive.</p>
-    <form class="waitlist-form" id="ctaForm" onsubmit="return handleWaitlist(event, 'ctaForm')">
-      <input type="email" name="email" placeholder="you@company.com" required />
-      <button type="submit">Join Waitlist</button>
-    </form>
-    <div class="waitlist-success" id="ctaSuccess" style="color: #4ade80; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); margin-top: 12px;">
-      You're on the list! She'll be in touch.
-    </div>
-  </div>
-</section>
-
-<!-- ─── Footer ─── -->
-<footer>
-  <div class="container">
-    <div class="footer-logo">
-      <span class="gd-g">g</span><span class="gd-d">d</span>
-      <span class="ferry" style="color: var(--slate-900);"> ferry</span>
-    </div>
-    <p class="footer-tagline">Your data's fairy godmother.</p>
-    <p>Built for analysts who are tired of saying "gd" at their data. &#x2728;</p>
-  </div>
-</footer>
-
-<script>
-  // ─── Waitlist Handler ───
-  function handleWaitlist(e, formId) {
-    e.preventDefault();
-    const form = document.getElementById(formId);
-    const email = form.querySelector('input[name="email"]').value;
-
-    const waitlist = JSON.parse(localStorage.getItem('ferry_waitlist') || '[]');
-    if (!waitlist.includes(email)) {
-      waitlist.push(email);
-      localStorage.setItem('ferry_waitlist', JSON.stringify(waitlist));
-    }
-
-    form.style.display = 'none';
-    const successId = formId === 'heroForm' ? 'heroSuccess' : 'ctaSuccess';
-    document.getElementById(successId).style.display = 'block';
-    return false;
-  }
-
-  // ─── Domain Scanner Handler ───
-  function handleScan(e) {
-    e.preventDefault();
-    const form = document.getElementById('scannerForm');
-    const domain = form.querySelector('input[name="domain"]').value.trim();
-    if (!domain) return false;
-
-    const btn = form.querySelector('button');
-    btn.textContent = 'Scanning...';
-    btn.disabled = true;
-
-    // Placeholder — will wire to real API once GCP is set up
-    setTimeout(() => {
-      btn.textContent = 'Scan My Site';
-      btn.disabled = false;
-      alert('Your fairy is being summoned! Full crawl reports will be available once we launch. Join the waitlist above to get early access.');
-    }, 1500);
-
-    return false;
-  }
-
-  // ─── Fairy Wing Particles ───
-  function createFairyParticles(containerId, count) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    for (let i = 0; i < count; i++) {
-      const particle = document.createElement('div');
-      particle.className = 'fairy-particle';
-      const size = 10 + Math.random() * 14;
-      const wingOpacity = 0.4 + Math.random() * 0.4;
-      particle.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 20 20" fill="none">
-        <path d="M10 10C8.5 8 6.5 8.2 6 7C5.5 5.8 7 5 8 6C8.8 6.6 9.5 8 10 10Z" fill="rgba(196,181,253,${wingOpacity})"/>
-        <path d="M10 10C11.5 8 13.5 8.2 14 7C14.5 5.8 13 5 12 6C11.2 6.6 10.5 8 10 10Z" fill="rgba(196,181,253,${wingOpacity})"/>
-        <circle cx="10" cy="7.5" r="1" fill="rgba(251,191,36,0.8)"/>
-        <circle cx="10" cy="7.5" r="2.5" fill="none" stroke="rgba(251,191,36,0.15)" stroke-width="0.5"/>
-      </svg>`;
-      particle.style.cssText = `
-        left: ${Math.random() * 100}%;
-        top: ${Math.random() * 100}%;
-        animation-delay: ${Math.random() * 8}s;
-        animation-duration: ${6 + Math.random() * 5}s;
-      `;
-      container.appendChild(particle);
-    }
-  }
-  createFairyParticles('sparkles', 25);
-  createFairyParticles('sparkles2', 15);
-
-  // ─── Scroll Reveal ───
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-      }
-    });
-  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-
-  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-</script>
+  </footer>
 
 </body>
 </html>

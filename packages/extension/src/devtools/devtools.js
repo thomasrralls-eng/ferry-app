@@ -1,6 +1,6 @@
-// Create the Ferry panel in Chrome DevTools
+// Create the gd fairy panel in Chrome DevTools
 chrome.devtools.panels.create(
-  "Ferry",
+  "gd fairy",
   "",
   "panel/index.html",
   () => {}

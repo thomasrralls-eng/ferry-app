@@ -6,7 +6,7 @@
  *
  *   1. Power the free-tier "quick scan" CTA on the website
  *   2. Guide the deep crawl's page prioritization
- *   3. Give the user a 30-second taste of what gd ferry finds
+ *   3. Give the user a 30-second taste of what gd fairy finds
  *
  * Flow:
  *   1. Fetch robots.txt + sitemap.xml

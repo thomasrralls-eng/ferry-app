@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * cli.js — gd ferry scraper CLI
+ * cli.js — gd fairy scraper CLI
  *
  * Quick way to run scans from the command line during development.
  *
@@ -28,7 +28,7 @@ const maxPages = pagesIdx !== -1 ? parseInt(args[pagesIdx + 1], 10) : 50;
 
 if (!url) {
   console.error(`
-  gd ferry scraper — GA4/GTM data quality scanner
+  gd fairy scraper — GA4/GTM data quality scanner
 
   Usage:
     node src/cli.js <url> [options]
@@ -48,7 +48,7 @@ if (!url) {
 async function main() {
   const startTime = Date.now();
 
-  console.log(`\n🚢  gd ferry scraper\n`);
+  console.log(`\n✨  gd fairy scraper\n`);
   console.log(`Target:  ${url}`);
   console.log(`Mode:    ${fullMode ? "Full scan (recon + deep crawl)" : "Recon only"}`);
   if (fullMode) console.log(`Pages:   up to ${maxPages}`);

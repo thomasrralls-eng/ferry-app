@@ -1,4 +1,4 @@
-# gd ferry — Cloud Run scraper service
+# gd fairy — Cloud Run scraper service
 # Puppeteer + headless Chrome on Debian slim
 
 FROM node:20-slim

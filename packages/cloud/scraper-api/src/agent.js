@@ -1,5 +1,5 @@
 /**
- * agent.js — Vertex AI Gemini integration for the Ferry AI agent.
+ * agent.js — Vertex AI Gemini integration for the gd fairy AI agent.
  *
  * Calls Gemini 2.0 Flash to analyze scan results and produce
  * actionable GA4/GTM recommendations.

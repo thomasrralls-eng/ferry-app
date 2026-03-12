@@ -1,9 +1,12 @@
-# gd ferry — Cloud Build config for scraper API
+# gd fairy — Cloud Build config for scraper API
 #
 # Triggered from repo root. Builds the Docker image and deploys to Cloud Run.
 #
 # Usage:
 #   gcloud builds submit --config packages/cloud/scraper-api/cloudbuild.yaml .
+
+substitutions:
+  _TAG: "latest"
 
 steps:
   # Build the Docker image
@@ -11,7 +14,7 @@ steps:
     args:
       - "build"
       - "-t"
-      - "us-central1-docker.pkg.dev/$PROJECT_ID/ferry/scraper-api:$SHORT_SHA"
+      - "us-central1-docker.pkg.dev/$PROJECT_ID/ferry/scraper-api:${_TAG}"
       - "-t"
       - "us-central1-docker.pkg.dev/$PROJECT_ID/ferry/scraper-api:latest"
       - "-f"
@@ -33,7 +36,7 @@ steps:
       - "deploy"
       - "ferry-scraper"
       - "--image"
-      - "us-central1-docker.pkg.dev/$PROJECT_ID/ferry/scraper-api:$SHORT_SHA"
+      - "us-central1-docker.pkg.dev/$PROJECT_ID/ferry/scraper-api:latest"
       - "--region"
       - "us-central1"
       - "--platform"
@@ -53,7 +56,6 @@ steps:
       - "--allow-unauthenticated"
 
 images:
-  - "us-central1-docker.pkg.dev/$PROJECT_ID/ferry/scraper-api:$SHORT_SHA"
   - "us-central1-docker.pkg.dev/$PROJECT_ID/ferry/scraper-api:latest"
 
 options:

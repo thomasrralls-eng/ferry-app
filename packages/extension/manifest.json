@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "gd ferry",
+  "name": "gd fairy",
   "version": "0.3.0",
   "description": "Monitor, record, and analyze dataLayer events, GA4 hits, and GTM containers in real-time.",
   "permissions": ["storage", "tabs", "scripting", "sidePanel", "webRequest"],
@@ -9,7 +9,7 @@
     "service_worker": "service-worker.js"
   },
   "action": {
-    "default_title": "Open gd ferry",
+    "default_title": "Open gd fairy",
     "default_icon": {
       "16": "icons/icon-16.png",
       "48": "icons/icon-48.png",
@@ -28,6 +28,9 @@
       "match_about_blank": true
     }
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; font-src https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; object-src 'self'"
+  },
   "web_accessible_resources": [
     {
       "resources": ["injected-hook.js", "rules/index.js"],

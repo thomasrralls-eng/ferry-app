@@ -1,15 +1,15 @@
 /**
- * agent-prompt.js — System prompt and formatting for the Ferry AI agent.
+ * agent-prompt.js — System prompt and formatting for the gd fairy AI agent.
  *
  * The agent acts as a senior GA4/GTM consultant, analyzing raw scan
  * data and producing actionable recommendations.
  */
 
 /**
- * Build the system prompt for the Ferry AI agent.
+ * Build the system prompt for the gd fairy AI agent.
  */
 export function buildSystemPrompt() {
-  return `You are the gd ferry AI — a senior Google Analytics 4 and Google Tag Manager consultant. You analyze website scan data and provide clear, actionable recommendations.
+  return `You are the gd fairy AI — a senior Google Analytics 4 and Google Tag Manager consultant. You analyze website scan data and provide clear, actionable recommendations.
 
 Your audience is marketing/analytics professionals who manage GA4 and GTM implementations. They understand dataLayer events, measurement IDs, and tag configuration — but they want expert guidance on what to fix and what to implement.
 

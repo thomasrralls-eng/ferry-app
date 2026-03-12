@@ -1,21 +1,34 @@
 /**
  * Lint rules test — verifies all rules catch what they should.
- * Run with: node packages/extension/tests/lint-rules.test.js
+ * Run with: node --test packages/extension/tests/lint-rules.test.js
  */
 
-const { lintEvent, lintSession } = require("../src/rules/index.js");
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
+import { readFileSync } from "fs";
+import vm from "vm";
 
-let passed = 0;
-let failed = 0;
+// Load the CJS rules module via vm (extension has "type": "module" but rules uses module.exports)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const rulesPath = resolve(__dirname, "..", "src", "rules", "index.js");
 
-function assert(condition, testName) {
-  if (condition) {
-    passed++;
-    console.log(`  ✓ ${testName}`);
-  } else {
-    failed++;
-    console.log(`  ✗ ${testName}`);
-  }
+let lintEvent, lintSession;
+try {
+  const code = readFileSync(rulesPath, "utf8");
+  const sandbox = {
+    module: { exports: {} }, exports: {}, console,
+    setTimeout, URL, Set, Map, Array, Object, Math, RegExp, JSON, String, Number, Date, Error, TypeError, Promise,
+  };
+  vm.runInNewContext(code, sandbox, { filename: rulesPath, timeout: 5000 });
+  lintEvent = sandbox.module.exports.lintEvent;
+  lintSession = sandbox.module.exports.lintSession;
+  if (!lintEvent || !lintSession) throw new Error("lintEvent or lintSession not found in exports");
+} catch (err) {
+  console.error("Could not load rules:", err.message);
+  process.exit(1);
 }
 
 function hasRule(findings, ruleId) {
@@ -26,263 +39,189 @@ function hasSeverity(findings, ruleId, severity) {
   return findings.some(f => f.ruleId === ruleId && f.severity === severity);
 }
 
-// ──────────────────────────────────────────
-// INGESTION RULES
-// ──────────────────────────────────────────
-console.log("\n── Ingestion Rules ──");
+describe("Ingestion Rules", () => {
+  it("catches spaces in event name", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "Add To Cart", type: "event" }, {}), "event-name-has-spaces"));
+  });
 
-assert(
-  hasRule(lintEvent({ eventName: "Add To Cart", type: "event" }, {}), "event-name-has-spaces"),
-  "Catches spaces in event name"
-);
+  it("catches special chars in event name", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "purchase!", type: "event" }, {}), "event-name-invalid-chars"));
+  });
 
-assert(
-  hasRule(lintEvent({ eventName: "purchase!", type: "event" }, {}), "event-name-invalid-chars"),
-  "Catches special chars in event name"
-);
+  it("catches event name starting with number", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "1_bad_start", type: "event" }, {}), "event-name-must-start-alpha"));
+  });
 
-assert(
-  hasRule(lintEvent({ eventName: "1_bad_start", type: "event" }, {}), "event-name-must-start-alpha"),
-  "Catches event name starting with number"
-);
+  it("catches event name starting with underscore", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "_bad_start", type: "event" }, {}), "event-name-must-start-alpha"));
+  });
 
-assert(
-  hasRule(lintEvent({ eventName: "_bad_start", type: "event" }, {}), "event-name-must-start-alpha"),
-  "Catches event name starting with underscore"
-);
+  it("catches event name over 40 chars", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "a".repeat(41), type: "event" }, {}), "event-name-too-long"));
+  });
 
-assert(
-  hasRule(lintEvent({ eventName: "a".repeat(41), type: "event" }, {}), "event-name-too-long"),
-  "Catches event name over 40 chars"
-);
+  it("catches reserved event name: session_start", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "session_start", type: "event" }, {}), "event-name-reserved"));
+  });
 
-assert(
-  hasRule(lintEvent({ eventName: "session_start", type: "event" }, {}), "event-name-reserved"),
-  "Catches reserved event name: session_start"
-);
+  it("catches reserved event name: first_visit", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "first_visit", type: "event" }, {}), "event-name-reserved"));
+  });
 
-assert(
-  hasRule(lintEvent({ eventName: "first_visit", type: "event" }, {}), "event-name-reserved"),
-  "Catches reserved event name: first_visit"
-);
+  it("catches google_ prefix on event name", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "google_custom_event", type: "event" }, {}), "event-name-reserved-prefix"));
+  });
 
-assert(
-  hasRule(lintEvent({ eventName: "google_custom_event", type: "event" }, {}), "event-name-reserved-prefix"),
-  "Catches google_ prefix on event name"
-);
+  it("catches firebase_ prefix on event name", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "firebase_thing", type: "event" }, {}), "event-name-reserved-prefix"));
+  });
 
-assert(
-  hasRule(lintEvent({ eventName: "firebase_thing", type: "event" }, {}), "event-name-reserved-prefix"),
-  "Catches firebase_ prefix on event name"
-);
+  it("catches spaces in parameter name", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "test", type: "event", params: { "bad param": "val" } }, {}), "param-name-invalid"));
+  });
 
-assert(
-  hasRule(lintEvent({ eventName: "test", type: "event", params: { "bad param": "val" } }, {}), "param-name-invalid"),
-  "Catches spaces in parameter name"
-);
+  it("catches google_ prefix on parameter name", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "test", type: "event", params: { "google_secret": "val" } }, {}), "param-name-reserved-prefix"));
+  });
 
-assert(
-  hasRule(lintEvent({ eventName: "test", type: "event", params: { "google_secret": "val" } }, {}), "param-name-reserved-prefix"),
-  "Catches google_ prefix on parameter name"
-);
+  it("catches parameter name over 40 chars", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "test", type: "event", params: { ["x".repeat(41)]: "val" } }, {}), "param-name-too-long"));
+  });
 
-assert(
-  hasRule(lintEvent({ eventName: "test", type: "event", params: { ["x".repeat(41)]: "val" } }, {}), "param-name-too-long"),
-  "Catches parameter name over 40 chars"
-);
+  it("catches parameter value over 100 chars", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "test", type: "event", params: { long_val: "x".repeat(101) } }, {}), "param-value-too-long"));
+  });
 
-assert(
-  hasRule(lintEvent({ eventName: "test", type: "event", params: { long_val: "x".repeat(101) } }, {}), "param-value-too-long"),
-  "Catches parameter value over 100 chars"
-);
+  it("catches more than 25 params per event", () => {
+    const manyParams = {};
+    for (let i = 0; i < 26; i++) manyParams[`param_${i}`] = "val";
+    assert.ok(hasRule(lintEvent({ eventName: "test", type: "event", params: manyParams }, {}), "too-many-params"));
+  });
 
-// 26 params
-const manyParams = {};
-for (let i = 0; i < 26; i++) manyParams[`param_${i}`] = "val";
-assert(
-  hasRule(lintEvent({ eventName: "test", type: "event", params: manyParams }, {}), "too-many-params"),
-  "Catches more than 25 params per event"
-);
+  it("catches empty event name", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "", type: "event" }, {}), "empty-event-name"));
+  });
+});
 
-assert(
-  hasRule(lintEvent({ eventName: "", type: "event" }, {}), "empty-event-name"),
-  "Catches empty event name"
-);
+describe("Not-Set Rules", () => {
+  it("catches duplicate enhanced measurement event: page_view", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "page_view", source: "dataLayer", type: "event", params: {} }, {}), "enhanced-measurement-duplicate"));
+  });
 
+  it("catches duplicate enhanced measurement event: scroll", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "scroll", source: "dataLayer", type: "event", params: {} }, {}), "enhanced-measurement-duplicate"));
+  });
 
-// ──────────────────────────────────────────
-// NOT-SET RULES
-// ──────────────────────────────────────────
-console.log("\n── Not-Set Rules ──");
+  it("does NOT flag network-source page_view", () => {
+    assert.ok(!hasRule(lintEvent({ eventName: "page_view", source: "network", type: "event", params: {} }, {}), "enhanced-measurement-duplicate"));
+  });
 
-assert(
-  hasRule(lintEvent({ eventName: "page_view", source: "dataLayer", type: "event", params: {} }, {}), "enhanced-measurement-duplicate"),
-  "Catches duplicate enhanced measurement event: page_view"
-);
+  it("catches page_view without page_location", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "page_view", type: "event", params: {} }, {}), "page-view-missing-page-location"));
+  });
 
-assert(
-  hasRule(lintEvent({ eventName: "scroll", source: "dataLayer", type: "event", params: {} }, {}), "enhanced-measurement-duplicate"),
-  "Catches duplicate enhanced measurement event: scroll"
-);
+  it("does NOT flag page_view with page_location", () => {
+    assert.ok(!hasRule(lintEvent({ eventName: "page_view", type: "event", params: { page_location: "https://example.com" } }, {}), "page-view-missing-page-location"));
+  });
 
-assert(
-  !hasRule(lintEvent({ eventName: "page_view", source: "network", type: "event", params: {} }, {}), "enhanced-measurement-duplicate"),
-  "Does NOT flag network-source page_view (that's the real one)"
-);
+  it("catches session params on non-session event", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "custom_event", type: "event", params: { source: "google", medium: "cpc" } }, {}), "event-scoped-on-session-dimension"));
+  });
 
-assert(
-  hasRule(lintEvent({ eventName: "page_view", type: "event", params: {} }, {}), "page-view-missing-page-location"),
-  "Catches page_view without page_location"
-);
+  it("does NOT flag session params on session_start", () => {
+    assert.ok(!hasRule(lintEvent({ eventName: "session_start", type: "event", params: { source: "google" } }, {}), "event-scoped-on-session-dimension"));
+  });
 
-assert(
-  !hasRule(lintEvent({ eventName: "page_view", type: "event", params: { page_location: "https://example.com" } }, {}), "page-view-missing-page-location"),
-  "Does NOT flag page_view with page_location"
-);
+  it("catches session without page_view", () => {
+    const sessionState = {};
+    lintEvent({ eventName: "session_start", type: "event" }, sessionState);
+    assert.ok(hasRule(lintEvent({ eventName: "custom_click", type: "event" }, sessionState), "missing-page-view-in-session"));
+  });
+});
 
-assert(
-  hasRule(lintEvent({ eventName: "custom_event", type: "event", params: { source: "google", medium: "cpc" } }, {}), "event-scoped-on-session-dimension"),
-  "Catches session params on non-session event"
-);
+describe("Schema Rules", () => {
+  it("catches purchase without items array", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "purchase", type: "event", params: { value: 50.00, currency: "USD" } }, {}), "ecommerce-missing-items"));
+  });
 
-assert(
-  !hasRule(lintEvent({ eventName: "session_start", type: "event", params: { source: "google" } }, {}), "event-scoped-on-session-dimension"),
-  "Does NOT flag session params on session_start"
-);
+  it("catches item missing both item_id and item_name", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "add_to_cart", type: "event", params: { items: [{ quantity: 1 }] } }, {}), "ecommerce-item-missing-id-or-name"));
+  });
 
-// Session-level: missing page_view
-const sessionState1 = {};
-lintEvent({ eventName: "session_start", type: "event" }, sessionState1);
-assert(
-  hasRule(lintEvent({ eventName: "custom_click", type: "event" }, sessionState1), "missing-page-view-in-session"),
-  "Catches session without page_view"
-);
+  it("does NOT flag item with item_id", () => {
+    assert.ok(!hasRule(lintEvent({ eventName: "add_to_cart", type: "event", params: { items: [{ item_id: "SKU123" }] } }, {}), "ecommerce-item-missing-id-or-name"));
+  });
 
+  it("catches purchase without transaction_id", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "purchase", type: "event", params: { items: [{ item_id: "SKU1" }], value: 50, currency: "USD" } }, {}), "purchase-missing-transaction-id"));
+  });
 
-// ──────────────────────────────────────────
-// SCHEMA RULES
-// ──────────────────────────────────────────
-console.log("\n── Schema Rules ──");
+  it("does NOT trigger value-without-currency when currency IS present", () => {
+    assert.ok(!hasRule(lintEvent({ eventName: "purchase", type: "event", params: { transaction_id: "T1", value: 50, currency: "USD", items: [{ item_id: "SKU1" }] } }, {}), "value-without-currency"));
+  });
 
-assert(
-  hasRule(lintEvent({ eventName: "purchase", type: "event", params: { value: 50.00, currency: "USD" } }, {}), "ecommerce-missing-items"),
-  "Catches purchase without items array"
-);
+  it("catches value without currency", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "add_to_cart", type: "event", params: { value: 25.00, items: [{ item_id: "SKU1" }] } }, {}), "value-without-currency"));
+  });
 
-assert(
-  hasRule(lintEvent({ eventName: "add_to_cart", type: "event", params: { items: [{ quantity: 1 }] } }, {}), "ecommerce-item-missing-id-or-name"),
-  "Catches item missing both item_id and item_name"
-);
+  it("catches lowercase currency code", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "purchase", type: "event", params: { value: 50, currency: "usd", transaction_id: "T1", items: [{ item_id: "SKU1" }] } }, {}), "currency-invalid-format"));
+  });
 
-assert(
-  !hasRule(lintEvent({ eventName: "add_to_cart", type: "event", params: { items: [{ item_id: "SKU123" }] } }, {}), "ecommerce-item-missing-id-or-name"),
-  "Does NOT flag item with item_id"
-);
+  it("catches non-numeric value string", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "test", type: "event", params: { value: "$50.00" } }, {}), "value-not-numeric"));
+  });
 
-assert(
-  hasRule(lintEvent({ eventName: "purchase", type: "event", params: { items: [{ item_id: "SKU1" }], value: 50, currency: "USD" } }, {}), "purchase-missing-transaction-id"),
-  "Catches purchase without transaction_id"
-);
+  it("info-level warning for string number value", () => {
+    assert.ok(hasSeverity(lintEvent({ eventName: "test", type: "event", params: { value: "50" } }, {}), "value-not-numeric", "info"));
+  });
 
-assert(
-  !hasRule(lintEvent({ eventName: "purchase", type: "event", params: { transaction_id: "T1", value: 50, currency: "USD", items: [{ item_id: "SKU1" }] } }, {}), "value-without-currency"),
-  "Does NOT trigger value-without-currency when currency IS present"
-);
+  it("catches purchase missing value", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "purchase", type: "event", params: { transaction_id: "T1", currency: "USD", items: [{ item_id: "SKU1" }] } }, {}), "purchase-missing-value"));
+  });
+});
 
-assert(
-  hasRule(lintEvent({ eventName: "add_to_cart", type: "event", params: { value: 25.00, items: [{ item_id: "SKU1" }] } }, {}), "value-without-currency"),
-  "Catches value without currency"
-);
+describe("Google Ads Rules", () => {
+  it("catches email in user_id", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "login", type: "event", params: { user_id: "user@example.com" } }, {}), "user-id-contains-pii"));
+  });
 
-assert(
-  hasRule(lintEvent({ eventName: "purchase", type: "event", params: { value: 50, currency: "usd", transaction_id: "T1", items: [{ item_id: "SKU1" }] } }, {}), "currency-invalid-format"),
-  "Catches lowercase currency code"
-);
+  it("catches unhashed email in enhanced conversions", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "purchase", type: "event", params: { user_data: { email: "test@example.com" } } }, {}), "enhanced-conversions-unhashed-email"));
+  });
 
-assert(
-  hasRule(lintEvent({ eventName: "test", type: "event", params: { value: "$50.00" } }, {}), "value-not-numeric"),
-  "Catches non-numeric value string"
-);
+  it("catches unhashed phone in enhanced conversions", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "purchase", type: "event", params: { user_data: { phone: "+12125551234" } } }, {}), "enhanced-conversions-unhashed-phone"));
+  });
+});
 
-assert(
-  hasSeverity(lintEvent({ eventName: "test", type: "event", params: { value: "50" } }, {}), "value-not-numeric", "info"),
-  "Info-level warning for string number value"
-);
+describe("Quality Rules", () => {
+  it("catches uppercase in event name", () => {
+    assert.ok(hasRule(lintEvent({ eventName: "Add_To_Cart", type: "event" }, {}), "event-name-uppercase"));
+  });
 
-assert(
-  hasRule(lintEvent({ eventName: "purchase", type: "event", params: { transaction_id: "T1", currency: "USD", items: [{ item_id: "SKU1" }] } }, {}), "purchase-missing-value"),
-  "Catches purchase missing value"
-);
+  it("catches rapid-fire duplicate event", () => {
+    const sessionState = {};
+    lintEvent({ eventName: "purchase", type: "event" }, sessionState);
+    assert.ok(hasRule(lintEvent({ eventName: "purchase", type: "event" }, sessionState), "duplicate-event-rapid-fire"));
+  });
 
+  it("catches reused transaction_id", () => {
+    const sessionState = {};
+    lintEvent({ eventName: "purchase", type: "event", params: { transaction_id: "ORDER-123", value: 50, currency: "USD", items: [{ item_id: "SKU1" }] } }, sessionState);
+    assert.ok(hasRule(lintEvent({ eventName: "purchase", type: "event", params: { transaction_id: "ORDER-123", value: 50, currency: "USD", items: [{ item_id: "SKU1" }] } }, sessionState), "transaction-id-reused"));
+  });
+});
 
-// ──────────────────────────────────────────
-// GOOGLE ADS RULES
-// ──────────────────────────────────────────
-console.log("\n── Google Ads Rules ──");
-
-assert(
-  hasRule(lintEvent({ eventName: "login", type: "event", params: { user_id: "user@example.com" } }, {}), "user-id-contains-pii"),
-  "Catches email in user_id"
-);
-
-assert(
-  hasRule(lintEvent({ eventName: "purchase", type: "event", params: { user_data: { email: "test@example.com" } } }, {}), "enhanced-conversions-unhashed-email"),
-  "Catches unhashed email in enhanced conversions"
-);
-
-assert(
-  hasRule(lintEvent({ eventName: "purchase", type: "event", params: { user_data: { phone: "+12125551234" } } }, {}), "enhanced-conversions-unhashed-phone"),
-  "Catches unhashed phone in enhanced conversions"
-);
-
-
-// ──────────────────────────────────────────
-// QUALITY RULES
-// ──────────────────────────────────────────
-console.log("\n── Quality Rules ──");
-
-assert(
-  hasRule(lintEvent({ eventName: "Add_To_Cart", type: "event" }, {}), "event-name-uppercase"),
-  "Catches uppercase in event name"
-);
-
-// Rapid fire
-const sessionState2 = {};
-lintEvent({ eventName: "purchase", type: "event" }, sessionState2);
-assert(
-  hasRule(lintEvent({ eventName: "purchase", type: "event" }, sessionState2), "duplicate-event-rapid-fire"),
-  "Catches rapid-fire duplicate event"
-);
-
-// Transaction ID reuse
-const sessionState3 = {};
-lintEvent({ eventName: "purchase", type: "event", params: { transaction_id: "ORDER-123", value: 50, currency: "USD", items: [{ item_id: "SKU1" }] } }, sessionState3);
-assert(
-  hasRule(lintEvent({ eventName: "purchase", type: "event", params: { transaction_id: "ORDER-123", value: 50, currency: "USD", items: [{ item_id: "SKU1" }] } }, sessionState3), "transaction-id-reused"),
-  "Catches reused transaction_id"
-);
-
-
-// ──────────────────────────────────────────
-// SESSION-LEVEL LINT
-// ──────────────────────────────────────────
-console.log("\n── Session Lint ──");
-
-const { findings, summary } = lintSession([
-  { eventName: "session_start", type: "event" },
-  { eventName: "Add To Cart", type: "event", params: { value: 25 } },
-  { eventName: "purchase", type: "event", params: { value: "$50", items: [] } },
-]);
-
-assert(summary.errors > 0, "Session lint finds errors");
-assert(summary.warnings > 0, "Session lint finds warnings");
-assert(findings.length > 0, "Session lint returns findings");
-
-// ──────────────────────────────────────────
-// Results
-// ──────────────────────────────────────────
-console.log(`\n════════════════════════════`);
-console.log(`  ${passed} passed, ${failed} failed`);
-console.log(`════════════════════════════\n`);
-
-process.exit(failed > 0 ? 1 : 0);
+describe("Session Lint", () => {
+  it("returns findings with errors and warnings", () => {
+    const { findings, summary } = lintSession([
+      { eventName: "session_start", type: "event" },
+      { eventName: "Add To Cart", type: "event", params: { value: 25 } },
+      { eventName: "purchase", type: "event", params: { value: "$50", items: [] } },
+    ]);
+    assert.ok(summary.errors > 0, "Session lint finds errors");
+    assert.ok(summary.warnings > 0, "Session lint finds warnings");
+    assert.ok(findings.length > 0, "Session lint returns findings");
+  });
+});

@@ -1,7 +1,7 @@
 {
   "name": "@ferry/core",
   "version": "0.1.0",
-  "description": "Shared schemas, validators, and transforms for Ferry",
+  "description": "Shared schemas, validators, and transforms for gd fairy",
   "main": "src/index.js",
   "scripts": {
     "test": "node tests/run.js"

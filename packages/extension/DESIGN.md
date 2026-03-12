@@ -1,18 +1,18 @@
-# gd ferry Design System
+# gd fairy Design System
 
 ## Brand
 
-**Name:** gd ferry (all lowercase)
+**Name:** gd fairy (all lowercase)
 **Legal entity:** DataFairy LLC
-**Domains:** gdferry.com (primary), gdfairy.com (redirects), datafairy.com (corporate)
+**Domains:** gdfairy.com (primary), gdferry.com (redirects), datafairy.com (corporate)
 
-**Concept:** "gd" stands for Google Data — the lowercase g mirrors Google's own lowercase styling. It's also the other thing you mutter when your GA4 is broken. Ferry carries messy data safely across the gap to where Google needs it — clean, structured, optimized. The fairy is the AI agent personality: whimsical, smart, and a little bit magic.
+**Concept:** "gd" stands for Google Data — the lowercase g mirrors Google's own lowercase styling. It's also the other thing you mutter when your GA4 is broken. Fairy is the AI agent: whimsical, smart, and a little bit magic. The fairy inspects your data with a wave of its wand, turning chaos into clarity. No boat required — just pure enchantment.
 
-**Wordmark:** All lowercase "gd ferry"
+**Wordmark:** All lowercase "gd fairy"
 - **"g"** in Google blue (#4285F4) — set in Inter Medium Italic
-- **"d ferry"** in brand indigo (#6366F1) — "d" in Inter Medium, "ferry" in Inter ExtraBold
+- **"d fairy"** in brand indigo (#6366F1) — "d" in Inter Medium, "fairy" in Inter ExtraBold
 - The only color differentiation is the "g" in Google blue; everything else is indigo
-- The fairy-boat icon sits to the left on a rounded indigo-to-indigo-600 gradient background (used in contexts where the Chrome extension icon isn't already present)
+- The fairy icon sits to the left on a rounded indigo-to-indigo-600 gradient background (used in contexts where the Chrome extension icon isn't already present)
 
 **Tone:** Superhuman meets Figma — bright, whimsical, animated. Personality lives in the design itself. Playful but efficient. Think: "a wickedly smart analyst who makes you laugh while saving your data."
 
@@ -28,7 +28,7 @@
 | `--indigo-200`     | `#C7D2FE` | Borders on active elements                   |
 | `--indigo-400`     | `#818CF8` | Secondary buttons, links                     |
 | `--indigo-500`     | `#6366F1` | **Primary brand color** — buttons, tabs, CTA |
-| `--indigo-600`     | `#4F46E5` | Primary button hover, "Ferry" wordmark       |
+| `--indigo-600`     | `#4F46E5` | Primary button hover, "Fairy" wordmark       |
 | `--indigo-700`     | `#4338CA` | Primary button active/pressed                |
 | `--indigo-900`     | `#312E81` | Dark text on light backgrounds               |
 
@@ -97,7 +97,7 @@
 | Element            | Size  | Weight    | Color            |
 |--------------------|-------|-----------|------------------|
 | "g" in wordmark    | 15px  | 500 (Medium) Italic | Google blue |
-| "d ferry" wordmark | 15px  | 500/800 (Medium/ExtraBold) | indigo-600 |
+| "d fairy" wordmark | 15px  | 500/800 (Medium/ExtraBold) | indigo-600 |
 | Panel heading      | 16px  | 600       | gray-900         |
 | Section heading    | 13px  | 600       | gray-900         |
 | Body text          | 13px  | 400       | gray-700         |
@@ -113,7 +113,7 @@
 ## Component Patterns
 
 ### Header
-- "gd ferry" wordmark: g in #4285F4 (italic), "d ferry" in indigo-600
+- "gd fairy" wordmark: g in #4285F4 (italic), "d fairy" in indigo-600
 - No inline logo icon (Chrome side panel already shows the extension icon)
 - Toolbar controls aligned right (Record / Export / Clear)
 
@@ -195,14 +195,14 @@
 
 ## Logo
 
-The gd ferry logo is a fairy-boat: a ship hull with fairy wings and a golden sparkle star.
+The gd fairy logo is a fairy figure with butterfly-like wings, holding a golden wand with a sparkle star. A whimsical, magical character with no boat in sight.
 
 ### Elements
-- **Wings:** Two pairs (upper + lower) in white, slight opacity variation
-- **Star/Sparkle:** Golden circle (#FBBF24) at the fairy's crown
-- **Cabin:** White rectangle with indigo (#818CF8) portholes
-- **Hull:** White triangular hull
-- **Water:** Lavender (#A5B4FC) wave lines below
+- **Fairy Figure:** Delicate humanoid silhouette in indigo/violet
+- **Wings:** Two pairs of butterfly-like wings in violet tones with iridescent shimmer
+- **Wand:** Golden staff with a star sparkle at the tip (#FBBF24)
+- **Sparkles:** Golden circles and stars surrounding the fairy (#FBBF24, #F59E0B)
+- **Color Scheme:** Indigo-600 to Violet-500 gradient for the fairy, gold accents
 
 ### Icon Sizes
 - 16×16: Toolbar favicon
@@ -211,9 +211,9 @@ The gd ferry logo is a fairy-boat: a ship hull with fairy wings and a golden spa
 
 ### Wordmark
 ```
-[fairy-boat icon] G D  Ferry
-                  ↑ ↑    ↑
-               blue red  indigo-600
+[fairy icon] G D  Fairy
+             ↑ ↑    ↑
+          blue indigo indigo-600
 ```
 
 ---
@@ -230,9 +230,10 @@ The gd ferry logo is a fairy-boat: a ship hull with fairy wings and a golden spa
 
 ### Copy Tone
 - Irreverent but knowledgeable
-- "The data you're sending Google is broken." / "gd ferry fixes it."
+- "The data you're sending Google is broken." / "gd fairy fixes it."
 - "The gd data quality tool you've been wishing for"
 - "No fairy dust required. (Okay, maybe a little.)"
+- "Wave goodbye to broken analytics."
 
 ---
 

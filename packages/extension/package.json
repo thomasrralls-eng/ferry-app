@@ -1,7 +1,7 @@
 {
   "name": "@ferry/extension",
   "version": "0.1.0",
-  "description": "gd ferry — data quality inspector for GA4, GTM, and Google platforms",
+  "description": "gd fairy — data quality inspector for GA4, GTM, and Google platforms",
   "private": true,
   "license": "UNLICENSED",
   "type": "module",

@@ -1,7 +1,7 @@
 {
   "name": "ferry-app",
   "version": "0.1.0",
-  "description": "Ferry — bridge messy data into Google products",
+  "description": "gd fairy — a little magic for your Google data quality",
   "private": true,
   "workspaces": [
     "packages/core",
