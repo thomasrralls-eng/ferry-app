@@ -65,8 +65,12 @@
       width: min(1120px, calc(100% - 48px)); margin: 0 auto;
     }
     .brand { display: inline-flex; align-items: center; gap: 2px; font-weight: 700; letter-spacing: -0.03em; color: var(--slate-900); font-size: 17px; }
-    .brand-mark { width: 36px; height: 36px; border-radius: 12px; overflow: hidden; flex: 0 0 auto; }
-    .brand-mark img { width: 36px; height: 36px; object-fit: contain; }
+    .brand-mark {
+      width: 36px; height: 36px; border-radius: 12px; flex: 0 0 auto;
+      background: linear-gradient(135deg, var(--indigo) 0%, var(--indigo-mid) 100%);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+    }
     .brand-name { display: inline-flex; align-items: center; gap: 4px; }
     .brand-name .spark { color: var(--gold); font-size: 13px; transform: translateY(-3px); }
     .btn { display: inline-flex; align-items: center; gap: 7px; border-radius: 12px; padding: 10px 18px; font-weight: 600; font-size: 13px; font-family: inherit; transition: 0.15s ease; border: 1px solid transparent; cursor: pointer; }
@@ -451,8 +455,8 @@
   <header class="site-header">
     <div class="header-inner">
       <a href="index.html" class="brand">
-        <span class="brand-mark"><img src="gdfairy_square.png" alt="gd fairy" /></span>
-        <span class="brand-name">gd fairy <span class="spark">✦</span></span>
+        <span class="brand-mark"><svg width="20" height="20" viewBox="0 0 32 32" fill="none"><path d="M15 13C13 10 10.5 10.5 10 9C9.5 7.5 11 6.5 12.5 7.5C13.5 8.2 14.5 10 15 12Z" fill="white" opacity="0.9"/><path d="M17 13C19 10 21.5 10.5 22 9C22.5 7.5 21 6.5 19.5 7.5C18.5 8.2 17.5 10 17 12Z" fill="white" opacity="0.9"/><path d="M15 14.5C13.5 13 11.5 13.5 11 12.5C10.5 11.5 12 11 13 11.8C13.8 12.3 14.5 13.5 15 14.5Z" fill="white" opacity="0.65"/><path d="M17 14.5C18.5 13 20.5 13.5 21 12.5C21.5 11.5 20 11 19 11.8C18.2 12.3 17.5 13.5 17 14.5Z" fill="white" opacity="0.65"/><circle cx="16" cy="12.5" r="2.5" fill="#fbbf24" opacity="0.25"/><circle cx="16" cy="12.5" r="1.2" fill="#fbbf24"/><rect x="12.5" y="16" width="7" height="3" rx="0.8" fill="white"/><circle cx="14.5" cy="17.5" r="0.7" fill="#818cf8"/><circle cx="17.5" cy="17.5" r="0.7" fill="#818cf8"/><path d="M10 20L11.5 23H20.5L22 20Z" fill="white"/><path d="M8 24.5Q11 23.5 14 24.5T20 24.5T26 23.5" stroke="#a5b4fc" stroke-width="1" fill="none" opacity="0.7"/></svg></span>
+        <span class="brand-name">gd ferry <span class="spark">✦</span></span>
       </a>
       <a href="index.html#cta" class="btn btn-primary">Get early access</a>
     </div>
@@ -899,8 +903,8 @@
   <footer>
     <div class="footer-row">
       <a href="index.html" class="brand">
-        <span class="brand-mark"><img src="gdfairy_square.png" alt="gd fairy" /></span>
-        <span class="brand-name">gd fairy <span class="spark">✦</span></span>
+        <span class="brand-mark"><svg width="20" height="20" viewBox="0 0 32 32" fill="none"><path d="M15 13C13 10 10.5 10.5 10 9C9.5 7.5 11 6.5 12.5 7.5C13.5 8.2 14.5 10 15 12Z" fill="white" opacity="0.9"/><path d="M17 13C19 10 21.5 10.5 22 9C22.5 7.5 21 6.5 19.5 7.5C18.5 8.2 17.5 10 17 12Z" fill="white" opacity="0.9"/><path d="M15 14.5C13.5 13 11.5 13.5 11 12.5C10.5 11.5 12 11 13 11.8C13.8 12.3 14.5 13.5 15 14.5Z" fill="white" opacity="0.65"/><path d="M17 14.5C18.5 13 20.5 13.5 21 12.5C21.5 11.5 20 11 19 11.8C18.2 12.3 17.5 13.5 17 14.5Z" fill="white" opacity="0.65"/><circle cx="16" cy="12.5" r="2.5" fill="#fbbf24" opacity="0.25"/><circle cx="16" cy="12.5" r="1.2" fill="#fbbf24"/><rect x="12.5" y="16" width="7" height="3" rx="0.8" fill="white"/><circle cx="14.5" cy="17.5" r="0.7" fill="#818cf8"/><circle cx="17.5" cy="17.5" r="0.7" fill="#818cf8"/><path d="M10 20L11.5 23H20.5L22 20Z" fill="white"/><path d="M8 24.5Q11 23.5 14 24.5T20 24.5T26 23.5" stroke="#a5b4fc" stroke-width="1" fill="none" opacity="0.7"/></svg></span>
+        <span class="brand-name">gd ferry <span class="spark">✦</span></span>
       </a>
       <div class="footer-links">
         <a href="index.html#product">Product</a>
