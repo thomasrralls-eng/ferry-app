@@ -41,6 +41,7 @@ const THEMES = {
       "purchase-missing-transaction-id", "purchase-missing-value",
       "value-without-currency", "currency-invalid-format", "value-not-numeric",
       "ecommerce-items-too-many", "transaction-id-reused",
+      "generate-lead-missing-value", "checkout-without-purchase", "purchase-without-checkout",
     ],
   },
   "pii-compliance": {
@@ -51,6 +52,7 @@ const THEMES = {
     ruleIds: [
       "user-id-contains-pii", "enhanced-conversions-unhashed-email",
       "enhanced-conversions-unhashed-phone", "gtm-consent-mode-missing",
+      "ga4-fired-before-consent",
     ],
   },
   "not-set": {
@@ -61,6 +63,16 @@ const THEMES = {
     ruleIds: [
       "enhanced-measurement-duplicate", "page-view-missing-page-location",
       "event-scoped-on-session-dimension", "missing-page-view-in-session",
+      "duplicate-page-view", "spa-navigation-untracked",
+    ],
+  },
+  "attribution": {
+    label: "Attribution & Traffic Source",
+    icon: "attribution",
+    description: "Issues that corrupt session attribution and traffic source data",
+    impactWeight: 8,
+    ruleIds: [
+      "utm-not-captured", "cross-domain-referral-risk", "multiple-measurement-ids",
     ],
   },
   "gtm-config": {
@@ -83,6 +95,8 @@ const THEMES = {
     ruleIds: [
       "event-name-uppercase", "duplicate-event-rapid-fire",
       "param-value-too-long", "ga4-version-detected",
+      "high-cardinality-event-names", "param-type-inconsistent",
+      "ga4-debug-mode",
     ],
   },
   "gtm-hygiene": {

@@ -1252,6 +1252,447 @@ defineRule("gtm-container-load-slow", (event, sessionState) => {
 });
 
 
+// ═══════════════════════════════════════════════
+// CATEGORY: INSTALLATION — tag deployment issues
+// ═══════════════════════════════════════════════
+
+/**
+ * Multiple distinct GA4 measurement IDs firing in the same session.
+ * Usually signals staging/production mixing or accidental cross-property leakage.
+ */
+defineRule("multiple-measurement-ids", (event, sessionState) => {
+  if (!sessionState) return [];
+  if (sessionState._multiIdReported) return [];
+  if (!sessionState._measurementIds) sessionState._measurementIds = new Set();
+
+  if (event.source === "gtag" && event.type === "config" && event.measurementId) {
+    sessionState._measurementIds.add(event.measurementId);
+  }
+  if (event.source === "network" && event.meta && event.meta.tid) {
+    sessionState._measurementIds.add(event.meta.tid);
+  }
+
+  if (sessionState._measurementIds.size >= 2) {
+    sessionState._multiIdReported = true;
+    return [finding(
+      "multiple-measurement-ids", "warning", "quality",
+      `Multiple GA4 measurement IDs firing: ${Array.from(sessionState._measurementIds).join(", ")}`,
+      "Data is being sent to more than one GA4 property. This is sometimes intentional (rollup properties) but often means staging and production IDs are mixed, or an old implementation is still active. Verify each ID is intentional.",
+      "https://support.google.com/analytics/answer/9304153"
+    )];
+  }
+  return [];
+});
+
+/**
+ * GA4 debug mode is active — events go to DebugView and may be excluded from reports.
+ */
+defineRule("ga4-debug-mode", (event, sessionState) => {
+  if (!sessionState) return [];
+  if (sessionState._ga4DebugDetected) return [];
+
+  if (event.source === "gtag" && event.type === "config") {
+    const params = event.params || {};
+    if (params.debug_mode === true || params.debug_mode === 1) {
+      sessionState._ga4DebugDetected = true;
+      return [finding(
+        "ga4-debug-mode", "info", "quality",
+        "GA4 debug_mode is enabled",
+        "GA4 is configured with debug_mode: true. Events appear in DebugView but may be excluded from standard reports and audience calculations. Remove debug_mode before deploying to production.",
+        "https://support.google.com/analytics/answer/7201382"
+      )];
+    }
+  }
+
+  if (event.source === "dataLayer" && event.payload) {
+    if (event.payload.debug_mode === true || event.payload.debug_mode === 1) {
+      sessionState._ga4DebugDetected = true;
+      return [finding(
+        "ga4-debug-mode", "info", "quality",
+        "GA4 debug_mode is enabled via dataLayer",
+        "GA4 is receiving debug_mode: true. Events appear in DebugView but may be excluded from standard reports. Remove debug_mode before going live.",
+        "https://support.google.com/analytics/answer/7201382"
+      )];
+    }
+  }
+
+  if (event.source === "network" && (event.url || "").includes("_dbg=1")) {
+    sessionState._ga4DebugDetected = true;
+    return [finding(
+      "ga4-debug-mode", "info", "quality",
+      "GA4 debug mode flag (_dbg=1) detected in network hit",
+      "A GA4 collect request includes the debug flag. Data in debug mode appears in DebugView and may be excluded from standard reports. Ensure debug mode is off in production.",
+      "https://support.google.com/analytics/answer/7201382"
+    )];
+  }
+
+  return [];
+});
+
+/**
+ * GA4 tags fire before any consent mode signal.
+ * Consent mode defaults must be set before the GA4 tag loads.
+ */
+defineRule("ga4-fired-before-consent", (event, sessionState) => {
+  if (!sessionState) return [];
+  if (sessionState._consentBeforeGA4Checked || sessionState._consentModeSet) return [];
+
+  // Recognize consent signals
+  if (event.source === "gtag" && event.raw && Array.isArray(event.raw) && event.raw[0] === "consent") {
+    sessionState._consentModeSet = true;
+    return [];
+  }
+  if (event.source === "gtag" && event.type === "set") {
+    const p = event.params || {};
+    if (p.ad_storage !== undefined || p.analytics_storage !== undefined) {
+      sessionState._consentModeSet = true;
+      return [];
+    }
+  }
+  if (event.source === "dataLayer" && event.payload) {
+    const p = event.payload;
+    if (p.ad_storage !== undefined || p.analytics_storage !== undefined || p.consent_mode) {
+      sessionState._consentModeSet = true;
+      return [];
+    }
+  }
+
+  // GA4 config fires — if no consent seen yet, flag it
+  if (event.source === "gtag" && event.type === "config" && !sessionState._consentModeSet) {
+    sessionState._consentBeforeGA4Checked = true;
+    return [finding(
+      "ga4-fired-before-consent", "warning", "gtm",
+      "GA4 fired before consent mode defaults were set",
+      "A GA4 config tag fired before any gtag('consent', 'default', ...) call was detected. Google Consent Mode v2 requires consent defaults to be configured before the Google tag initialises. Without this, you risk collecting data before users have consented, violating GDPR and other privacy regulations.",
+      "https://developers.google.com/tag-platform/security/guides/consent"
+    )];
+  }
+
+  return [];
+});
+
+
+// ═══════════════════════════════════════════════
+// CATEGORY: PAGEVIEW — virtual pageview problems
+// ═══════════════════════════════════════════════
+
+/**
+ * Duplicate page_view for the same URL within 3 seconds.
+ * Different from enhanced-measurement-duplicate — catches manual double-firing.
+ */
+defineRule("duplicate-page-view", (event, sessionState) => {
+  if (!sessionState) return [];
+  if (!sessionState._pageViewUrls) sessionState._pageViewUrls = {};
+
+  const name = getEventName(event);
+  if (name !== "page_view") return [];
+
+  const params = getParams(event);
+  const rawUrl = (params && (params.page_location || params.page_path)) || event.pageUrl || "";
+
+  let normalizedPath = rawUrl;
+  try {
+    normalizedPath = new URL(rawUrl.startsWith("http") ? rawUrl : "https://x.com" + rawUrl).pathname;
+  } catch {}
+
+  const now = event.time ? new Date(event.time).getTime() : Date.now();
+  const prev = sessionState._pageViewUrls[normalizedPath];
+
+  if (prev && (now - prev) < 3000) {
+    return [finding(
+      "duplicate-page-view", "warning", "not-set",
+      `Duplicate page_view for "${normalizedPath}" within 3 seconds`,
+      "The same page URL triggered more than one page_view event in rapid succession. This double-counts pageviews and sessions in reports, inflates bounce rate, and corrupts funnel analysis. Check for duplicate GA4 configuration tags or conflicts with Enhanced Measurement.",
+      "https://support.google.com/analytics/answer/9216061"
+    )];
+  }
+
+  sessionState._pageViewUrls[normalizedPath] = now;
+  return [];
+});
+
+/**
+ * SPA navigation: URL changed between events but no page_view fired for the new URL.
+ * Virtual pageviews are missing, making multi-page SPAs look like single-page sessions.
+ */
+defineRule("spa-navigation-untracked", (event, sessionState) => {
+  if (!sessionState) return [];
+  if (sessionState._spaWarned) return [];
+
+  const params = getParams(event);
+  const currentUrl = (params && params.page_location) || event.pageUrl;
+  if (!currentUrl) return [];
+
+  let currentPath;
+  try {
+    currentPath = new URL(currentUrl.startsWith("http") ? currentUrl : "https://x.com" + currentUrl).pathname;
+  } catch { return []; }
+
+  const name = getEventName(event);
+
+  if (name === "page_view") {
+    sessionState._lastPageViewPath = currentPath;
+    sessionState._navsSinceLastPV = 0;
+    return [];
+  }
+
+  if (sessionState._lastPageViewPath && currentPath !== sessionState._lastPageViewPath) {
+    if (!sessionState._navsSinceLastPV) sessionState._navsSinceLastPV = 0;
+    sessionState._navsSinceLastPV++;
+
+    if (sessionState._navsSinceLastPV >= 2) {
+      sessionState._spaWarned = true;
+      return [finding(
+        "spa-navigation-untracked", "warning", "not-set",
+        `URL changed from "${sessionState._lastPageViewPath}" to "${currentPath}" without a page_view`,
+        "This looks like a single-page application (SPA) where the URL changed but no page_view event was fired. GA4 won't record these as separate pageviews — users will appear to have only viewed the first page. Implement history.pushState tracking or use GTM's History Change trigger to fire a page_view on each navigation.",
+        "https://developers.google.com/analytics/devguides/collection/ga4/views?client_type=gtag"
+      )];
+    }
+  }
+
+  return [];
+});
+
+
+// ═══════════════════════════════════════════════
+// CATEGORY: EVENT QUALITY — schema & data hygiene
+// ═══════════════════════════════════════════════
+
+/**
+ * Too many unique custom event names — cardinality warning.
+ * GA4 free: 500 event limit. 30+ unique names in one session is a red flag.
+ */
+defineRule("high-cardinality-event-names", (event, sessionState) => {
+  if (!sessionState) return [];
+  if (sessionState._highCardinalityReported) return [];
+  if (!sessionState._uniqueEventNames) sessionState._uniqueEventNames = new Set();
+
+  const name = getEventName(event);
+  if (!name || name.startsWith("gtm.")) return [];
+
+  const STANDARD_GA4_EVENTS = new Set([
+    "page_view", "session_start", "first_visit", "user_engagement",
+    "scroll", "click", "view_search_results", "video_start", "video_progress", "video_complete",
+    "file_download", "form_start", "form_submit",
+    "purchase", "add_to_cart", "remove_from_cart", "begin_checkout", "view_item",
+    "view_item_list", "select_item", "view_cart", "add_shipping_info", "add_payment_info",
+    "refund", "generate_lead", "sign_up", "login", "search", "share", "select_content",
+  ]);
+  if (STANDARD_GA4_EVENTS.has(name)) return [];
+
+  sessionState._uniqueEventNames.add(name);
+
+  if (sessionState._uniqueEventNames.size === 30) {
+    sessionState._highCardinalityReported = true;
+    return [finding(
+      "high-cardinality-event-names", "warning", "quality",
+      "30+ unique custom event names detected in this session",
+      `This session already has ${sessionState._uniqueEventNames.size} distinct custom event names. High cardinality makes reports harder to read and risks hitting GA4's 500-event limit. Consider using a single event name with a type parameter (e.g., one "cta_click" event with a "cta_id" param) instead of many separate event names.`,
+      "https://support.google.com/analytics/answer/13316687"
+    )];
+  }
+  return [];
+});
+
+/**
+ * Same parameter key sent as both string and number across events in the session.
+ * Causes type conflicts in BigQuery exports and custom dimension schema.
+ */
+defineRule("param-type-inconsistent", (event, sessionState) => {
+  if (!sessionState) return [];
+  if (!sessionState._paramTypes) sessionState._paramTypes = {};
+  if (!sessionState._typeConflicts) sessionState._typeConflicts = new Set();
+
+  const params = getParams(event);
+  if (!params) return [];
+
+  const SKIP = new Set(["items", "event_callback", "send_to", "non_interaction"]);
+  const results = [];
+
+  for (const [key, val] of Object.entries(params)) {
+    if (SKIP.has(key)) continue;
+    const t = typeof val;
+    if (t !== "string" && t !== "number") continue;
+
+    if (sessionState._paramTypes[key] !== undefined) {
+      const prev = sessionState._paramTypes[key];
+      if (prev !== t && !sessionState._typeConflicts.has(key)) {
+        sessionState._typeConflicts.add(key);
+        results.push(finding(
+          "param-type-inconsistent", "warning", "quality",
+          `Parameter "${key}" sent as ${prev} in one event and ${t} in another`,
+          `"${key}" has inconsistent types across events. This corrupts BigQuery export schemas, breaks custom dimension cardinality, and may cause unexpected (not set) values. Choose one type and use it consistently across all events.`,
+          "https://developers.google.com/analytics/devguides/collection/protocol/ga4/reference"
+        ));
+      }
+    } else {
+      sessionState._paramTypes[key] = t;
+    }
+  }
+  return results;
+});
+
+
+// ═══════════════════════════════════════════════
+// CATEGORY: CONVERSION — lead & purchase tracking
+// ═══════════════════════════════════════════════
+
+/**
+ * generate_lead fired without a value parameter.
+ * Value is required for ROAS calculations and Smart Bidding on lead campaigns.
+ */
+defineRule("generate-lead-missing-value", (event) => {
+  const name = getEventName(event);
+  if (name !== "generate_lead") return [];
+  const params = getParams(event);
+  if (!params) return [];
+  if (params.value === undefined || params.value === null || params.value === "") {
+    return [finding(
+      "generate-lead-missing-value", "warning", "schema",
+      "generate_lead event missing value parameter",
+      "Without a value, lead events can't contribute to ROAS calculations or revenue-based Smart Bidding in Google Ads. Add an estimated lead value and a currency parameter to enable bid optimisation based on lead value.",
+      "https://developers.google.com/analytics/devguides/collection/ga4/reference/events#generate_lead"
+    )];
+  }
+  return [];
+});
+
+/**
+ * begin_checkout fired but no purchase event follows in the session.
+ * Likely means the order confirmation page is not tracked.
+ */
+defineRule("checkout-without-purchase", (event, sessionState) => {
+  if (!sessionState) return [];
+  const name = getEventName(event);
+
+  if (name === "begin_checkout") {
+    sessionState._checkoutSeen = true;
+    sessionState._postCheckoutCount = 0;
+    return [];
+  }
+  if (name === "purchase") {
+    sessionState._purchaseSeen = true;
+    return [];
+  }
+
+  if (sessionState._checkoutSeen && !sessionState._purchaseSeen && !sessionState._checkoutReported) {
+    sessionState._postCheckoutCount = (sessionState._postCheckoutCount || 0) + 1;
+    if (sessionState._postCheckoutCount >= 8) {
+      sessionState._checkoutReported = true;
+      return [finding(
+        "checkout-without-purchase", "warning", "schema",
+        "begin_checkout fired but no purchase event detected",
+        "A checkout was initiated but no purchase event followed in this session. If users complete orders without a purchase event, all revenue and ROAS data is missing from GA4. Verify your order confirmation page fires purchase with transaction_id, value, and currency.",
+        "https://developers.google.com/analytics/devguides/collection/ga4/ecommerce"
+      )];
+    }
+  }
+  return [];
+});
+
+/**
+ * purchase event fired but no begin_checkout in the session.
+ * May indicate missing funnel steps, making checkout funnel reports useless.
+ */
+defineRule("purchase-without-checkout", (event, sessionState) => {
+  if (!sessionState) return [];
+  if (sessionState._purchaseNoCheckoutReported) return [];
+
+  const name = getEventName(event);
+
+  if (name === "begin_checkout") {
+    sessionState._checkoutSeenForPurchase = true;
+    return [];
+  }
+  if (name === "purchase" && !sessionState._checkoutSeenForPurchase) {
+    sessionState._purchaseNoCheckoutReported = true;
+    return [finding(
+      "purchase-without-checkout", "info", "schema",
+      "purchase event fired without a preceding begin_checkout",
+      "A purchase was tracked but no begin_checkout event was seen before it. This makes the GA4 ecommerce funnel report (View Item → Add to Cart → Checkout → Purchase) incomplete. Ensure checkout funnel events fire at each step so you can measure drop-off.",
+      "https://developers.google.com/analytics/devguides/collection/ga4/ecommerce"
+    )];
+  }
+  return [];
+});
+
+
+// ═══════════════════════════════════════════════
+// CATEGORY: ATTRIBUTION — traffic source integrity
+// ═══════════════════════════════════════════════
+
+/**
+ * page_view fired with UTM params in the URL but page_location is missing or stripped.
+ * UTMs are lost from attribution if page_location isn't sent.
+ */
+defineRule("utm-not-captured", (event, sessionState) => {
+  if (!sessionState) return [];
+  if (sessionState._utmCaptureChecked) return [];
+
+  const name = getEventName(event);
+  if (name !== "page_view") return [];
+
+  const params = getParams(event);
+  const pageUrl = (params && params.page_location) || event.pageUrl || "";
+  if (!pageUrl) return [];
+
+  try {
+    const parsed = new URL(pageUrl.startsWith("http") ? pageUrl : "https://x.com" + pageUrl);
+    const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
+    const hasUtm = UTM_KEYS.some(k => parsed.searchParams.has(k));
+
+    if (hasUtm && !params.page_location) {
+      // URL has UTMs but page_location not in params — they won't be attributed
+      sessionState._utmCaptureChecked = true;
+      return [finding(
+        "utm-not-captured", "warning", "quality",
+        "Landing page has UTM parameters but page_location is missing from page_view",
+        "The page URL contains UTM campaign parameters but the page_view event doesn't include page_location. GA4 reads UTMs from page_location for session attribution — without it, this session will be attributed as Direct traffic even though it came from a campaign.",
+        "https://support.google.com/analytics/answer/10917952"
+      )];
+    }
+  } catch {}
+
+  return [];
+});
+
+/**
+ * Events recorded from multiple distinct domains in the same session.
+ * Without cross-domain measurement, users crossing domains create self-referrals.
+ */
+defineRule("cross-domain-referral-risk", (event, sessionState) => {
+  if (!sessionState) return [];
+  if (sessionState._crossDomainReported) return [];
+  if (!sessionState._seenHosts) sessionState._seenHosts = new Set();
+
+  const params = getParams(event);
+  const pageUrl = (params && params.page_location) || event.pageUrl || "";
+  if (!pageUrl) return [];
+
+  try {
+    const parsed = new URL(pageUrl.startsWith("http") ? pageUrl : "https://x.com" + pageUrl);
+    const host = parsed.hostname;
+    if (!host || host === "x.com") return [];
+
+    sessionState._seenHosts.add(host);
+
+    const roots = new Set([...sessionState._seenHosts].map(h => h.split(".").slice(-2).join(".")));
+    if (roots.size >= 2) {
+      sessionState._crossDomainReported = true;
+      return [finding(
+        "cross-domain-referral-risk", "warning", "quality",
+        `Events from multiple domains detected: ${[...sessionState._seenHosts].join(", ")}`,
+        "Events have been recorded from more than one domain in this session. Without cross-domain measurement, users navigating between domains (e.g., your main site → a payment processor) appear as new sessions with a self-referral source, breaking attribution. Configure the linker parameter or gtag cross-domain measurement.",
+        "https://support.google.com/analytics/answer/10071811"
+      )];
+    }
+  } catch {}
+
+  return [];
+});
+
+
 // ──────────────────────────────────────────────
 // Utility functions
 // ──────────────────────────────────────────────
