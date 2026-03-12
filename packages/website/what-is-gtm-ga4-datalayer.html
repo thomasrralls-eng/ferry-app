@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>What is GTM, GA4 & the dataLayer? A Visual Guide | gd fairy</title>
+  <meta name="description" content="A plain-English visual guide to Google Tag Manager (GTM), Google Analytics 4 (GA4), the dataLayer, and why data hygiene matters for your analytics." />
+  <meta property="og:title" content="What is GTM, GA4 & the dataLayer? A Visual Guide" />
+  <meta property="og:description" content="Understand how GTM, GA4, and your dataLayer actually work together — and what breaks when they don't." />
+  <meta property="og:type" content="article" />
+  <link rel="canonical" href="https://gdfairy.com/what-is-gtm-ga4-datalayer" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --indigo:      #6366f1;
+      --indigo-mid:  #4f46e5;
+      --indigo-deep: #3730a3;
+      --gold:        #f59e0b;
+      --slate-950:   #020617;
+      --slate-900:   #0f172a;
+      --slate-800:   #1e293b;
+      --slate-700:   #334155;
+      --slate-600:   #475569;
+      --slate-500:   #64748b;
+      --slate-400:   #94a3b8;
+      --slate-300:   #cbd5e1;
+      --slate-200:   #e2e8f0;
+      --slate-100:   #f1f5f9;
+      --slate-50:    #f8fafc;
+      --white:       #ffffff;
+      --green:       #22c55e;
+      --amber:       #f59e0b;
+      --red:         #ef4444;
+      --gtm-blue:    #1a73e8;
+      --ga4-orange:  #e8710a;
+      --radius-xl:   24px;
+      --shadow:      0 1px 3px rgba(15,23,42,0.06), 0 8px 24px rgba(15,23,42,0.06);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 15px; line-height: 1.6;
+      color: var(--slate-700);
+      background: var(--white);
+      -webkit-font-smoothing: antialiased;
+    }
+    img { max-width: 100%; display: block; }
+    a { color: inherit; text-decoration: none; }
+    .container { width: min(800px, calc(100% - 48px)); margin: 0 auto; }
+    .container-wide { width: min(1100px, calc(100% - 48px)); margin: 0 auto; }
+
+    /* HEADER */
+    .site-header {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(20px);
+      background: rgba(255,255,255,0.88);
+      border-bottom: 1px solid var(--slate-200);
+    }
+    .header-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px; gap: 24px;
+      width: min(1120px, calc(100% - 48px)); margin: 0 auto;
+    }
+    .brand { display: inline-flex; align-items: center; gap: 2px; font-weight: 700; letter-spacing: -0.03em; color: var(--slate-900); font-size: 17px; }
+    .brand-mark { width: 36px; height: 36px; border-radius: 12px; overflow: hidden; flex: 0 0 auto; }
+    .brand-mark img { width: 36px; height: 36px; object-fit: contain; }
+    .brand-name { display: inline-flex; align-items: center; gap: 4px; }
+    .brand-name .spark { color: var(--gold); font-size: 13px; transform: translateY(-3px); }
+    .btn { display: inline-flex; align-items: center; gap: 7px; border-radius: 12px; padding: 10px 18px; font-weight: 600; font-size: 13px; font-family: inherit; transition: 0.15s ease; border: 1px solid transparent; cursor: pointer; }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: var(--indigo); color: var(--white); box-shadow: 0 4px 14px rgba(99,102,241,0.25); }
+    .btn-primary:hover { background: var(--indigo-mid); }
+
+    /* ARTICLE HERO */
+    .article-hero {
+      padding: 72px 0 64px;
+      background: linear-gradient(180deg, var(--slate-50) 0%, var(--white) 100%);
+      border-bottom: 1px solid var(--slate-200);
+    }
+    .article-hero .eyebrow {
+      display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px;
+      border-radius: 999px; background: rgba(99,102,241,0.07);
+      color: var(--indigo-deep); font-size: 12px; font-weight: 600;
+      border: 1px solid rgba(99,102,241,0.12); margin-bottom: 20px;
+    }
+    .article-hero h1 { font-size: clamp(30px, 4.5vw, 46px); letter-spacing: -0.04em; line-height: 1.06; color: var(--slate-950); margin-bottom: 18px; }
+    .article-hero .lead { font-size: 17px; line-height: 1.7; color: var(--slate-600); max-width: 640px; margin-bottom: 28px; }
+    .article-meta { display: flex; gap: 20px; color: var(--slate-400); font-size: 13px; }
+
+    /* TOC */
+    .toc {
+      background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 20px;
+      padding: 24px 28px; margin: 48px 0;
+    }
+    .toc h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--slate-500); margin-bottom: 14px; }
+    .toc ol { list-style: none; display: grid; gap: 8px; counter-reset: toc; }
+    .toc li { counter-increment: toc; display: flex; align-items: baseline; gap: 10px; }
+    .toc li::before { content: counter(toc); min-width: 20px; height: 20px; border-radius: 6px; background: var(--indigo); color: white; font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .toc a { color: var(--slate-700); font-size: 14px; font-weight: 500; }
+    .toc a:hover { color: var(--indigo); }
+
+    /* CONTENT */
+    .article-body { padding: 0 0 96px; }
+    .article-section { padding: 72px 0 0; }
+    .section-label {
+      display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px;
+      border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+      margin-bottom: 18px;
+    }
+    .label-gtm { background: rgba(26,115,232,0.08); color: #1a5fba; border: 1px solid rgba(26,115,232,0.15); }
+    .label-ga4 { background: rgba(232,113,10,0.08); color: #b85a08; border: 1px solid rgba(232,113,10,0.15); }
+    .label-dl { background: rgba(99,102,241,0.08); color: var(--indigo-deep); border: 1px solid rgba(99,102,241,0.15); }
+    .label-hygiene { background: rgba(34,197,94,0.08); color: #166534; border: 1px solid rgba(34,197,94,0.15); }
+
+    h2 { font-size: clamp(22px, 2.8vw, 30px); letter-spacing: -0.035em; line-height: 1.15; color: var(--slate-950); margin-bottom: 14px; }
+    h3 { font-size: 18px; letter-spacing: -0.025em; color: var(--slate-900); margin-bottom: 10px; }
+    p { color: var(--slate-600); line-height: 1.75; margin-bottom: 16px; }
+    p:last-child { margin-bottom: 0; }
+    strong { color: var(--slate-800); }
+
+    /* DIVIDER */
+    .section-divider { border: none; border-top: 1px solid var(--slate-200); margin: 72px 0 0; }
+
+    /* CALLOUT BOXES */
+    .callout {
+      border-radius: 16px; padding: 20px 24px; margin: 28px 0;
+      border-left: 3px solid;
+    }
+    .callout-indigo { background: rgba(99,102,241,0.05); border-color: var(--indigo); }
+    .callout-amber  { background: rgba(245,158,11,0.06); border-color: var(--amber); }
+    .callout-green  { background: rgba(34,197,94,0.06); border-color: var(--green); }
+    .callout-red    { background: rgba(239,68,68,0.06);  border-color: var(--red); }
+    .callout strong { display: block; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+    .callout p { margin: 0; font-size: 14px; line-height: 1.65; }
+
+    /* CODE */
+    .code-block {
+      background: var(--slate-900); border-radius: 16px; padding: 24px;
+      margin: 28px 0; overflow-x: auto; position: relative;
+    }
+    .code-label {
+      position: absolute; top: 12px; right: 16px;
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--slate-500); font-family: monospace;
+    }
+    pre { font-family: 'Fira Mono', 'Cascadia Code', 'Consolas', monospace; font-size: 13px; line-height: 1.7; color: #e2e8f0; white-space: pre; }
+    .c-key    { color: #93c5fd; }
+    .c-str    { color: #86efac; }
+    .c-num    { color: #fca5a5; }
+    .c-kw     { color: #c084fc; }
+    .c-cmt    { color: #64748b; }
+    .c-fn     { color: #fde68a; }
+    .c-obj    { color: #f9a8d4; }
+
+    /* VISUAL DIAGRAMS */
+    .diagram { margin: 36px 0; }
+
+    /* Flow diagram */
+    .flow {
+      display: flex; align-items: center; gap: 0;
+      overflow-x: auto; padding: 4px 0 8px;
+    }
+    .flow-node {
+      flex-shrink: 0; text-align: center; min-width: 120px;
+    }
+    .flow-box {
+      border-radius: 14px; padding: 14px 16px;
+      font-size: 12px; font-weight: 600; line-height: 1.3;
+      border: 1px solid;
+    }
+    .flow-label { font-size: 10px; color: var(--slate-400); margin-top: 6px; letter-spacing: 0.04em; text-transform: uppercase; }
+    .flow-arrow {
+      flex-shrink: 0; display: flex; align-items: center; padding: 0 4px;
+      color: var(--slate-300); font-size: 18px;
+    }
+    .node-user    { background: var(--slate-50);  border-color: var(--slate-200); color: var(--slate-800); }
+    .node-dl      { background: rgba(99,102,241,0.07); border-color: rgba(99,102,241,0.2); color: var(--indigo-deep); }
+    .node-gtm     { background: rgba(26,115,232,0.07); border-color: rgba(26,115,232,0.2); color: #1a5fba; }
+    .node-ga4     { background: rgba(232,113,10,0.07); border-color: rgba(232,113,10,0.2); color: #b85a08; }
+    .node-report  { background: rgba(34,197,94,0.07);  border-color: rgba(34,197,94,0.2);  color: #166534; }
+    .node-ads     { background: rgba(245,158,11,0.07); border-color: rgba(245,158,11,0.2); color: #92400e; }
+
+    /* Architecture diagram */
+    .arch-diagram {
+      background: var(--slate-50); border: 1px solid var(--slate-200);
+      border-radius: 24px; padding: 32px; margin: 36px 0;
+    }
+    .arch-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--slate-400); text-align: center; margin-bottom: 24px; }
+    .arch-container {
+      border: 2px solid rgba(26,115,232,0.3); border-radius: 18px;
+      padding: 20px; background: rgba(26,115,232,0.03); position: relative;
+    }
+    .arch-container-label {
+      position: absolute; top: -11px; left: 20px;
+      background: var(--slate-50); padding: 2px 10px;
+      font-size: 11px; font-weight: 700; color: var(--gtm-blue); letter-spacing: 0.05em;
+    }
+    .arch-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px; }
+    .arch-row:last-child { margin-bottom: 0; }
+    .arch-pill {
+      background: white; border: 1px solid var(--slate-200); border-radius: 10px;
+      padding: 10px 14px; font-size: 12px; font-weight: 600; color: var(--slate-700);
+      text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .arch-pill small { display: block; font-size: 10px; font-weight: 400; color: var(--slate-400); margin-top: 2px; }
+    .arch-pill.highlight { background: rgba(26,115,232,0.06); border-color: rgba(26,115,232,0.2); color: #1a5fba; }
+    .arch-connector { text-align: center; color: var(--slate-300); font-size: 20px; margin: 8px 0; }
+
+    /* dataLayer visual */
+    .dl-visual {
+      background: var(--slate-900); border-radius: 20px; padding: 28px;
+      margin: 36px 0; position: relative; overflow: hidden;
+    }
+    .dl-visual::before {
+      content: 'window.dataLayer'; position: absolute; top: 14px; left: 24px;
+      font-family: monospace; font-size: 11px; color: var(--slate-500);
+      font-weight: 600; letter-spacing: 0.04em;
+    }
+    .dl-array {
+      margin-top: 32px; display: grid; gap: 10px;
+    }
+    .dl-push {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px; padding: 14px 18px; font-family: monospace; font-size: 12.5px;
+      line-height: 1.65; position: relative;
+    }
+    .dl-push-label {
+      position: absolute; top: -9px; right: 14px;
+      background: var(--slate-800); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px; padding: 1px 8px;
+      font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--slate-400);
+    }
+
+    /* Variable mapping */
+    .var-map {
+      display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center;
+      margin: 36px 0;
+    }
+    .var-side { background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 16px; padding: 20px; }
+    .var-side h4 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--slate-400); margin-bottom: 14px; }
+    .var-row { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px; font-size: 12px; font-family: monospace; }
+    .var-row + .var-row { margin-top: 4px; }
+    .var-key { color: var(--indigo); font-weight: 600; }
+    .var-val { color: var(--slate-500); }
+    .var-arrow-col { text-align: center; }
+    .var-arrow-col svg { color: var(--slate-300); }
+    .var-gtm-side { background: rgba(26,115,232,0.04); border: 1px solid rgba(26,115,232,0.15); }
+    .var-gtm-row { background: rgba(26,115,232,0.07); }
+    .var-gtm-row .var-key { color: #1a5fba; }
+
+    /* Comparison grid */
+    .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 36px 0; }
+    .compare-card {
+      border-radius: 20px; padding: 24px; border: 1px solid;
+    }
+    .compare-bad  { background: rgba(239,68,68,0.04);  border-color: rgba(239,68,68,0.2); }
+    .compare-good { background: rgba(34,197,94,0.04);  border-color: rgba(34,197,94,0.2); }
+    .compare-head {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; font-weight: 700; margin-bottom: 16px;
+    }
+    .compare-head .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .compare-bad .dot  { background: var(--red); }
+    .compare-good .dot { background: var(--green); }
+    .compare-bad .compare-head  { color: #991b1b; }
+    .compare-good .compare-head { color: #166534; }
+    .compare-list { list-style: none; display: grid; gap: 9px; }
+    .compare-list li { font-size: 13px; color: var(--slate-600); display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; }
+    .compare-list li::before { content: ''; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+    .compare-bad  .compare-list li::before { background: var(--red); }
+    .compare-good .compare-list li::before { background: var(--green); }
+
+    /* Impact cards */
+    .impact-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 36px 0; }
+    .impact-card {
+      background: var(--white); border: 1px solid var(--slate-200);
+      border-radius: 18px; padding: 20px; box-shadow: var(--shadow);
+      border-top: 3px solid;
+    }
+    .impact-card .icon { font-size: 24px; margin-bottom: 12px; }
+    .impact-card h4 { font-size: 14px; font-weight: 700; color: var(--slate-900); margin-bottom: 6px; letter-spacing: -0.015em; }
+    .impact-card p { font-size: 13px; line-height: 1.6; color: var(--slate-500); margin: 0; }
+
+    /* Anatomy diagram */
+    .event-anatomy {
+      background: var(--slate-50); border: 1px solid var(--slate-200);
+      border-radius: 20px; padding: 28px; margin: 36px 0;
+    }
+    .event-anatomy h4 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--slate-400); margin-bottom: 20px; }
+    .anatomy-row { display: flex; gap: 0; margin-bottom: 10px; }
+    .anatomy-piece {
+      padding: 10px 16px; font-size: 12px; font-weight: 600; font-family: monospace;
+      border-top: 2px solid; position: relative; flex: 0 0 auto;
+    }
+    .anatomy-piece .anatomy-label {
+      position: absolute; bottom: -22px; left: 0; right: 0; text-align: center;
+      font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+      font-family: inherit; white-space: nowrap;
+    }
+    .a-fn   { background: rgba(99,102,241,0.07); border-color: var(--indigo); color: var(--indigo-deep); }
+    .a-name { background: rgba(232,113,10,0.07); border-color: var(--ga4-orange); color: #b85a08; }
+    .a-key  { background: rgba(34,197,94,0.07);  border-color: var(--green);     color: #166534; }
+    .a-val  { background: rgba(245,158,11,0.07); border-color: var(--amber);     color: #92400e; }
+    .anatomy-legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 32px; }
+    .anatomy-legend-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--slate-600); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+    /* CTA */
+    .guide-cta {
+      margin-top: 80px; background: linear-gradient(135deg, #2e2b6e 0%, #4338ca 100%);
+      border-radius: 28px; padding: 48px; text-align: center; color: white;
+    }
+    .guide-cta h2 { color: white; margin-bottom: 12px; }
+    .guide-cta p { color: rgba(255,255,255,0.72); font-size: 16px; margin-bottom: 28px; }
+    .guide-cta .btn-primary { background: white; color: var(--indigo-deep); box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+    .guide-cta .btn-primary:hover { background: var(--slate-50); }
+
+    /* FOOTER */
+    footer { border-top: 1px solid var(--slate-200); padding: 32px 0; }
+    .footer-row {
+      width: min(1120px, calc(100% - 48px)); margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;
+    }
+    .footer-links { display: flex; gap: 24px; color: var(--slate-500); font-size: 13px; }
+    .footer-links a:hover { color: var(--slate-900); }
+    footer span { color: var(--slate-400); font-size: 13px; }
+
+    /* RESPONSIVE */
+    @media (max-width: 700px) {
+      .flow { flex-direction: column; align-items: flex-start; }
+      .flow-arrow { transform: rotate(90deg); padding: 2px 0; }
+      .arch-row { grid-template-columns: 1fr 1fr; }
+      .compare-grid, .impact-grid, .var-map { grid-template-columns: 1fr; }
+      .var-arrow-col { transform: rotate(90deg); }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════
+       SCROLL-TRIGGERED ANIMATIONS
+       All animated elements start invisible. The .is-visible class is
+       added by IntersectionObserver and triggers the CSS keyframes.
+       Uses animation-fill-mode: both so the final state persists.
+       Respects prefers-reduced-motion for accessibility.
+    ═══════════════════════════════════════════════════════════════════ */
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInLeft {
+      from { opacity: 0; transform: translateX(-14px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes streamIn {
+      from { opacity: 0; transform: translateY(20px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes arrowPulse {
+      0%, 100% { opacity: 0.5; transform: translateX(0); }
+      50%       { opacity: 1;   transform: translateX(5px); }
+    }
+
+    /* Flow diagrams */
+    .anim-flow > * { opacity: 0; }
+    .anim-flow.is-visible > * {
+      animation: fadeInUp 0.45s ease both;
+    }
+    /* Arrows get a sustained pulse after they appear */
+    .anim-flow.is-visible .flow-arrow {
+      animation: fadeInUp 0.45s ease both,
+                 arrowPulse 2.2s ease 1.2s infinite;
+    }
+
+    /* Architecture diagram (bottom-to-top reveal) */
+    .anim-arch .arch-container > *:not(.arch-container-label),
+    .anim-arch .arch-connector,
+    .anim-arch > div:last-child { opacity: 0; }
+    .anim-arch.is-visible .arch-container > *:not(.arch-container-label),
+    .anim-arch.is-visible .arch-connector,
+    .anim-arch.is-visible > div:last-child {
+      animation: fadeInUp 0.4s ease both;
+    }
+
+    /* dataLayer stream: pushes arrive one at a time */
+    .anim-stream .dl-push { opacity: 0; }
+    .anim-stream.is-visible .dl-push {
+      animation: streamIn 0.45s cubic-bezier(0.22,1,0.36,1) both;
+    }
+
+    /* Variable mapping */
+    .anim-varmap .var-row,
+    .anim-varmap .var-arrow-col,
+    .anim-varmap .var-gtm-row { opacity: 0; }
+    .anim-varmap.is-visible .var-row,
+    .anim-varmap.is-visible .var-arrow-col,
+    .anim-varmap.is-visible .var-gtm-row {
+      animation: fadeInUp 0.38s ease both;
+    }
+
+    /* Event anatomy pieces — left to right type-in feel */
+    .anim-anatomy .anatomy-piece { opacity: 0; }
+    .anim-anatomy.is-visible .anatomy-piece {
+      animation: fadeInUp 0.3s ease both;
+    }
+    /* Legend items */
+    .anim-anatomy-legend .anatomy-legend-item { opacity: 0; }
+    .anim-anatomy-legend.is-visible .anatomy-legend-item {
+      animation: fadeInUp 0.35s ease both;
+    }
+
+    /* Impact / compare cards */
+    .anim-cards .impact-card,
+    .anim-cards .compare-card { opacity: 0; }
+    .anim-cards.is-visible .impact-card,
+    .anim-cards.is-visible .compare-card {
+      animation: fadeInUp 0.45s ease both;
+    }
+
+    /* Common issue cards */
+    .anim-issues > div { opacity: 0; }
+    .anim-issues.is-visible > div {
+      animation: fadeInLeft 0.4s ease both;
+    }
+
+    /* Honour prefers-reduced-motion */
+    @media (prefers-reduced-motion: reduce) {
+      .anim-flow > *,
+      .anim-arch .arch-container > *:not(.arch-container-label),
+      .anim-arch .arch-connector,
+      .anim-arch > div:last-child,
+      .anim-stream .dl-push,
+      .anim-varmap .var-row,
+      .anim-varmap .var-arrow-col,
+      .anim-varmap .var-gtm-row,
+      .anim-anatomy .anatomy-piece,
+      .anim-anatomy-legend .anatomy-legend-item,
+      .anim-cards .impact-card,
+      .anim-cards .compare-card,
+      .anim-issues > div {
+        opacity: 1 !important;
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="brand">
+        <span class="brand-mark"><img src="gdfairy_square.png" alt="gd fairy" /></span>
+        <span class="brand-name">gd fairy <span class="spark">✦</span></span>
+      </a>
+      <a href="index.html#cta" class="btn btn-primary">Get early access</a>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- HERO -->
+    <section class="article-hero">
+      <div class="container">
+        <div class="eyebrow">GA4 &amp; GTM Guide ✦ gd fairy</div>
+        <h1>What is GTM, GA4,<br>and the dataLayer?</h1>
+        <p class="lead">A plain-English visual guide to how Google Tag Manager, Google Analytics 4, and your dataLayer actually work together — and what breaks when they don't.</p>
+        <div class="article-meta">
+          <span>10 min read</span>
+          <span>·</span>
+          <span>Updated March 2026</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="article-body">
+      <div class="container">
+
+        <!-- TOC -->
+        <nav class="toc" aria-label="Table of contents">
+          <h4>In this guide</h4>
+          <ol>
+            <li><a href="#what-is-ga4">What is GA4?</a></li>
+            <li><a href="#what-is-gtm">What is Google Tag Manager (GTM)?</a></li>
+            <li><a href="#what-is-datalayer">What is the dataLayer?</a></li>
+            <li><a href="#datalayer-variables">What are dataLayer variables?</a></li>
+            <li><a href="#data-hygiene">Why GA4 data hygiene matters</a></li>
+            <li><a href="#common-issues">Common implementation issues</a></li>
+          </ol>
+        </nav>
+
+        <!-- ── SECTION 1: GA4 ── -->
+        <article class="article-section" id="what-is-ga4">
+          <span class="section-label label-ga4">Google Analytics 4</span>
+          <h2>What is GA4?</h2>
+          <p>Google Analytics 4 (GA4) is Google's current analytics platform. It replaced Universal Analytics in July 2023. GA4 is built around <strong>events</strong> — every interaction on your site (a page view, a button click, a purchase) is recorded as an event with attached parameters.</p>
+          <p>Unlike its predecessor, GA4 is designed for a world without cookies, with built-in privacy controls and a measurement model that works across web and app.</p>
+
+          <div class="callout callout-indigo">
+            <strong>The core shift</strong>
+            <p>Universal Analytics counted <em>sessions and pageviews</em>. GA4 counts <em>events and parameters</em>. Every piece of data — from a page load to a purchase — is an event object with key-value pairs attached to it.</p>
+          </div>
+
+          <!-- Event anatomy diagram — pieces appear left-to-right like typing -->
+          <div class="event-anatomy">
+            <h4>Anatomy of a GA4 event</h4>
+            <div style="overflow-x:auto;">
+              <div class="anatomy-row" style="margin-bottom: 36px;">
+                <div class="anatomy-piece a-fn">gtag<span class="anatomy-label" style="color:#4f46e5;">Function</span></div>
+                <div class="anatomy-piece" style="padding: 10px 4px; font-size: 12px; color: var(--slate-400); font-family: monospace; border-top: 2px solid transparent;">(</div>
+                <div class="anatomy-piece a-name">'event'<span class="anatomy-label" style="color:#b85a08;">Type</span></div>
+                <div class="anatomy-piece" style="padding: 10px 4px; font-size: 12px; color: var(--slate-400); font-family: monospace; border-top: 2px solid transparent;">,&nbsp;</div>
+                <div class="anatomy-piece a-name">'purchase'<span class="anatomy-label" style="color:#b85a08;">Event name</span></div>
+                <div class="anatomy-piece" style="padding: 10px 4px; font-size: 12px; color: var(--slate-400); font-family: monospace; border-top: 2px solid transparent;">, {</div>
+                <div class="anatomy-piece a-key">value<span class="anatomy-label" style="color:#166534;">Parameter</span></div>
+                <div class="anatomy-piece" style="padding: 10px 4px; font-size: 12px; color: var(--slate-400); font-family: monospace; border-top: 2px solid transparent;">:&nbsp;</div>
+                <div class="anatomy-piece a-val">99.00<span class="anatomy-label" style="color:#92400e;">Value</span></div>
+                <div class="anatomy-piece" style="padding: 10px 4px; font-size: 12px; color: var(--slate-400); font-family: monospace; border-top: 2px solid transparent;">} )</div>
+              </div>
+            </div>
+            <div class="anatomy-legend">
+              <div class="anatomy-legend-item"><span class="legend-dot" style="background:var(--indigo);"></span>Function call that sends data</div>
+              <div class="anatomy-legend-item"><span class="legend-dot" style="background:var(--ga4-orange);"></span>Event name &amp; type</div>
+              <div class="anatomy-legend-item"><span class="legend-dot" style="background:var(--green);"></span>Parameter key (what you're measuring)</div>
+              <div class="anatomy-legend-item"><span class="legend-dot" style="background:var(--amber);"></span>Parameter value (the actual data)</div>
+            </div>
+          </div>
+
+          <!-- GA4 flow — nodes slide in left to right -->
+          <div class="diagram">
+            <p style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--slate-400); margin-bottom: 14px;">How GA4 data flows</p>
+            <div class="flow">
+              <div class="flow-node">
+                <div class="flow-box node-user">🧑 User action<br><span style="font-weight:400;color:var(--slate-500);">click, purchase, page load</span></div>
+              </div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-node">
+                <div class="flow-box node-ga4">📡 GA4 event fired<br><span style="font-weight:400;color:var(--slate-500);">via gtag() or GTM</span></div>
+              </div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-node">
+                <div class="flow-box node-ga4">☁️ GA4 servers<br><span style="font-weight:400;color:var(--slate-500);">/collect endpoint</span></div>
+              </div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-node">
+                <div class="flow-box node-report">📊 Reports<br><span style="font-weight:400;color:var(--slate-500);">Explore, Looker Studio</span></div>
+              </div>
+            </div>
+          </div>
+
+          <p>GA4 events arrive at the <code style="background:var(--slate-100);padding:2px 6px;border-radius:5px;font-size:13px;">/collect</code> endpoint and are processed into your reports within 24–48 hours (real-time data appears within minutes). Every event you fire — and every parameter you attach — becomes available for analysis.</p>
+        </article>
+
+        <hr class="section-divider">
+
+        <!-- ── SECTION 2: GTM ── -->
+        <article class="article-section" id="what-is-gtm">
+          <span class="section-label label-gtm">Google Tag Manager</span>
+          <h2>What is Google Tag Manager (GTM)?</h2>
+          <p>Google Tag Manager is a <strong>tag management system</strong>. It gives marketers and analysts a way to add, edit, and manage tracking code on a website without touching the underlying codebase for every change.</p>
+          <p>Instead of asking a developer to add GA4 tracking, a Facebook pixel, and a LinkedIn insight tag to every page, you add one GTM snippet to your site — and then manage everything else from the GTM interface.</p>
+
+          <!-- GTM architecture — reveals bottom-to-top to show data flow direction -->
+          <div class="arch-diagram">
+            <div class="arch-title">Inside a GTM container</div>
+            <div class="arch-container">
+              <span class="arch-container-label">GTM Container</span>
+              <div class="arch-row">
+                <div class="arch-pill highlight">🏷 GA4 Event Tag<small>Fires the GA4 purchase event</small></div>
+                <div class="arch-pill highlight">🏷 Google Ads Tag<small>Conversion tracking</small></div>
+                <div class="arch-pill highlight">🏷 Meta Pixel Tag<small>Audience retargeting</small></div>
+              </div>
+              <div style="text-align:center;font-size:11px;color:var(--slate-400);padding:6px 0;">▲ Tags fire when triggered by…</div>
+              <div class="arch-row">
+                <div class="arch-pill">⚡ Trigger: All Pages<small>Page view event</small></div>
+                <div class="arch-pill">⚡ Trigger: Purchase<small>Custom event</small></div>
+                <div class="arch-pill">⚡ Trigger: Click - CTA<small>Element ID match</small></div>
+              </div>
+              <div style="text-align:center;font-size:11px;color:var(--slate-400);padding:6px 0;">▲ Triggers read data from…</div>
+              <div class="arch-row">
+                <div class="arch-pill">📦 Variable: Page URL</div>
+                <div class="arch-pill">📦 Variable: DL - value</div>
+                <div class="arch-pill">📦 Variable: Click ID</div>
+              </div>
+            </div>
+            <div class="arch-connector">↕</div>
+            <div style="text-align:center;">
+              <div class="arch-pill" style="display:inline-block;padding:12px 24px;">🌐 Your website (one GTM snippet in the <code style="font-size:12px;">&lt;head&gt;</code>)</div>
+            </div>
+          </div>
+
+          <p>GTM containers have three building blocks:</p>
+
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:28px 0;">
+            <div style="background:var(--slate-50);border:1px solid var(--slate-200);border-radius:16px;padding:20px;">
+              <div style="font-size:20px;margin-bottom:10px;">🏷</div>
+              <h3 style="font-size:15px;margin-bottom:6px;">Tags</h3>
+              <p style="font-size:13px;margin:0;">Code snippets that run on your site — GA4 events, pixels, scripts. Tags <em>do</em> the thing.</p>
+            </div>
+            <div style="background:var(--slate-50);border:1px solid var(--slate-200);border-radius:16px;padding:20px;">
+              <div style="font-size:20px;margin-bottom:10px;">⚡</div>
+              <h3 style="font-size:15px;margin-bottom:6px;">Triggers</h3>
+              <p style="font-size:13px;margin:0;">Rules that decide <em>when</em> a tag fires. "Fire when the URL contains /confirmation" is a trigger.</p>
+            </div>
+            <div style="background:var(--slate-50);border:1px solid var(--slate-200);border-radius:16px;padding:20px;">
+              <div style="font-size:20px;margin-bottom:10px;">📦</div>
+              <h3 style="font-size:15px;margin-bottom:6px;">Variables</h3>
+              <p style="font-size:13px;margin:0;">Dynamic values GTM reads — from the page, clicks, or your dataLayer — to pass into tags.</p>
+            </div>
+          </div>
+
+          <div class="callout callout-amber">
+            <strong>Why this matters</strong>
+            <p>GTM creates speed and independence for marketing teams. But it also creates risk — anyone with container access can deploy new tags or change trigger logic, which means your GA4 data can change without any code review. This is one of the most common sources of data quality issues.</p>
+          </div>
+        </article>
+
+        <hr class="section-divider">
+
+        <!-- ── SECTION 3: DATALAYER ── -->
+        <article class="article-section" id="what-is-datalayer">
+          <span class="section-label label-dl">The dataLayer</span>
+          <h2>What is the dataLayer?</h2>
+          <p>The dataLayer is a JavaScript array that lives on your web page. It acts as a <strong>message queue</strong> between your website and GTM — your site pushes structured data objects into it, and GTM listens for those pushes and reacts by firing tags.</p>
+          <p>Think of it as a shared whiteboard between your developers and your analytics tools. Developers write structured data onto it; GTM reads from it.</p>
+
+          <!-- dataLayer visual — pushes stream in one by one like a live terminal -->
+          <div class="dl-visual">
+            <div class="dl-array">
+              <div class="dl-push">
+                <span class="dl-push-label">Initialised on page load</span>
+                <pre><span class="c-obj">window</span>.<span class="c-key">dataLayer</span> = <span class="c-obj">window</span>.<span class="c-key">dataLayer</span> || [];</pre>
+              </div>
+              <div class="dl-push">
+                <span class="dl-push-label">Push #1 — page view</span>
+                <pre><span class="c-obj">dataLayer</span>.<span class="c-fn">push</span>({
+  <span class="c-key">event</span>:     <span class="c-str">'page_view'</span>,
+  <span class="c-key">page_type</span>: <span class="c-str">'product'</span>,
+  <span class="c-key">page_id</span>:   <span class="c-num">91042</span>
+});</pre>
+              </div>
+              <div class="dl-push">
+                <span class="dl-push-label">Push #2 — user interaction</span>
+                <pre><span class="c-obj">dataLayer</span>.<span class="c-fn">push</span>({
+  <span class="c-key">event</span>:       <span class="c-str">'add_to_cart'</span>,
+  <span class="c-key">item_id</span>:     <span class="c-str">'SKU-441'</span>,
+  <span class="c-key">item_name</span>:   <span class="c-str">'Running Shoes'</span>,
+  <span class="c-key">item_price</span>:  <span class="c-num">129.99</span>,
+  <span class="c-key">currency</span>:    <span class="c-str">'USD'</span>
+});</pre>
+              </div>
+              <div class="dl-push">
+                <span class="dl-push-label">Push #3 — conversion</span>
+                <pre><span class="c-obj">dataLayer</span>.<span class="c-fn">push</span>({
+  <span class="c-key">event</span>:           <span class="c-str">'purchase'</span>,
+  <span class="c-key">transaction_id</span>:  <span class="c-str">'T-88231'</span>,
+  <span class="c-key">value</span>:           <span class="c-num">129.99</span>,
+  <span class="c-key">currency</span>:        <span class="c-str">'USD'</span>,
+  <span class="c-key">items</span>:           [{ <span class="c-key">item_id</span>: <span class="c-str">'SKU-441'</span>, <span class="c-key">quantity</span>: <span class="c-num">1</span> }]
+});</pre>
+              </div>
+            </div>
+          </div>
+
+          <p>When a <code style="background:var(--slate-100);padding:2px 6px;border-radius:5px;font-size:13px;">dataLayer.push()</code> fires, GTM's listener sees the new object and checks whether any triggers match the <code style="background:var(--slate-100);padding:2px 6px;border-radius:5px;font-size:13px;">event</code> key. If a trigger matches, its associated tags fire — passing the data from the push into GA4, your ad platforms, or wherever else you've configured.</p>
+
+          <!-- Full flow with dataLayer — complete chain animates left to right -->
+          <div class="diagram" style="margin-top:32px;">
+            <p style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--slate-400); margin-bottom: 14px;">The full data flow with GTM + dataLayer</p>
+            <div class="flow">
+              <div class="flow-node">
+                <div class="flow-box node-user">🧑 User action</div>
+                <div class="flow-label">e.g. completes purchase</div>
+              </div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-node">
+                <div class="flow-box node-dl">📋 dataLayer.push()<br><span style="font-weight:400;color:var(--indigo-deep);">structured event object</span></div>
+                <div class="flow-label">developer responsibility</div>
+              </div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-node">
+                <div class="flow-box node-gtm">⚙️ GTM listens<br><span style="font-weight:400;color:#1a5fba;">matches triggers</span></div>
+                <div class="flow-label">container evaluates rules</div>
+              </div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-node" style="display:grid;gap:8px;">
+                <div class="flow-box node-ga4" style="font-size:11px;">📊 GA4 event</div>
+                <div class="flow-box node-ads" style="font-size:11px;">📣 Ads conversion</div>
+              </div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-node">
+                <div class="flow-box node-report">📈 Reports &amp; signals</div>
+                <div class="flow-label">attribution, audiences, LTV</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="callout callout-indigo">
+            <strong>Why the dataLayer exists</strong>
+            <p>Without a dataLayer, GTM has to scrape data from the page — DOM elements, URL parameters, cookie values. That's fragile. The dataLayer gives developers a clean, reliable way to expose business-context data (product IDs, transaction values, user states) to analytics tools without those tools needing to understand your page structure.</p>
+          </div>
+        </article>
+
+        <hr class="section-divider">
+
+        <!-- ── SECTION 4: DL VARIABLES ── -->
+        <article class="article-section" id="datalayer-variables">
+          <span class="section-label label-dl">dataLayer Variables</span>
+          <h2>What are dataLayer variables?</h2>
+          <p>A <strong>dataLayer variable</strong> (DLV) is a GTM variable type that reads a specific key from the dataLayer. Once defined in GTM, a DLV can be referenced inside tags, triggers, and other variables — passing dynamic values from your site directly into GA4 event parameters.</p>
+
+          <!-- Variable mapping — left side populates, then arrow, then GTM vars appear -->
+          <div class="var-map">
+            <div class="var-side">
+              <h4>dataLayer push (from site)</h4>
+              <div class="var-row" style="background:rgba(99,102,241,0.05);"><span class="var-key">event:</span> <span class="var-val">'purchase'</span></div>
+              <div class="var-row" style="background:rgba(245,158,11,0.06);"><span class="var-key">transaction_id:</span> <span class="var-val">'T-88231'</span></div>
+              <div class="var-row" style="background:rgba(34,197,94,0.06);"><span class="var-key">value:</span> <span class="var-val">129.99</span></div>
+              <div class="var-row" style="background:rgba(232,113,10,0.06);"><span class="var-key">currency:</span> <span class="var-val">'USD'</span></div>
+              <div class="var-row"><span class="var-key">items:</span> <span class="var-val">[…]</span></div>
+            </div>
+
+            <div class="var-arrow-col">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                <path d="M8 20h24M24 14l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <div style="font-size:10px;color:var(--slate-400);text-align:center;margin-top:4px;">GTM reads<br>DLVs</div>
+            </div>
+
+            <div class="var-side var-gtm-side">
+              <h4>GTM dataLayer Variables</h4>
+              <div class="var-row var-gtm-row"><span class="var-key">{{DL - transaction_id}}</span></div>
+              <div class="var-row var-gtm-row"><span class="var-key">{{DL - value}}</span></div>
+              <div class="var-row var-gtm-row"><span class="var-key">{{DL - currency}}</span></div>
+              <div class="var-row var-gtm-row"><span class="var-key">{{DL - items}}</span></div>
+              <div style="margin-top:12px;font-size:11px;color:var(--slate-400);padding: 0 10px;">↓ referenced in GA4 event tag parameters</div>
+            </div>
+          </div>
+
+          <p>For example, in your GA4 purchase tag in GTM, you'd set the <code style="background:var(--slate-100);padding:2px 6px;border-radius:5px;font-size:13px;">value</code> parameter to <code style="background:var(--slate-100);padding:2px 6px;border-radius:5px;font-size:13px;">{{DL - value}}</code> — and GTM will read that value from the dataLayer at the moment the tag fires.</p>
+
+          <div class="code-block">
+            <span class="code-label">GTM Tag Config</span>
+            <pre><span class="c-cmt">// GA4 event tag — "purchase" — configured in GTM</span>
+{
+  <span class="c-key">tag_type</span>:        <span class="c-str">"GA4 Event"</span>,
+  <span class="c-key">measurement_id</span>: <span class="c-str">"G-XXXXXXXXXX"</span>,
+  <span class="c-key">event_name</span>:      <span class="c-str">"purchase"</span>,
+  <span class="c-key">parameters</span>: {
+    <span class="c-key">transaction_id</span>: <span class="c-str">"{{DL - transaction_id}}"</span>,  <span class="c-cmt">// reads from dataLayer</span>
+    <span class="c-key">value</span>:          <span class="c-str">"{{DL - value}}"</span>,           <span class="c-cmt">// reads from dataLayer</span>
+    <span class="c-key">currency</span>:       <span class="c-str">"{{DL - currency}}"</span>,        <span class="c-cmt">// reads from dataLayer</span>
+    <span class="c-key">items</span>:          <span class="c-str">"{{DL - items}}"</span>            <span class="c-cmt">// reads from dataLayer</span>
+  },
+  <span class="c-key">trigger</span>:         <span class="c-str">"Custom Event - purchase"</span>   <span class="c-cmt">// fires on event: 'purchase'</span>
+}</pre>
+          </div>
+
+          <div class="callout callout-green">
+            <strong>The pattern in a nutshell</strong>
+            <p>Developers push structured data into the dataLayer. GTM defines variables that read keys from those pushes. Tags use those variables to send the right data to GA4 at the right time. Each layer has one job — and the dataLayer is the contract between them.</p>
+          </div>
+        </article>
+
+        <hr class="section-divider">
+
+        <!-- ── SECTION 5: DATA HYGIENE ── -->
+        <article class="article-section" id="data-hygiene">
+          <span class="section-label label-hygiene">Data Hygiene</span>
+          <h2>Why GA4 data hygiene matters</h2>
+          <p>GA4 data hygiene refers to how clean, consistent, and trustworthy your analytics data is. A well-implemented GA4 setup fires the right events, with the right parameters, at the right times — and nothing else. A poorly-maintained one quietly poisons your data in ways that are hard to detect until the damage is done.</p>
+
+          <!-- Impact cards — stagger fade-up -->
+          <div class="impact-grid">
+            <div class="impact-card" style="border-color: var(--red);">
+              <div class="icon">💸</div>
+              <h4>Wrong attribution = wrong budget decisions</h4>
+              <p>If your purchase event misfires or fires twice, your ROAS calculations are wrong — and so are every channel budget decisions built on them.</p>
+            </div>
+            <div class="impact-card" style="border-color: var(--amber);">
+              <div class="icon">🔀</div>
+              <h4>Duplicate events break funnels</h4>
+              <p>A page_view firing twice inflates sessions, distorts engagement rates, and makes your funnel analysis unreliable from top to bottom.</p>
+            </div>
+            <div class="impact-card" style="border-color: var(--indigo);">
+              <div class="icon">🤖</div>
+              <h4>Bad data poisons your audiences</h4>
+              <p>GA4 powers your Google Ads audiences. Mis-tagged conversions or missing events feed the wrong signals to Smart Bidding — reducing match quality silently over time.</p>
+            </div>
+          </div>
+
+          <h3>The most common GA4 data hygiene problems</h3>
+
+          <!-- Compare grid — bad/good cards fade up with stagger -->
+          <div class="compare-grid">
+            <div class="compare-card compare-bad">
+              <div class="compare-head"><span class="dot"></span>Poor hygiene — what we see constantly</div>
+              <ul class="compare-list">
+                <li>Events with spaces or special characters in the name (<code style="font-size:11px;">add to cart</code> instead of <code style="font-size:11px;">add_to_cart</code>)</li>
+                <li>Missing <code style="font-size:11px;">transaction_id</code> on purchase events — purchases can't be deduplicated</li>
+                <li>Duplicate page_view fires because GTM and gtag.js are both on the page</li>
+                <li>Parameters that are silently truncated because they exceed GA4's 100-character limit</li>
+                <li>dataLayer pushes that fire before GTM has loaded — GTM misses the event entirely</li>
+                <li>Custom dimensions that were never registered in GA4 — data is sent but never collected</li>
+              </ul>
+            </div>
+            <div class="compare-card compare-good">
+              <div class="compare-head"><span class="dot"></span>Good hygiene — what to aim for</div>
+              <ul class="compare-list">
+                <li>Event names use only lowercase letters, numbers, and underscores</li>
+                <li>Every purchase includes a unique <code style="font-size:11px;">transaction_id</code> for deduplication</li>
+                <li>A single tag management approach — GTM <em>or</em> direct gtag, not both</li>
+                <li>Parameter values stay within GA4's character limits (100 for strings)</li>
+                <li>dataLayer initialised before the GTM snippet to avoid missed events</li>
+                <li>All custom dimensions and metrics registered in GA4 before being sent</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="callout callout-red">
+            <strong>The silent failure problem</strong>
+            <p>Most GA4 data quality issues produce no errors. Events fire, GTM shows green, GA4 receives the hit — but the data is wrong. A purchase event with a missing <code style="font-size:12px;">transaction_id</code> still lands in GA4. It just can't be deduplicated, so every page refresh on the thank-you page creates a duplicate conversion. You won't see this in the UI unless you're actively looking.</p>
+          </div>
+        </article>
+
+        <hr class="section-divider">
+
+        <!-- ── SECTION 6: COMMON ISSUES ── -->
+        <article class="article-section" id="common-issues">
+          <span class="section-label label-hygiene">Common Issues</span>
+          <h2>Common GA4 &amp; GTM implementation issues</h2>
+          <p>These are the issues gd fairy flags most frequently when auditing real-world GA4 and GTM setups.</p>
+
+          <!-- Issue cards — stagger slide in from left -->
+          <div style="display:grid;gap:16px;margin:32px 0;">
+
+            <div style="background:var(--slate-50);border:1px solid var(--slate-200);border-radius:16px;padding:20px 24px;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:start;">
+              <span style="width:8px;height:8px;border-radius:50%;background:var(--red);margin-top:6px;display:block;flex-shrink:0;"></span>
+              <div>
+                <h4 style="font-size:14px;font-weight:700;color:var(--slate-900);margin-bottom:4px;">Purchase event not firing on confirmation page</h4>
+                <p style="font-size:13px;margin:0;line-height:1.6;">The most costly issue. Revenue and order data are incomplete in GA4, conversion signals to Google Ads are wrong, and LTV models are built on bad foundations. Usually caused by a missing dataLayer push on the server-rendered confirmation template.</p>
+              </div>
+              <span style="padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(239,68,68,0.1);color:#991b1b;white-space:nowrap;">Critical</span>
+            </div>
+
+            <div style="background:var(--slate-50);border:1px solid var(--slate-200);border-radius:16px;padding:20px 24px;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:start;">
+              <span style="width:8px;height:8px;border-radius:50%;background:var(--amber);margin-top:6px;display:block;flex-shrink:0;"></span>
+              <div>
+                <h4 style="font-size:14px;font-weight:700;color:var(--slate-900);margin-bottom:4px;">Duplicate page_view events via GTM + direct gtag</h4>
+                <p style="font-size:13px;margin:0;line-height:1.6;">When a site has both a GTM snippet and a direct gtag.js install, page_view (and sometimes session_start) fires twice. This inflates session counts, distorts engagement metrics, and breaks per-session funnel analysis.</p>
+              </div>
+              <span style="padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(245,158,11,0.1);color:#92400e;white-space:nowrap;">High</span>
+            </div>
+
+            <div style="background:var(--slate-50);border:1px solid var(--slate-200);border-radius:16px;padding:20px 24px;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:start;">
+              <span style="width:8px;height:8px;border-radius:50%;background:var(--amber);margin-top:6px;display:block;flex-shrink:0;"></span>
+              <div>
+                <h4 style="font-size:14px;font-weight:700;color:var(--slate-900);margin-bottom:4px;">dataLayer pushed before GTM has loaded</h4>
+                <p style="font-size:13px;margin:0;line-height:1.6;">If your site pushes events into the dataLayer before the GTM snippet is present on the page, GTM never sees those pushes. Common on single-page apps and sites where the dataLayer initialisation order isn't enforced.</p>
+              </div>
+              <span style="padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(245,158,11,0.1);color:#92400e;white-space:nowrap;">High</span>
+            </div>
+
+            <div style="background:var(--slate-50);border:1px solid var(--slate-200);border-radius:16px;padding:20px 24px;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:start;">
+              <span style="width:8px;height:8px;border-radius:50%;background:var(--indigo);margin-top:6px;display:block;flex-shrink:0;"></span>
+              <div>
+                <h4 style="font-size:14px;font-weight:700;color:var(--slate-900);margin-bottom:4px;">Event names with spaces or invalid characters</h4>
+                <p style="font-size:13px;margin:0;line-height:1.6;">GA4 silently rejects event names that contain spaces, hyphens, or start with a number. The event fires, GTM shows success, but the data never appears in GA4 reports. Use only lowercase letters, numbers, and underscores.</p>
+              </div>
+              <span style="padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(99,102,241,0.1);color:var(--indigo-deep);white-space:nowrap;">Warning</span>
+            </div>
+
+            <div style="background:var(--slate-50);border:1px solid var(--slate-200);border-radius:16px;padding:20px 24px;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:start;">
+              <span style="width:8px;height:8px;border-radius:50%;background:var(--indigo);margin-top:6px;display:block;flex-shrink:0;"></span>
+              <div>
+                <h4 style="font-size:14px;font-weight:700;color:var(--slate-900);margin-bottom:4px;">Missing GTM noscript fallback</h4>
+                <p style="font-size:13px;margin:0;line-height:1.6;">The GTM noscript tag belongs immediately after the opening <code style="font-size:12px;">&lt;body&gt;</code> tag. Without it, users with JavaScript disabled (or who block scripts) won't be tracked at all. Low risk for most sites, but easy to fix.</p>
+              </div>
+              <span style="padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(99,102,241,0.1);color:var(--indigo-deep);white-space:nowrap;">Info</span>
+            </div>
+
+          </div>
+        </article>
+
+        <!-- CTA -->
+        <div class="guide-cta">
+          <div class="eyebrow" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.15);color:rgba(255,255,255,0.85);margin-bottom:20px;display:inline-flex;">Google Data Fairy ✦ Free Chrome Extension</div>
+          <h2>See what's wrong with your GA4 &amp; GTM right now</h2>
+          <p>gd fairy audits your GA4 implementation in real time — catching every broken event, duplicate tag, and missing parameter as you browse your own site. No setup required.</p>
+          <a href="index.html#cta" class="btn btn-primary btn-lg">Start free audit →</a>
+        </div>
+
+      </div><!-- /container -->
+    </div><!-- /article-body -->
+
+  </main>
+
+  <footer>
+    <div class="footer-row">
+      <a href="index.html" class="brand">
+        <span class="brand-mark"><img src="gdfairy_square.png" alt="gd fairy" /></span>
+        <span class="brand-name">gd fairy <span class="spark">✦</span></span>
+      </a>
+      <div class="footer-links">
+        <a href="index.html#product">Product</a>
+        <a href="index.html#report">Sample report</a>
+        <a href="index.html#pricing">Pricing</a>
+        <a href="what-is-gtm-ga4-datalayer.html">GTM &amp; GA4 Guide</a>
+        <a href="mailto:hello@gdfairy.com">Contact</a>
+      </div>
+      <span>&copy; 2025 DataFairy LLC</span>
+    </div>
+  </footer>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       SCROLL-TRIGGERED ANIMATION CONTROLLER
+       Uses IntersectionObserver to add .is-visible when an element enters
+       the viewport. Each visual gets a custom stagger so sub-elements
+       animate in a meaningful order — not all at once.
+  ═══════════════════════════════════════════════════════════════════════ -->
+  <script>
+  (function () {
+    // Skip animations entirely if the browser has them disabled
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-visible');
+        obs.unobserve(entry.target);
+      });
+    }, { threshold: 0.12 });
+
+    // ── Helper: stagger a NodeList with a base delay offset ────────────────
+    function stagger(nodes, baseDelayMs, stepMs) {
+      Array.from(nodes).forEach((el, i) => {
+        el.style.animationDelay = (baseDelayMs + i * stepMs) + 'ms';
+      });
+    }
+
+    // ── 1. Flow diagrams ────────────────────────────────────────────────────
+    // Each direct child (nodes + arrows) fades up left-to-right.
+    // Arrows get an extra sustained pulse via CSS once visible.
+    document.querySelectorAll('.flow').forEach(el => {
+      el.classList.add('anim-flow');
+      stagger(el.children, 0, 110);
+      obs.observe(el);
+    });
+
+    // ── 2. GTM architecture diagram (bottom-to-top reveal) ─────────────────
+    // Shows the data flow: website ↑ variables ↑ triggers ↑ tags
+    document.querySelectorAll('.arch-diagram').forEach(el => {
+      el.classList.add('anim-arch');
+
+      // Website pill (last child of arch-diagram) and connector animate first
+      const websitePill = el.querySelector(':scope > div:last-child');
+      const connector   = el.querySelector('.arch-connector');
+      if (websitePill) websitePill.style.animationDelay = '0ms';
+      if (connector)   connector.style.animationDelay   = '120ms';
+
+      // Container rows animate bottom-to-top (variables→triggers→tags)
+      const container = el.querySelector('.arch-container');
+      if (container) {
+        const rows = Array.from(container.children)
+          .filter(c => !c.classList.contains('arch-container-label'));
+        rows.reverse().forEach((row, i) => {
+          row.style.animationDelay = (260 + i * 150) + 'ms';
+        });
+      }
+
+      obs.observe(el);
+    });
+
+    // ── 3. dataLayer visual — pushes stream in like a live terminal ─────────
+    document.querySelectorAll('.dl-visual').forEach(el => {
+      el.classList.add('anim-stream');
+      stagger(el.querySelectorAll('.dl-push'), 0, 280);
+      obs.observe(el);
+    });
+
+    // ── 4. Variable mapping — left side, then arrow, then right side ────────
+    document.querySelectorAll('.var-map').forEach(el => {
+      el.classList.add('anim-varmap');
+      const [leftSide, arrowCol, rightSide] = el.children;
+
+      // Left side rows
+      if (leftSide) stagger(leftSide.querySelectorAll('.var-row'), 0, 80);
+
+      // Arrow column
+      if (arrowCol) arrowCol.style.animationDelay = '380ms';
+
+      // Right side rows
+      if (rightSide) stagger(rightSide.querySelectorAll('.var-row, .var-gtm-row'), 480, 80);
+
+      obs.observe(el);
+    });
+
+    // ── 5. Event anatomy — pieces type in left-to-right ─────────────────────
+    document.querySelectorAll('.anatomy-row').forEach(el => {
+      el.classList.add('anim-anatomy');
+      stagger(el.children, 0, 60);
+      obs.observe(el);
+    });
+
+    // Legend items follow
+    document.querySelectorAll('.anatomy-legend').forEach(el => {
+      el.classList.add('anim-anatomy-legend');
+      stagger(el.children, 0, 80);
+      obs.observe(el);
+    });
+
+    // ── 6. Impact cards and compare cards — stagger fade-up ────────────────
+    document.querySelectorAll('.impact-grid, .compare-grid').forEach(el => {
+      el.classList.add('anim-cards');
+      stagger(el.querySelectorAll('.impact-card, .compare-card'), 0, 130);
+      obs.observe(el);
+    });
+
+    // ── 7. Common issue cards — stagger slide-in from left ──────────────────
+    document.querySelectorAll('#common-issues .article-section > div').forEach(el => {
+      el.classList.add('anim-issues');
+      stagger(el.children, 0, 100);
+      obs.observe(el);
+    });
+
+  })();
+  </script>
+
+</body>
+</html>
