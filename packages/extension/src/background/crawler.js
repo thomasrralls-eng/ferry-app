@@ -7,14 +7,47 @@
  *
  * Flow:
  *   1. Panel sends FERRY_CRAWL_START with startUrl + maxPages
- *   2. Crawler navigates tab, waits for load, injects hook via scripting API
- *   3. After waiting for tags to fire, drains events + grabs <a> links
- *   4. Crawler queues same-origin links, navigates to next
- *   5. Repeats until queue empty or maxPages reached
- *   6. Sends progress updates and final report to panel
+ *   2. Crawler fetches robots.txt, then begins crawl loop
+ *   3. Per page: navigate → wait for load → inject hook (from ferry-hook.js)
+ *      → smart stability wait → drain events + links
+ *   4. Queues same-origin links; respects robots.txt and safe-mode skip paths
+ *   5. Applies crawl delay between pages (default 1500ms, respects Crawl-Delay)
+ *   6. Sends FERRY_CRAWL_PROGRESS updates and final FERRY_CRAWL_COMPLETE to panel
+ *
+ * The network hits (GA4 /collect, GTM script loads) are buffered directly
+ * into each page entry by service-worker.js's webRequest listener.
  */
 
-const crawlStates = new Map(); // tabId -> crawl state
+importScripts("ferry-hook.js");
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+const DEFAULT_CRAWL_DELAY_MS = 1500; // between pages (polite default)
+const MAX_PAGES_CAP = 100;           // hard cap regardless of user input
+
+/**
+ * Paths always skipped in safe-mode crawls.
+ * Audit crawls are passive observers — they must not trigger purchases,
+ * form submissions, account mutations, or destructive operations.
+ */
+const SAFE_SKIP_PATHS = [
+  // Admin / internal tools
+  "/wp-admin", "/wp-json", "/admin/", "/dashboard/",
+  // APIs and static assets
+  "/api/", "/graphql", "/cdn-cgi/", "/_next/", "/static/",
+  // Authentication
+  "/account/", "/sign-in", "/signin", "/signup", "/sign-up",
+  "/login", "/register", "/logout", "/auth/",
+  // Commerce — skip to avoid accidental order creation
+  "/cart", "/checkout", "/payment", "/billing",
+  "/order/", "/orders/", "/purchase",
+  // Destructive / irreversible
+  "/unsubscribe", "/delete", "/remove",
+];
+
+// ── Crawl state ───────────────────────────────────────────────────────────────
+
+const crawlStates = new Map(); // tabId → crawl state
 
 function createCrawlState(tabId, startUrl, maxPages) {
   const origin = new URL(startUrl).origin;
@@ -22,58 +55,65 @@ function createCrawlState(tabId, startUrl, maxPages) {
     tabId,
     startUrl,
     origin,
-    maxPages: maxPages || 100,
+    maxPages: Math.min(maxPages || 50, MAX_PAGES_CAP),
+    crawlDelayMs: DEFAULT_CRAWL_DELAY_MS,
+    robotsPolicy: null,   // set after fetchRobotsTxt resolves
     visited: new Set(),
     queue: [startUrl],
     currentUrl: null,
     running: false,
-    pages: [],   // { url, events, network, findings, links, timestamp }
+    pages: [],  // { url, events, network, findings, links, timestamp }
   };
 }
 
+// ── Public API ────────────────────────────────────────────────────────────────
+
 /**
- * Start a crawl for a given tab.
+ * Start a new crawl. Fetches robots.txt first, then begins navigation loop.
  */
-function startCrawl(tabId, startUrl, maxPages, panelPort) {
-  // Stop any existing crawl for this tab
+async function startCrawl(tabId, startUrl, maxPages, panelPort) {
   stopCrawl(tabId);
 
   const state = createCrawlState(tabId, startUrl, maxPages);
   state.running = true;
   crawlStates.set(tabId, state);
 
+  // Fetch robots.txt before first navigation; start with permissive policy
+  state.robotsPolicy = makePermissivePolicy();
+  const robots = await fetchRobotsTxt(new URL(startUrl).origin);
+  if (!state.running) return; // stopped while fetching
+
+  state.robotsPolicy = robots;
+  // Honour Crawl-Delay from robots.txt (never go faster than our default)
+  if (robots.crawlDelayMs) {
+    state.crawlDelayMs = Math.max(state.crawlDelayMs, robots.crawlDelayMs);
+  }
+
   crawlNext(tabId, panelPort);
 }
 
-/**
- * Stop an in-progress crawl.
- */
 function stopCrawl(tabId) {
   const state = crawlStates.get(tabId);
-  if (state) {
-    state.running = false;
-  }
+  if (state) state.running = false;
 }
 
-/**
- * Navigate to the next URL in the queue.
- */
+// ── Crawl loop ────────────────────────────────────────────────────────────────
+
 async function crawlNext(tabId, panelPort) {
   const state = crawlStates.get(tabId);
   if (!state || !state.running) return;
 
-  // Find next unvisited URL
+  // Pick next URL: unvisited AND allowed by robots.txt
   let nextUrl = null;
   while (state.queue.length > 0) {
     const candidate = state.queue.shift();
-    if (!state.visited.has(candidate)) {
-      nextUrl = candidate;
-      break;
-    }
+    if (state.visited.has(candidate)) continue;
+    if (!state.robotsPolicy.isAllowed(candidate)) continue;
+    nextUrl = candidate;
+    break;
   }
 
   if (!nextUrl || state.visited.size >= state.maxPages) {
-    // Crawl complete
     state.running = false;
     panelPort.postMessage({
       type: "FERRY_CRAWL_COMPLETE",
@@ -87,18 +127,18 @@ async function crawlNext(tabId, panelPort) {
   state.currentUrl = nextUrl;
   state.visited.add(nextUrl);
 
-  // Create the page entry now so events captured during load get stored
+  // Create the page entry immediately so the webRequest listener can buffer
+  // network hits (GA4 /collect, GTM script loads) into it in real time.
   const pageEntry = {
     url: nextUrl,
     events: [],
-    network: [],
+    network: [],   // filled by service-worker.js webRequest listener
     findings: [],
     links: [],
     timestamp: new Date().toISOString(),
   };
   state.pages.push(pageEntry);
 
-  // Send progress to panel
   panelPort.postMessage({
     type: "FERRY_CRAWL_PROGRESS",
     currentUrl: nextUrl,
@@ -108,178 +148,170 @@ async function crawlNext(tabId, panelPort) {
   });
 
   try {
-    // Navigate the tab
+    // Navigate
     await chrome.tabs.update(tabId, { url: nextUrl });
-
-    // Wait for page to finish loading
     await waitForPageLoad(tabId);
 
-    // Inject our dataLayer/gtag hook directly into the page
+    // Inject the Ferry hook (from ferry-hook.js via globalThis.ferryHookFn)
     await injectHookViaScripting(tabId);
 
-    // Wait for dataLayer / GTM / async tags to fire
-    await sleep(3000);
+    // Also patch history.pushState so virtual SPA navigations are tracked
+    await injectSPAHook(tabId);
 
-    // Drain captured events from the page
-    const events = await drainEventsViaScripting(tabId);
-    pageEntry.events = events;
+    // Smart wait: poll for dataLayer stability instead of a fixed sleep
+    await waitForEventStability(tabId);
 
-    // Grab all <a> links directly from the page via scripting API
+    // Drain all captured events
+    pageEntry.events = await drainEventsViaScripting(tabId);
+
+    // Collect links for the crawl queue
     const links = await getLinksViaScripting(tabId);
     const newLinks = filterLinks(links, state.origin, state.visited);
     state.queue.push(...newLinks);
     pageEntry.links = newLinks;
 
-    // Check if crawl was stopped while we were waiting
     if (!state.running) return;
 
-    // Move to next page
-    setTimeout(() => crawlNext(tabId, panelPort), 300);
+    // Polite delay between pages (crawl policy)
+    setTimeout(() => crawlNext(tabId, panelPort), state.crawlDelayMs);
 
   } catch (e) {
-    // Navigation failed — report and continue
-    panelPort.postMessage({
-      type: "FERRY_CRAWL_ERROR",
-      url: nextUrl,
-      error: e.message,
-    });
-
+    panelPort.postMessage({ type: "FERRY_CRAWL_ERROR", url: nextUrl, error: e.message });
     if (state.running) {
-      setTimeout(() => crawlNext(tabId, panelPort), 300);
+      setTimeout(() => crawlNext(tabId, panelPort), state.crawlDelayMs);
     }
   }
 }
 
+// ── Hook injection ────────────────────────────────────────────────────────────
+
 /**
- * Inject the Ferry dataLayer/gtag hook into the page via chrome.scripting.
+ * Inject ferryHookFn (from ferry-hook.js) into the page's MAIN world.
  *
- * This is the same hook logic from injected-hook.js but executed directly
- * into the page's MAIN world so it can intercept window.dataLayer.push()
- * and window.gtag() calls. We use the MAIN world because the default
- * ISOLATED world can't access page JS globals.
+ * MAIN world is required to access window.dataLayer and window.gtag —
+ * the default ISOLATED world cannot see page JS globals.
  */
 async function injectHookViaScripting(tabId) {
   try {
     await chrome.scripting.executeScript({
       target: { tabId },
       world: "MAIN",
-      func: () => {
-        if (window.__ferryHooked) return;
-        window.__ferryHooked = true;
-        window.__ferryEvents = [];
-
-        const DEFAULT_LIMITS = { maxDepth: 6, maxKeys: 200, maxArray: 200 };
-
-        function safeClone(value, opts, state) {
-          if (!state) state = { seen: new WeakSet(), keysUsed: 0 };
-          const { maxDepth, maxKeys, maxArray } = opts;
-          function budgetCheck() { return state.keysUsed >= maxKeys; }
-          function cloneInner(v, depth) {
-            const t = typeof v;
-            if (v == null || t === "string" || t === "number" || t === "boolean") return v;
-            if (depth > maxDepth) return "[MaxDepth]";
-            if (t === "bigint") return v.toString();
-            if (t === "symbol") return v.toString();
-            if (t === "function") return "[Function]";
-            if (v instanceof Date) return v.toISOString();
-            if (v instanceof Error) return { name: v.name, message: v.message };
-            if (Array.isArray(v)) {
-              if (budgetCheck()) return "[MaxKeys]";
-              const len = Math.min(v.length, maxArray);
-              const out = new Array(len);
-              for (let i = 0; i < len; i++) out[i] = cloneInner(v[i], depth + 1);
-              return out;
-            }
-            if (t === "object") {
-              if (state.seen.has(v)) return "[Circular]";
-              state.seen.add(v);
-              if (budgetCheck()) return "[MaxKeys]";
-              const out = {};
-              const keys = Object.keys(v);
-              for (let i = 0; i < keys.length; i++) {
-                if (budgetCheck()) break;
-                state.keysUsed += 1;
-                try { out[keys[i]] = cloneInner(v[keys[i]], depth + 1); }
-                catch { out[keys[i]] = "[Unclonable]"; }
-              }
-              return out;
-            }
-            try { return String(v); } catch { return "[Unclonable]"; }
-          }
-          return cloneInner(value, 0);
-        }
-
-        function normalizeItem(item) {
-          if (item && typeof item === "object" && Object.prototype.toString.call(item) === "[object Arguments]")
-            item = Array.from(item);
-          if (Array.isArray(item)) {
-            const [cmd, arg1, arg2] = item;
-            if (cmd === "event") return { source: "gtag", type: "event", eventName: arg1, params: arg2 };
-            if (cmd === "config") return { source: "gtag", type: "config", measurementId: arg1, params: arg2 };
-            if (cmd === "set") return { source: "gtag", type: "set", params: arg1 };
-            if (cmd === "js") return { source: "gtag", type: "js" };
-            return { source: "gtag", type: "unknown", raw: item };
-          }
-          if (item && typeof item === "object")
-            return { source: "dataLayer", type: "object", eventName: item.event || null, payload: item };
-          return { source: "unknown", payload: item };
-        }
-
-        function post(payload) {
-          window.__ferryEvents.push(safeClone(payload, DEFAULT_LIMITS));
-        }
-
-        // Hook dataLayer.push
-        window.dataLayer = window.dataLayer || [];
-        const dl = window.dataLayer;
-        if (!dl.__ferry_hooked) {
-          dl.__ferry_hooked = true;
-          const originalPush = dl.push.bind(dl);
-          dl.push = function (...args) {
-            args.forEach(item => {
-              if (item && typeof item === "object" && Object.prototype.toString.call(item) === "[object Arguments]")
-                item = Array.from(item);
-              post(normalizeItem(item));
-            });
-            return originalPush(...args);
-          };
-          // Backfill existing items
-          dl.forEach(item => {
-            if (item && typeof item === "object" && Object.prototype.toString.call(item) === "[object Arguments]")
-              item = Array.from(item);
-            post(normalizeItem(item));
-          });
-        }
-
-        // Hook gtag
-        const tryWrap = () => {
-          if (typeof window.gtag !== "function") return false;
-          if (window.gtag.__ferry_hooked) return true;
-          const original = window.gtag;
-          window.gtag = function (...args) {
-            post({ source: "gtag", type: Array.isArray(args) && args[0], time: new Date().toISOString(), args });
-            return original.apply(this, args);
-          };
-          window.gtag.__ferry_hooked = true;
-          return true;
-        };
-        if (!tryWrap()) {
-          const start = Date.now();
-          const t = setInterval(() => {
-            if (tryWrap() || Date.now() - start > 5000) clearInterval(t);
-          }, 50);
-        }
-      },
+      func: globalThis.ferryHookFn, // defined in ferry-hook.js via importScripts
     });
-  } catch (e) {
-    // May fail on chrome:// or restricted pages — that's fine
+  } catch {
+    // chrome:// pages, restricted origins — silently skip
   }
 }
 
 /**
- * Drain all captured events from window.__ferryEvents on the page.
- * Returns the array and resets it to empty.
+ * Inject the SPA history patch into the page's MAIN world.
+ *
+ * Patches history.pushState and history.replaceState so the crawler
+ * can detect virtual pageview navigations on single-page apps and
+ * extend the stability wait if a route change happens mid-wait.
+ *
+ * Note: ferryHookFn already patches history — this is a guard in case
+ * the hook was skipped or window.__ferryHooked was already true from
+ * a previous navigation on a persistent SPA tab.
  */
+async function injectSPAHook(tabId) {
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      world: "MAIN",
+      func: () => {
+        if (history.__ferry_hooked) return;
+        history.__ferry_hooked = true;
+        window.__ferrySPAChanges = window.__ferrySPAChanges || [];
+
+        const patch = (method) => {
+          const orig = history[method];
+          history[method] = function (...args) {
+            const result = orig.apply(this, args);
+            window.__ferrySPAChanges.push({ method, url: location.href, ts: Date.now() });
+            return result;
+          };
+        };
+        patch("pushState");
+        patch("replaceState");
+      },
+    });
+  } catch {}
+}
+
+// ── Smart stability wait ──────────────────────────────────────────────────────
+
+/**
+ * Replace the old fixed sleep(3000) with a polling stability check.
+ *
+ * Strategy (mirrors the cloud scraper's wait-strategy.js):
+ *   1. Wait at least minWaitMs (tags need time to initialise)
+ *   2. Poll window.__ferryEvents.length every pollIntervalMs
+ *   3. Return when event count has been stable for stabilityWindowMs
+ *   4. Hard timeout at hardTimeoutMs regardless
+ *   5. Early exit if no events after 60% of hardTimeoutMs
+ *      (site may not have GA4/GTM at all)
+ *
+ * Also checks window.__ferrySPAChanges — if a virtual route change fires
+ * during the wait, the stability clock is reset to capture route-level events.
+ */
+async function waitForEventStability(tabId, opts = {}) {
+  const {
+    pollIntervalMs    = 250,
+    stabilityWindowMs = 1500,
+    hardTimeoutMs     = 8000,
+    minWaitMs         = 800,
+  } = opts;
+
+  const startTime = Date.now();
+  await sleep(minWaitMs);
+
+  let lastEventCount  = 0;
+  let lastSPACount    = 0;
+  let lastChangeTime  = Date.now();
+
+  while (true) {
+    const elapsed = Date.now() - startTime;
+    if (elapsed >= hardTimeoutMs) break;
+
+    let currentEvents = 0;
+    let currentSPA    = 0;
+    try {
+      const results = await chrome.scripting.executeScript({
+        target: { tabId },
+        world: "MAIN",
+        func: () => ({
+          events: (window.__ferryEvents    || []).length,
+          spa:    (window.__ferrySPAChanges || []).length,
+        }),
+      });
+      const counts = results?.[0]?.result;
+      if (counts) { currentEvents = counts.events; currentSPA = counts.spa; }
+    } catch {
+      break; // Page navigated or crashed — stop waiting
+    }
+
+    // Any change (new events OR a new SPA route change) resets the stability clock
+    if (currentEvents > lastEventCount || currentSPA > lastSPACount) {
+      lastEventCount = currentEvents;
+      lastSPACount   = currentSPA;
+      lastChangeTime = Date.now();
+    }
+
+    const timeSinceChange = Date.now() - lastChangeTime;
+
+    // Stable: nothing new for the stability window
+    if (timeSinceChange >= stabilityWindowMs && lastEventCount > 0) break;
+
+    // Early exit: no events at all well past minWait (no GA/GTM on page)
+    if (elapsed > hardTimeoutMs * 0.6 && lastEventCount === 0) break;
+
+    await sleep(pollIntervalMs);
+  }
+}
+
+// ── Event drain ───────────────────────────────────────────────────────────────
+
 async function drainEventsViaScripting(tabId) {
   try {
     const results = await chrome.scripting.executeScript({
@@ -288,23 +320,18 @@ async function drainEventsViaScripting(tabId) {
       func: () => {
         const events = window.__ferryEvents || [];
         window.__ferryEvents = [];
-        window.__ferryHooked = false; // Allow re-hook on next page
-        return JSON.parse(JSON.stringify(events)); // ensure serializable
+        window.__ferryHooked = false; // allow re-hook on next page
+        return JSON.parse(JSON.stringify(events));
       },
     });
     return results?.[0]?.result || [];
-  } catch (e) {
+  } catch {
     return [];
   }
 }
 
-/**
- * Grab all <a href> links from the page using chrome.scripting.executeScript.
- *
- * This is far more reliable than chrome.tabs.sendMessage because it doesn't
- * depend on the content script being re-injected and ready after navigation.
- * The scripting API injects directly into the page's main world.
- */
+// ── Link extraction ───────────────────────────────────────────────────────────
+
 async function getLinksViaScripting(tabId) {
   try {
     const results = await chrome.scripting.executeScript({
@@ -319,21 +346,19 @@ async function getLinksViaScripting(tabId) {
       },
     });
     return results?.[0]?.result || [];
-  } catch (e) {
-    // Scripting failed (e.g. chrome:// pages, restricted URLs)
+  } catch {
     return [];
   }
 }
 
-/**
- * Wait for a tab to finish loading.
- */
+// ── Page load wait ────────────────────────────────────────────────────────────
+
 function waitForPageLoad(tabId) {
   return new Promise((resolve) => {
     const timeout = setTimeout(() => {
       chrome.tabs.onUpdated.removeListener(listener);
       resolve();
-    }, 15000); // max 15s per page
+    }, 15000);
 
     function listener(updatedTabId, changeInfo) {
       if (updatedTabId === tabId && changeInfo.status === "complete") {
@@ -346,8 +371,14 @@ function waitForPageLoad(tabId) {
   });
 }
 
+// ── Link filtering ────────────────────────────────────────────────────────────
+
 /**
- * Filter discovered links to same-origin, unvisited, relevant pages.
+ * Filter discovered links to same-origin, unvisited, audit-safe pages.
+ *
+ * Uses SAFE_SKIP_PATHS to avoid triggering forms, purchases, auth flows,
+ * or any other destructive/side-effectful page. An audit crawl is a
+ * passive observer only.
  */
 function filterLinks(links, origin, visited) {
   const filtered = [];
@@ -357,31 +388,28 @@ function filterLinks(links, origin, visited) {
     try {
       const url = new URL(link);
 
-      // Only http/https
       if (!url.protocol.startsWith("http")) continue;
-
-      // Same origin only
       if (url.origin !== origin) continue;
 
-      // Strip hash fragments
       url.hash = "";
       const clean = url.toString();
-
-      // Skip already visited or queued
       if (seen.has(clean)) continue;
 
-      // Skip non-page resources
+      // Skip non-page file extensions
       const ext = url.pathname.split(".").pop()?.toLowerCase();
-      const skipExts = ["jpg", "jpeg", "png", "gif", "svg", "webp", "pdf",
-                        "zip", "css", "js", "woff", "woff2", "ttf", "ico",
-                        "mp4", "mp3", "avi", "mov", "xml", "json", "rss"];
+      const skipExts = [
+        "jpg", "jpeg", "png", "gif", "svg", "webp", "avif",
+        "pdf", "zip", "gz", "tar",
+        "css", "js", "mjs",
+        "woff", "woff2", "ttf", "eot", "ico",
+        "mp4", "mp3", "avi", "mov", "webm",
+        "xml", "json", "rss", "atom",
+      ];
       if (skipExts.includes(ext)) continue;
 
-      // Skip common non-content paths
-      const skipPaths = ["/wp-admin", "/wp-json", "/api/", "/graphql",
-                         "/cart", "/checkout", "/account/login",
-                         "/cdn-cgi/", "/_next/", "/static/"];
-      if (skipPaths.some(p => url.pathname.startsWith(p))) continue;
+      // Skip safe-mode paths (audit-safe policy)
+      const pathLower = url.pathname.toLowerCase();
+      if (SAFE_SKIP_PATHS.some(p => pathLower.startsWith(p))) continue;
 
       seen.add(clean);
       filtered.push(clean);
@@ -393,11 +421,111 @@ function filterLinks(links, origin, visited) {
   return filtered;
 }
 
+// ── Robots.txt ────────────────────────────────────────────────────────────────
+
+/**
+ * Fetch and parse robots.txt for an origin.
+ * Returns a policy object with isAllowed(url) and optional crawlDelayMs.
+ *
+ * Matches GdFairyBot-specific rules first, then falls back to the wildcard
+ * User-agent: * block. Permissive if robots.txt is unreachable.
+ */
+async function fetchRobotsTxt(origin) {
+  try {
+    const res = await fetch(`${origin}/robots.txt`, {
+      signal: AbortSignal.timeout(5000),
+      headers: { "User-Agent": "GdFairyBot/1.0 (+https://gdfairy.com/bot)" },
+    });
+    if (!res.ok) return makePermissivePolicy();
+    const text = await res.text();
+    return parseRobotsTxt(text);
+  } catch {
+    return makePermissivePolicy();
+  }
+}
+
+function parseRobotsTxt(text) {
+  // Collect rules for all user-agent blocks; prefer bot-specific over wildcard
+  const blocks = [];   // [ { agents: string[], disallowed: string[], crawlDelay: number|null } ]
+  let current = null;
+
+  for (const rawLine of text.split("\n")) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+
+    const colonIdx = line.indexOf(":");
+    if (colonIdx < 0) continue;
+
+    const field = line.slice(0, colonIdx).trim().toLowerCase();
+    const value = line.slice(colonIdx + 1).trim();
+
+    if (field === "user-agent") {
+      if (!current || current.disallowed.length > 0 || current.crawlDelay !== null) {
+        current = { agents: [], disallowed: [], crawlDelay: null };
+        blocks.push(current);
+      }
+      current.agents.push(value.toLowerCase());
+    } else if (current) {
+      if (field === "disallow" && value) current.disallowed.push(value);
+      if (field === "allow")    {} // Allow overrides not needed for audit-safe crawl
+      if (field === "crawl-delay") {
+        const d = parseFloat(value);
+        if (!isNaN(d)) current.crawlDelay = d;
+      }
+    }
+  }
+
+  // Find the most-specific applicable block
+  const botBlock      = blocks.find(b => b.agents.some(a => a.includes("gdfairy")));
+  const wildcardBlock = blocks.find(b => b.agents.includes("*"));
+  const applicable    = botBlock || wildcardBlock || null;
+
+  if (!applicable) return makePermissivePolicy();
+
+  return {
+    isAllowed(url) {
+      try {
+        const path = new URL(url).pathname;
+        return !applicable.disallowed.some(d => matchRobotsPath(d, path));
+      } catch { return true; }
+    },
+    crawlDelayMs: applicable.crawlDelay
+      ? Math.max(applicable.crawlDelay * 1000, 1000)
+      : null,
+  };
+}
+
+function matchRobotsPath(pattern, path) {
+  if (pattern === "/") return true; // Disallow: / means block everything
+
+  if (!pattern.includes("*") && !pattern.endsWith("$")) {
+    return path.startsWith(pattern);
+  }
+
+  // Convert robots.txt glob pattern to a regex
+  const regexStr = pattern
+    .replace(/[.+?^{}()|[\]\\]/g, "\\$&")  // escape regex specials (not * or $)
+    .replace(/\*/g, ".*")                   // * → .*
+    .replace(/\$$/, "$");                   // trailing $ = end-of-string anchor
+  try {
+    return new RegExp("^" + regexStr).test(path);
+  } catch {
+    return path.startsWith(pattern.split("*")[0]);
+  }
+}
+
+function makePermissivePolicy() {
+  return { isAllowed: () => true, crawlDelayMs: null };
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Export for use in service-worker.js via importScripts
+// ── Module export ─────────────────────────────────────────────────────────────
+
 if (typeof globalThis !== "undefined") {
   globalThis.FerryCrawler = { startCrawl, stopCrawl, crawlStates };
 }

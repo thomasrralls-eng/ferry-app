@@ -4,12 +4,13 @@
  * Manages a headless Chrome instance for the scraper. Each page visit:
  *   1. Navigates to the URL
  *   2. Intercepts GA4 /collect network requests
- *   3. Injects the Ferry dataLayer/gtag hook
+ *   3. Injects the Ferry dataLayer/gtag hook (ferryHookFn)
  *   4. Waits for events to stabilize (via wait-strategy)
  *   5. Drains captured events and returns them
  *
- * The hook injection is the same logic used in the Chrome extension
- * (injected-hook.js) — normalized via @ferry/core.
+ * ferryHookFn is intentionally kept in sync with the Chrome extension's
+ * packages/extension/src/background/ferry-hook.js so cloud and user-Chrome
+ * runs capture events identically.
  */
 
 import { waitForDataLayer, detectAnalyticsPresence } from "./wait-strategy.js";
@@ -174,116 +175,176 @@ export async function visitPage(browser, url, options = {}) {
 }
 
 /**
- * Inject the Ferry dataLayer/gtag hook into the page's MAIN world.
- * This is a simplified version of the extension's injected-hook.js,
- * reusing the same normalization logic.
+ * ferryHookFn — the Ferry dataLayer/gtag hook injected into each page.
+ *
+ * KEEP IN SYNC with packages/extension/src/background/ferry-hook.js.
+ * Both implementations must be identical so cloud and extension crawls
+ * produce consistent capture results.
+ *
+ * Self-contained: no imports, no external references. Runs inside the
+ * page's JS context via page.evaluate().
+ */
+/* eslint-disable no-var */
+function ferryHookFn() {
+  if (window.__ferryHooked) return;
+  window.__ferryHooked = true;
+  window.__ferryEvents     = window.__ferryEvents    || [];
+  window.__ferrySPAChanges = window.__ferrySPAChanges || [];
+
+  var LIMITS = { maxDepth: 6, maxKeys: 200, maxArray: 200 };
+
+  function safeClone(value, opts, state) {
+    if (!state) state = { seen: new WeakSet(), keysUsed: 0 };
+    var maxDepth = opts.maxDepth, maxKeys = opts.maxKeys, maxArray = opts.maxArray;
+    function budget() { return state.keysUsed >= maxKeys; }
+    function inner(v, depth) {
+      var t = typeof v;
+      if (v == null || t === "string" || t === "number" || t === "boolean") return v;
+      if (depth > maxDepth) return "[MaxDepth]";
+      if (t === "bigint" || t === "symbol") return v.toString();
+      if (t === "function") return "[Function]";
+      if (v instanceof Date) return v.toISOString();
+      if (v instanceof Error) return { name: v.name, message: v.message };
+      if (Array.isArray(v)) {
+        if (budget()) return "[MaxKeys]";
+        var outArr = [];
+        var len = Math.min(v.length, maxArray);
+        for (var i = 0; i < len; i++) outArr.push(inner(v[i], depth + 1));
+        if (v.length > maxArray) outArr.push("[TruncatedArray:" + v.length + "]");
+        return outArr;
+      }
+      if (t === "object") {
+        if (state.seen.has(v)) return "[Circular]";
+        state.seen.add(v);
+        if (budget()) return "[MaxKeys]";
+        var outObj = {};
+        var keys = Object.keys(v);
+        for (var ki = 0; ki < keys.length; ki++) {
+          if (budget()) { outObj.__truncated__ = "[TruncatedKeys:" + keys.length + "]"; break; }
+          state.keysUsed++;
+          try { outObj[keys[ki]] = inner(v[keys[ki]], depth + 1); }
+          catch { outObj[keys[ki]] = "[Unclonable]"; }
+        }
+        return outObj;
+      }
+      try { return String(v); } catch { return "[Unclonable]"; }
+    }
+    return inner(value, 0);
+  }
+
+  function normalize(item) {
+    if (item && typeof item === "object" &&
+        Object.prototype.toString.call(item) === "[object Arguments]") {
+      item = Array.from(item);
+    }
+    if (Array.isArray(item)) {
+      var cmd = item[0], arg1 = item[1], arg2 = item[2];
+      if (cmd === "event")  return { source: "gtag", type: "event",  eventName: arg1, params: arg2 };
+      if (cmd === "config") return { source: "gtag", type: "config", measurementId: arg1, params: arg2 };
+      if (cmd === "set")    return { source: "gtag", type: "set",    params: arg1 };
+      if (cmd === "js")     return { source: "gtag", type: "js" };
+      return { source: "gtag", type: "unknown", raw: item };
+    }
+    if (item && typeof item === "object") {
+      return { source: "dataLayer", type: "object", eventName: item.event || null, payload: item };
+    }
+    return { source: "unknown", payload: item };
+  }
+
+  function post(payload) {
+    window.__ferryEvents.push(safeClone(payload, LIMITS));
+  }
+
+  function hookDataLayer(dl) {
+    if (!dl || dl.__ferry_hooked) return;
+    dl.__ferry_hooked = true;
+    var origPush = dl.push.bind(dl);
+    dl.push = function () {
+      for (var ai = 0; ai < arguments.length; ai++) {
+        var item = arguments[ai];
+        if (item && typeof item === "object" &&
+            Object.prototype.toString.call(item) === "[object Arguments]") {
+          item = Array.from(item);
+        }
+        post(normalize(item));
+      }
+      return origPush.apply(dl, arguments);
+    };
+    for (var bi = 0; bi < dl.length; bi++) {
+      var existing = dl[bi];
+      if (existing && typeof existing === "object" &&
+          Object.prototype.toString.call(existing) === "[object Arguments]") {
+        existing = Array.from(existing);
+      }
+      post(normalize(existing));
+    }
+  }
+
+  // Hook with setter trap for dataLayer re-assignment
+  window.dataLayer = window.dataLayer || [];
+  hookDataLayer(window.dataLayer);
+  var _currentDL = window.dataLayer;
+  try {
+    Object.defineProperty(window, "dataLayer", {
+      configurable: true, enumerable: true,
+      get: function () { return _currentDL; },
+      set: function (val) {
+        if (val === _currentDL) return;
+        _currentDL = val;
+        hookDataLayer(_currentDL);
+      },
+    });
+  } catch {
+    var ri = setInterval(function () {
+      if (window.dataLayer !== _currentDL) {
+        _currentDL = window.dataLayer;
+        hookDataLayer(_currentDL);
+      }
+    }, 500);
+    setTimeout(function () { clearInterval(ri); }, 30000);
+  }
+
+  // Hook gtag
+  function tryWrapGtag() {
+    if (typeof window.gtag !== "function") return false;
+    if (window.gtag.__ferry_hooked) return true;
+    var orig = window.gtag;
+    window.gtag = function () {
+      var args = Array.prototype.slice.call(arguments);
+      post({ source: "gtag", type: args[0], time: new Date().toISOString(), args: args });
+      return orig.apply(this, arguments);
+    };
+    window.gtag.__ferry_hooked = true;
+    return true;
+  }
+  if (!tryWrapGtag()) {
+    var gtagStart = Date.now();
+    var gt = setInterval(function () {
+      if (tryWrapGtag() || Date.now() - gtagStart > 5000) clearInterval(gt);
+    }, 50);
+  }
+
+  // SPA history patching
+  if (!history.__ferry_hooked) {
+    history.__ferry_hooked = true;
+    function patchHistory(method) {
+      var orig = history[method];
+      history[method] = function () {
+        var result = orig.apply(this, arguments);
+        window.__ferrySPAChanges.push({ method: method, url: location.href, ts: Date.now() });
+        return result;
+      };
+    }
+    patchHistory("pushState");
+    patchHistory("replaceState");
+  }
+}
+
+/**
+ * Inject ferryHookFn into the Puppeteer page context.
  */
 async function injectFerryHook(page) {
-  await page.evaluate(() => {
-    if (window.__ferryHooked) return;
-    window.__ferryHooked = true;
-    window.__ferryEvents = [];
-
-    const LIMITS = { maxDepth: 6, maxKeys: 200, maxArray: 200 };
-
-    function safeClone(value, opts, state) {
-      if (!state) state = { seen: new WeakSet(), keysUsed: 0 };
-      const { maxDepth, maxKeys, maxArray } = opts;
-      function budget() { return state.keysUsed >= maxKeys; }
-      function inner(v, depth) {
-        const t = typeof v;
-        if (v == null || t === "string" || t === "number" || t === "boolean") return v;
-        if (depth > maxDepth) return "[MaxDepth]";
-        if (t === "bigint" || t === "symbol") return v.toString();
-        if (t === "function") return "[Function]";
-        if (v instanceof Date) return v.toISOString();
-        if (v instanceof Error) return { name: v.name, message: v.message };
-        if (Array.isArray(v)) {
-          if (budget()) return "[MaxKeys]";
-          const len = Math.min(v.length, maxArray);
-          const out = [];
-          for (let i = 0; i < len; i++) out.push(inner(v[i], depth + 1));
-          return out;
-        }
-        if (t === "object") {
-          if (state.seen.has(v)) return "[Circular]";
-          state.seen.add(v);
-          if (budget()) return "[MaxKeys]";
-          const out = {};
-          const keys = Object.keys(v);
-          for (const k of keys) {
-            if (budget()) break;
-            state.keysUsed++;
-            try { out[k] = inner(v[k], depth + 1); } catch { out[k] = "[Unclonable]"; }
-          }
-          return out;
-        }
-        try { return String(v); } catch { return "[Unclonable]"; }
-      }
-      return inner(value, 0);
-    }
-
-    function normalize(item) {
-      if (item && typeof item === "object" && Object.prototype.toString.call(item) === "[object Arguments]")
-        item = Array.from(item);
-      if (Array.isArray(item)) {
-        const [cmd, arg1, arg2] = item;
-        if (cmd === "event") return { source: "gtag", type: "event", eventName: arg1, params: arg2 };
-        if (cmd === "config") return { source: "gtag", type: "config", measurementId: arg1, params: arg2 };
-        if (cmd === "set") return { source: "gtag", type: "set", params: arg1 };
-        if (cmd === "js") return { source: "gtag", type: "js" };
-        return { source: "gtag", type: "unknown", raw: item };
-      }
-      if (item && typeof item === "object")
-        return { source: "dataLayer", type: "object", eventName: item.event || null, payload: item };
-      return { source: "unknown", payload: item };
-    }
-
-    function post(payload) {
-      window.__ferryEvents.push(safeClone(payload, LIMITS));
-    }
-
-    // Hook dataLayer.push
-    window.dataLayer = window.dataLayer || [];
-    const dl = window.dataLayer;
-    if (!dl.__ferry_hooked) {
-      dl.__ferry_hooked = true;
-      const orig = dl.push.bind(dl);
-      dl.push = function (...args) {
-        args.forEach(item => {
-          if (item && typeof item === "object" && Object.prototype.toString.call(item) === "[object Arguments]")
-            item = Array.from(item);
-          post(normalize(item));
-        });
-        return orig(...args);
-      };
-      // Backfill
-      dl.forEach(item => {
-        if (item && typeof item === "object" && Object.prototype.toString.call(item) === "[object Arguments]")
-          item = Array.from(item);
-        post(normalize(item));
-      });
-    }
-
-    // Hook gtag
-    const tryWrap = () => {
-      if (typeof window.gtag !== "function") return false;
-      if (window.gtag.__ferry_hooked) return true;
-      const original = window.gtag;
-      window.gtag = function (...args) {
-        post({ source: "gtag", type: Array.isArray(args) && args[0], time: new Date().toISOString(), args });
-        return original.apply(this, args);
-      };
-      window.gtag.__ferry_hooked = true;
-      return true;
-    };
-    if (!tryWrap()) {
-      const start = Date.now();
-      const t = setInterval(() => {
-        if (tryWrap() || Date.now() - start > 5000) clearInterval(t);
-      }, 50);
-    }
-  });
+  await page.evaluate(ferryHookFn);
 }
 
 /**

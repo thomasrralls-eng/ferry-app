@@ -3,7 +3,9 @@
  *
  * Responsibilities:
  *   1. Opens the side panel when the toolbar icon is clicked
- *   2. Captures GA4/GTM network requests via webRequest and relays to panel
+ *   2. Captures GA4/GTM network requests via webRequest and:
+ *      a) Buffers them into the current crawl page entry (per-page join)
+ *      b) Relays them live to the panel (for the recorder UI)
  *   3. Manages port connections from the side panel
  *   4. Routes crawler commands to the crawler module
  *   5. Forwards content-script events to the panel
@@ -11,7 +13,7 @@
 
 importScripts("crawler.js");
 
-// ── Side Panel: open on toolbar icon click ──
+// ── Side Panel: open on toolbar icon click ────────────────────────────────────
 
 chrome.action.onClicked.addListener((tab) => {
   chrome.sidePanel.open({ tabId: tab.id });
@@ -20,10 +22,10 @@ chrome.action.onClicked.addListener((tab) => {
 // Allow side panel on every page
 chrome.sidePanel.setOptions({ enabled: true });
 
-// ── Port Management ──
+// ── Port Management ───────────────────────────────────────────────────────────
 // The side panel connects with name "ferry-panel" and sends FERRY_INIT { tabId }
 
-const connections = new Map(); // tabId -> port
+const connections = new Map(); // tabId → port
 
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name !== "ferry-panel") return;
@@ -47,7 +49,7 @@ chrome.runtime.onConnect.addListener((port) => {
   });
 });
 
-// ── Panel message handler (crawl commands) ──
+// ── Panel message handler (crawl commands) ────────────────────────────────────
 
 function handlePanelMessage(msg, tabId, port) {
   if (!globalThis.FerryCrawler) return;
@@ -69,50 +71,73 @@ function handlePanelMessage(msg, tabId, port) {
   }
 }
 
-// ── Network capture via webRequest ──
-// Intercepts GA4 /collect hits and GTM script loads, relays to panel.
-// This replaces chrome.devtools.network.onRequestFinished which is
-// only available inside DevTools panels.
+// ── Network capture via webRequest ────────────────────────────────────────────
+// Intercepts GA4 /collect hits, Measurement Protocol, and GTM script loads.
+//
+// Two consumers per hit:
+//   1. Active crawl: buffered into the current page entry so audits get a
+//      per-page join of { events (dataLayer), network (/collect hits) }.
+//   2. Panel recorder UI: relayed live via the port connection.
+//
+// This approach replaces chrome.devtools.network.onRequestFinished, which is
+// only available inside DevTools panels and unavailable to side panels.
 
 chrome.webRequest.onBeforeRequest.addListener(
   (details) => {
     if (!details.tabId || details.tabId < 0) return;
 
-    const port = connections.get(details.tabId);
-    if (!port) return;
-
     const url = details.url;
 
-    // GA4 measurement protocol /collect endpoint
+    // Classify the hit type
+    let hitType = null;
+
     if (url.includes("/g/collect") || url.includes("/collect?")) {
-      try {
-        port.postMessage({
-          type: "FERRY_NETWORK_HIT",
-          url,
-          tabId: details.tabId,
-          timestamp: new Date().toISOString(),
-          hitType: "ga4-collect",
-        });
-      } catch (e) {}
+      hitType = "ga4-collect";
+    } else if (url.includes("/mp/collect")) {
+      hitType = "measurement-protocol";
+    } else if (url.includes("googletagmanager.com/gtm.js")) {
+      hitType = "gtm-container";
+    } else if (url.includes("googletagmanager.com/gtag/js")) {
+      hitType = "gtag-js";
+    } else if (url.includes("googleadservices.com/pagead/conversion") ||
+               url.includes("google.com/pagead/")) {
+      hitType = "google-ads-conversion";
     }
 
-    // GTM container script load
-    if (url.includes("googletagmanager.com/gtm.js") || url.includes("googletagmanager.com/gtag/js")) {
+    if (!hitType) return;
+
+    const networkHit = {
+      url,
+      timestamp: new Date().toISOString(),
+      hitType,
+    };
+
+    // ── 1. Buffer into current crawl page entry ───────────────────────────────
+    // Enables per-page joins of dataLayer events + /collect network hits,
+    // which is what an audit needs to validate that events fired AND reached GA4.
+    if (globalThis.FerryCrawler) {
+      const crawlState = globalThis.FerryCrawler.crawlStates.get(details.tabId);
+      if (crawlState?.running && crawlState.pages.length > 0) {
+        crawlState.pages[crawlState.pages.length - 1].network.push(networkHit);
+      }
+    }
+
+    // ── 2. Relay to panel for live recorder view ──────────────────────────────
+    const port = connections.get(details.tabId);
+    if (port) {
       try {
         port.postMessage({
           type: "FERRY_NETWORK_HIT",
-          url,
+          ...networkHit,
           tabId: details.tabId,
-          timestamp: new Date().toISOString(),
-          hitType: url.includes("gtm.js") ? "gtm-container" : "gtag-js",
         });
-      } catch (e) {}
+      } catch {}
     }
   },
   { urls: ["<all_urls>"] }
 );
 
-// ── Content script event forwarding ──
+// ── Content script event forwarding ──────────────────────────────────────────
 // Used by the Record feature — content script relays window.postMessage events.
 
 chrome.runtime.onMessage.addListener((msg, sender) => {
