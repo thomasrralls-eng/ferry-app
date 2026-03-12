@@ -334,8 +334,8 @@ export default function useFerryRecorder() {
     setRecording(true);
   }, [injectHook]);
 
-  const stopRecording = useCallback(() => {
-    pollEvents(); // one final drain
+  const stopRecording = useCallback(async () => {
+    await pollEvents(); // one final drain — wait for last events before stopping
     setRecording(false);
   }, [pollEvents]);
 

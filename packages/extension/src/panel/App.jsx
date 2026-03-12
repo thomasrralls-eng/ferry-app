@@ -45,15 +45,31 @@ export default function App() {
   const prevRecordingRef = useRef(false);
   const prevCrawlingRef = useRef(false);
 
+  // Keep refs to latest state so effects always read fresh values
+  const eventsRef = useRef(events);
+  const networkRef = useRef(network);
+  const findingsRef = useRef(findings);
+  const modeRef = useRef(mode);
+  const crawlReportRef = useRef(crawlReport);
+  useEffect(() => { eventsRef.current = events; }, [events]);
+  useEffect(() => { networkRef.current = network; }, [network]);
+  useEffect(() => { findingsRef.current = findings; }, [findings]);
+  useEffect(() => { modeRef.current = mode; }, [mode]);
+  useEffect(() => { crawlReportRef.current = crawlReport; }, [crawlReport]);
+
   const tabs = mode === "ga4" ? GA4_TABS : GTM_TABS;
 
   // ── Auto-analyze when recording stops ──
   useEffect(() => {
     if (prevRecordingRef.current && !recording) {
-      // Recording just stopped — run analysis
-      const hasData = events.length > 0 || network.length > 0 || findings.length > 0;
+      // Recording just stopped — run analysis with latest data
+      const e = eventsRef.current;
+      const n = networkRef.current;
+      const f = findingsRef.current;
+      const m = modeRef.current;
+      const hasData = e.length > 0 || n.length > 0 || f.length > 0;
       if (hasData) {
-        const report = analyzeSession({ events, network, findings, mode });
+        const report = analyzeSession({ events: e, network: n, findings: f, mode: m });
         setAgentReport(report);
         setShowAgentReport(true);
       }
@@ -63,12 +79,15 @@ export default function App() {
 
   // ── Auto-analyze when crawl completes ──
   useEffect(() => {
-    if (prevCrawlingRef.current && !crawling && crawlReport) {
-      // Crawl just finished — run analysis including crawl data
+    if (prevCrawlingRef.current && !crawling && crawlReportRef.current) {
+      const e = eventsRef.current;
+      const n = networkRef.current;
+      const f = findingsRef.current;
+      const m = modeRef.current;
       const report = analyzeSession({
-        events, network, findings,
-        crawlReport,
-        mode,
+        events: e, network: n, findings: f,
+        crawlReport: crawlReportRef.current,
+        mode: m,
       });
       setAgentReport(report);
       setShowAgentReport(true);
