@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>What is GTM, GA4 & the dataLayer? A Visual Guide | gd fairy</title>
+  <title>What is GTM, GA4 & the dataLayer? A Visual Guide | DataFairy</title>
   <meta name="description" content="A plain-English visual guide to Google Tag Manager (GTM), Google Analytics 4 (GA4), the dataLayer, and why data hygiene matters for your analytics." />
   <meta property="og:title" content="What is GTM, GA4 & the dataLayer? A Visual Guide" />
   <meta property="og:description" content="Understand how GTM, GA4, and your dataLayer actually work together — and what breaks when they don't." />
   <meta property="og:type" content="article" />
-  <link rel="canonical" href="https://gdfairy.com/what-is-gtm-ga4-datalayer" />
+  <link rel="canonical" href="https://datafairy.ai/what-is-gtm-ga4-datalayer" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -64,11 +64,10 @@
       height: 64px; gap: 24px;
       width: min(1120px, calc(100% - 48px)); margin: 0 auto;
     }
-    .brand { display: inline-flex; align-items: center; gap: 2px; font-weight: 700; letter-spacing: -0.03em; color: var(--slate-900); font-size: 17px; }
-    .brand-mark { width: 36px; height: 36px; border-radius: 12px; overflow: hidden; flex: 0 0 auto; }
-    .brand-mark img { width: 36px; height: 36px; object-fit: contain; }
-    .brand-name { display: inline-flex; align-items: center; gap: 4px; }
-    .brand-name .spark { color: var(--gold); font-size: 13px; transform: translateY(-3px); }
+    .brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; letter-spacing: -0.03em; color: var(--slate-900); font-size: 17px; }
+    .brand-icon { width: 36px; height: 36px; border-radius: 12px; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: grid; place-items: center; font-size: 18px; line-height: 1; flex: 0 0 auto; }
+    .brand-name { display: inline-flex; align-items: center; gap: 3px; }
+    .brand-name .spark { color: var(--gold); font-size: 12px; transform: translateY(-3px); }
     .btn { display: inline-flex; align-items: center; gap: 7px; border-radius: 12px; padding: 10px 18px; font-weight: 600; font-size: 13px; font-family: inherit; transition: 0.15s ease; border: 1px solid transparent; cursor: pointer; }
     .btn:hover { transform: translateY(-1px); }
     .btn-primary { background: var(--indigo); color: var(--white); box-shadow: 0 4px 14px rgba(99,102,241,0.25); }
@@ -451,10 +450,10 @@
   <header class="site-header">
     <div class="header-inner">
       <a href="index.html" class="brand">
-        <span class="brand-mark"><img src="gdfairy_square.png" alt="gd fairy" /></span>
-        <span class="brand-name">gd fairy <span class="spark">✦</span></span>
+        <span class="brand-icon">✦</span>
+        <span class="brand-name">DataFairy <span class="spark">✦</span></span>
       </a>
-      <a href="index.html#cta" class="btn btn-primary">Get early access</a>
+      <a href="index.html#cta" class="btn btn-primary">Start a free scan</a>
     </div>
   </header>
 
@@ -463,7 +462,7 @@
     <!-- HERO -->
     <section class="article-hero">
       <div class="container">
-        <div class="eyebrow">GA4 &amp; GTM Guide ✦ gd fairy</div>
+        <div class="eyebrow">GA4 &amp; GTM Guide ✦ DataFairy</div>
         <h1>What is GTM, GA4,<br>and the dataLayer?</h1>
         <p class="lead">A plain-English visual guide to how Google Tag Manager, Google Analytics 4, and your dataLayer actually work together — and what breaks when they don't.</p>
         <div class="article-meta">
@@ -830,7 +829,7 @@
         <article class="article-section" id="common-issues">
           <span class="section-label label-hygiene">Common Issues</span>
           <h2>Common GA4 &amp; GTM implementation issues</h2>
-          <p>These are the issues gd fairy flags most frequently when auditing real-world GA4 and GTM setups.</p>
+          <p>These are the issues DataFairy flags most frequently when auditing real-world GA4 and GTM setups.</p>
 
           <!-- Issue cards — stagger slide in from left -->
           <div style="display:grid;gap:16px;margin:32px 0;">
@@ -885,10 +884,10 @@
 
         <!-- CTA -->
         <div class="guide-cta">
-          <div class="eyebrow" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.15);color:rgba(255,255,255,0.85);margin-bottom:20px;display:inline-flex;">Google Data Fairy ✦ Free Chrome Extension</div>
+          <div class="eyebrow" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.15);color:rgba(255,255,255,0.85);margin-bottom:20px;display:inline-flex;">✦ DataFairy · datafairy.ai</div>
           <h2>See what's wrong with your GA4 &amp; GTM right now</h2>
-          <p>gd fairy audits your GA4 implementation in real time — catching every broken event, duplicate tag, and missing parameter as you browse your own site. No setup required.</p>
-          <a href="index.html#cta" class="btn btn-primary btn-lg">Start free audit →</a>
+          <p>DataFairy audits your GA4 and GTM implementation in real time — catching every broken event, duplicate tag, and missing parameter. No setup required.</p>
+          <a href="index.html#cta" class="btn btn-primary btn-lg">Start a free scan →</a>
         </div>
 
       </div><!-- /container -->
@@ -899,17 +898,17 @@
   <footer>
     <div class="footer-row">
       <a href="index.html" class="brand">
-        <span class="brand-mark"><img src="gdfairy_square.png" alt="gd fairy" /></span>
-        <span class="brand-name">gd fairy <span class="spark">✦</span></span>
+        <span class="brand-icon" style="width:28px;height:28px;border-radius:8px;font-size:13px;">✦</span>
+        <span class="brand-name">DataFairy <span class="spark">✦</span></span>
       </a>
       <div class="footer-links">
-        <a href="index.html#product">Product</a>
+        <a href="index.html#what">What it does</a>
+        <a href="index.html#modules">Modules</a>
         <a href="index.html#report">Sample report</a>
-        <a href="index.html#pricing">Pricing</a>
         <a href="what-is-gtm-ga4-datalayer.html">GTM &amp; GA4 Guide</a>
-        <a href="mailto:hello@gdfairy.com">Contact</a>
+        <a href="mailto:hello@datafairy.ai">Contact</a>
       </div>
-      <span>&copy; 2025 DataFairy LLC</span>
+      <span>&copy; 2025 DataFairy &middot; datafairy.ai</span>
     </div>
   </footer>
 

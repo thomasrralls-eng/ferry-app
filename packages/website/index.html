@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>gd fairy — Google Data Fairy for GA4 & GTM</title>
-  <meta name="description" content="gd fairy (Google Data Fairy) audits your GA4 and GTM implementation, finds broken tracking, and tells you exactly what to fix." />
+  <title>DataFairy — The autonomous agent for digital data</title>
+  <meta name="description" content="DataFairy is an autonomous agent for digital data. It audits, monitors, and improves how your website sends data to every marketing platform — continuously, not just once." />
+  <meta property="og:title" content="DataFairy — The autonomous agent for digital data" />
+  <meta property="og:description" content="Built for teams without a marketing ops person. DataFairy keeps your data flowing cleanly across GTM, GA4, Google Ads, Meta, and more." />
+  <meta property="og:url" content="https://datafairy.ai" />
+  <meta name="twitter:card" content="summary_large_image" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -14,6 +18,7 @@
       --indigo-mid:  #4f46e5;
       --indigo-deep: #3730a3;
       --gold:        #f59e0b;
+      --violet:      #8b5cf6;
       --slate-950:   #020617;
       --slate-900:   #0f172a;
       --slate-800:   #1e293b;
@@ -47,7 +52,7 @@
     a { color: inherit; text-decoration: none; }
     .container { width: min(1120px, calc(100% - 48px)); margin: 0 auto; }
 
-    /* HEADER */
+    /* ─── HEADER ──────────────────────────────────────────────────────────── */
     .site-header {
       position: sticky; top: 0; z-index: 50;
       backdrop-filter: blur(20px);
@@ -59,13 +64,17 @@
       height: 64px; gap: 24px;
     }
     .brand {
-      display: inline-flex; align-items: center; gap: 2px;
+      display: inline-flex; align-items: center; gap: 8px;
       font-weight: 700; letter-spacing: -0.03em; color: var(--slate-900); font-size: 17px;
     }
-    .brand-mark { width: 36px; height: 36px; border-radius: 12px; overflow: hidden; flex: 0 0 auto; }
-    .brand-mark img { width: 36px; height: 36px; object-fit: contain; }
-    .brand-name { display: inline-flex; align-items: center; gap: 4px; }
-    .brand-name .spark { color: var(--gold); font-size: 13px; transform: translateY(-3px); }
+    .brand-icon {
+      width: 36px; height: 36px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--indigo) 0%, var(--violet) 100%);
+      display: grid; place-items: center;
+      font-size: 18px; line-height: 1; flex: 0 0 auto;
+    }
+    .brand-name { display: inline-flex; align-items: center; gap: 3px; }
+    .brand-name .spark { color: var(--gold); font-size: 12px; transform: translateY(-3px); }
     .nav-links {
       display: inline-flex; align-items: center; gap: 24px;
       color: var(--slate-500); font-size: 13px; font-weight: 500;
@@ -73,7 +82,7 @@
     .nav-links a:hover { color: var(--slate-900); }
     .header-actions { display: inline-flex; align-items: center; gap: 10px; }
 
-    /* BUTTONS */
+    /* ─── BUTTONS ─────────────────────────────────────────────────────────── */
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 7px;
       border-radius: 12px; padding: 10px 18px;
@@ -86,17 +95,19 @@
     .btn-secondary { background: var(--white); color: var(--slate-800); border-color: var(--slate-200); }
     .btn-secondary:hover { border-color: var(--slate-300); }
     .btn-lg { padding: 13px 24px; font-size: 14px; border-radius: 14px; }
+    .btn-ghost { background: transparent; color: rgba(255,255,255,0.85); border-color: rgba(255,255,255,0.2); }
+    .btn-ghost:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.3); }
     .btn-disabled { background: var(--slate-100); color: var(--slate-400); border-color: var(--slate-200); cursor: not-allowed; }
     .btn-disabled:hover { transform: none; box-shadow: none; }
 
-    /* HERO */
+    /* ─── HERO ────────────────────────────────────────────────────────────── */
     .hero {
-      padding: 80px 0 96px;
+      padding: 88px 0 104px;
       background: linear-gradient(180deg, var(--slate-50) 0%, var(--white) 100%);
     }
     .hero-grid {
       display: grid; grid-template-columns: minmax(0,1.05fr) minmax(340px,0.95fr);
-      gap: 48px; align-items: center;
+      gap: 52px; align-items: center;
     }
     .eyebrow {
       display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px;
@@ -104,87 +115,116 @@
       color: var(--indigo-deep); font-size: 12px; font-weight: 600;
       border: 1px solid rgba(99,102,241,0.12); margin-bottom: 20px;
     }
-    h1 { color: var(--slate-950); letter-spacing: -0.045em; font-size: clamp(34px,5vw,52px); line-height: 1.02; margin-bottom: 18px; }
-    .hero-copy > p { font-size: 16px; line-height: 1.7; color: var(--slate-600); max-width: 540px; margin-bottom: 28px; }
-    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
-    .hero-meta { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--slate-500); font-size: 13px; }
+    h1 { color: var(--slate-950); letter-spacing: -0.045em; font-size: clamp(34px,5vw,54px); line-height: 1.0; margin-bottom: 20px; }
+    .hero-copy > p { font-size: 17px; line-height: 1.7; color: var(--slate-600); max-width: 520px; margin-bottom: 32px; }
+    .hero-subtext { font-size: 14px !important; color: var(--slate-500) !important; margin-top: -18px !important; margin-bottom: 32px !important; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 6px 20px; color: var(--slate-500); font-size: 13px; }
     .hero-meta span::before { content: '·'; color: var(--gold); margin-right: 7px; font-weight: 800; font-size: 16px; vertical-align: middle; }
 
-    /* Hero panel */
+    /* Hero dashboard panel */
     .hero-panel {
-      border-radius: 28px; overflow: hidden; background: #2e2b6e;
+      border-radius: 28px; overflow: hidden; background: #1e1b4b;
       color: var(--white); padding: 22px;
-      box-shadow: 0 32px 64px rgba(46,43,110,0.22);
-      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 32px 64px rgba(30,27,75,0.28);
+      border: 1px solid rgba(255,255,255,0.07);
     }
-    .panel-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
-    .panel-brand { display: inline-flex; align-items: center; gap: 2px; font-weight: 700; font-size: 14px; letter-spacing: -0.02em; }
-    .panel-brand .mark { font-size: 18px; line-height: 1; color: var(--gold); }
-    .pill { padding: 5px 10px; border-radius: 999px; background: rgba(255,255,255,0.1); font-size: 11px; color: rgba(255,255,255,0.78); border: 1px solid rgba(255,255,255,0.08); }
-    .score-card {
-      display: grid; grid-template-columns: 106px 1fr; gap: 16px;
+    .panel-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    .panel-brand { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; font-size: 13px; letter-spacing: -0.02em; }
+    .panel-brand-icon { width: 22px; height: 22px; border-radius: 6px; background: linear-gradient(135deg,var(--indigo),var(--violet)); display: grid; place-items: center; font-size: 11px; }
+    .pill { padding: 4px 9px; border-radius: 999px; background: rgba(255,255,255,0.08); font-size: 11px; color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.1); }
+    .health-score-row {
+      display: grid; grid-template-columns: 96px 1fr; gap: 14px; align-items: center;
       background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 20px; padding: 18px; margin-bottom: 14px;
+      border-radius: 18px; padding: 16px; margin-bottom: 12px;
     }
     .score-ring {
-      width: 106px; height: 106px; border-radius: 50%; position: relative;
-      background: conic-gradient(var(--gold) 0 72%, rgba(255,255,255,0.1) 72% 100%);
+      width: 96px; height: 96px; border-radius: 50%; position: relative;
+      background: conic-gradient(#6366f1 0 68%, rgba(255,255,255,0.08) 68% 100%);
       display: grid; place-items: center;
     }
-    .score-ring-inner { width: 76px; height: 76px; border-radius: 50%; background: #26246e; position: absolute; }
+    .score-ring-inner { width: 68px; height: 68px; border-radius: 50%; background: #1a1745; position: absolute; }
     .score-value { position: relative; z-index: 1; text-align: center; }
-    .score-value strong { display: block; font-size: 30px; line-height: 1; }
-    .score-value span { font-size: 11px; color: rgba(255,255,255,0.6); }
-    .score-copy h3 { margin-bottom: 8px; font-size: 16px; letter-spacing: -0.025em; }
-    .score-copy p { color: rgba(255,255,255,0.72); font-size: 13px; line-height: 1.6; }
-    .issue-list { list-style: none; display: grid; gap: 8px; }
-    .issue-row {
-      display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center;
+    .score-value strong { display: block; font-size: 28px; line-height: 1; }
+    .score-value span { font-size: 11px; color: rgba(255,255,255,0.55); }
+    .score-copy h3 { margin-bottom: 6px; font-size: 14px; letter-spacing: -0.02em; }
+    .score-copy p { color: rgba(255,255,255,0.65); font-size: 12px; line-height: 1.55; }
+    .module-row {
+      display: flex; align-items: center; justify-content: space-between;
       background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 14px; padding: 10px 12px;
+      border-radius: 12px; padding: 9px 12px; margin-bottom: 8px;
     }
-    .severity { width: 8px; height: 8px; border-radius: 999px; box-shadow: 0 0 0 3px rgba(255,255,255,0.05); }
+    .module-row-label { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; }
+    .module-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .module-dot.active { background: #22c55e; box-shadow: 0 0 0 2px rgba(34,197,94,0.2); }
+    .module-status { font-size: 11px; color: rgba(255,255,255,0.55); }
+    .issue-list { list-style: none; display: grid; gap: 7px; margin-top: 12px; }
+    .issue-row {
+      display: grid; grid-template-columns: auto 1fr auto; gap: 9px; align-items: center;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px; padding: 9px 11px;
+    }
+    .severity { width: 7px; height: 7px; border-radius: 999px; box-shadow: 0 0 0 3px rgba(255,255,255,0.04); }
     .severity.critical { background: var(--red); }
     .severity.high { background: var(--amber); }
     .severity.ok { background: var(--green); }
-    .issue-row strong { display: block; font-size: 13px; }
-    .issue-row small { color: rgba(255,255,255,0.55); font-size: 11px; }
-    .tag { padding: 4px 9px; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: 0.03em; background: rgba(255,255,255,0.1); }
+    .issue-row strong { display: block; font-size: 12px; }
+    .issue-row small { color: rgba(255,255,255,0.5); font-size: 11px; }
+    .tag { padding: 3px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: 0.03em; background: rgba(255,255,255,0.1); }
 
-    /* PROOF STRIP */
-
-
-    /* SECTIONS */
+    /* ─── SECTIONS ────────────────────────────────────────────────────────── */
     section { padding: 96px 0; }
     .section-head { max-width: 640px; margin: 0 auto 56px; text-align: center; }
     .section-kicker { color: var(--indigo); text-transform: uppercase; letter-spacing: 0.12em; font-size: 11px; font-weight: 700; margin-bottom: 10px; }
     h2 { color: var(--slate-950); letter-spacing: -0.04em; font-size: clamp(26px,3.2vw,38px); line-height: 1.1; margin-bottom: 12px; }
     .section-head p { font-size: 16px; line-height: 1.7; color: var(--slate-500); }
 
-    /* PROBLEM / SOLUTION */
-    .split-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 20px; }
+    /* ─── WHAT IT DOES ────────────────────────────────────────────────────── */
+    .what-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 20px; }
     .panel { background: var(--white); border: 1px solid var(--slate-200); border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow); }
     .panel h3 { margin-bottom: 20px; font-size: 18px; letter-spacing: -0.025em; color: var(--slate-900); }
-    .bullet-list { list-style: none; display: grid; gap: 14px; }
-    .bullet-list li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; color: var(--slate-600); font-size: 14px; }
-    .bullet-list .dot { width: 22px; height: 22px; border-radius: 8px; background: var(--slate-100); display: grid; place-items: center; color: var(--indigo); font-weight: 800; font-size: 12px; margin-top: 1px; }
-    .bullet-list strong { color: var(--slate-900); display: block; margin-bottom: 1px; font-size: 14px; }
+    .bullet-list { list-style: none; display: grid; gap: 16px; }
+    .bullet-list li { display: grid; grid-template-columns: 26px 1fr; gap: 12px; align-items: start; color: var(--slate-600); font-size: 14px; line-height: 1.6; }
+    .bullet-list .dot { width: 26px; height: 26px; border-radius: 8px; background: var(--slate-100); display: grid; place-items: center; color: var(--indigo); font-weight: 800; font-size: 13px; margin-top: 0px; flex: 0 0 auto; }
+    .bullet-list .dot.green { background: rgba(34,197,94,0.1); color: #16a34a; }
+    .bullet-list strong { color: var(--slate-900); display: block; margin-bottom: 2px; font-size: 14px; }
 
-    /* HOW IT WORKS */
-    .steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; }
-    .step-card { background: var(--white); border: 1px solid var(--slate-200); border-radius: var(--radius-xl); padding: 24px; box-shadow: var(--shadow); }
-    .step-num { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: rgba(99,102,241,0.08); color: var(--indigo-deep); font-weight: 800; font-size: 13px; margin-bottom: 14px; }
-    .step-card h3 { margin-bottom: 8px; font-size: 17px; letter-spacing: -0.025em; color: var(--slate-900); }
+    /* ─── HOW IT WORKS ────────────────────────────────────────────────────── */
+    .steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; position: relative; }
+    .steps::before {
+      content: ''; position: absolute; top: 28px; left: calc(33.33% - 9px); right: calc(33.33% - 9px);
+      height: 1px; background: linear-gradient(90deg, var(--slate-200), var(--indigo) 50%, var(--slate-200));
+      z-index: 0; pointer-events: none;
+    }
+    .step-card { background: var(--white); border: 1px solid var(--slate-200); border-radius: var(--radius-xl); padding: 26px; box-shadow: var(--shadow); position: relative; z-index: 1; }
+    .step-num { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.12)); color: var(--indigo-deep); font-weight: 800; font-size: 13px; margin-bottom: 16px; border: 1px solid rgba(99,102,241,0.12); }
+    .step-card h3 { margin-bottom: 10px; font-size: 17px; letter-spacing: -0.025em; color: var(--slate-900); }
     .step-card p { color: var(--slate-500); line-height: 1.7; font-size: 14px; }
 
-    /* FEATURES */
-    .feature-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; }
-    .feature-card { background: var(--white); border: 1px solid var(--slate-200); border-radius: var(--radius-xl); padding: 24px; box-shadow: var(--shadow); }
-    .feature-icon { width: 44px; height: 44px; border-radius: 14px; margin-bottom: 14px; display: grid; place-items: center; background: var(--slate-50); font-size: 22px; }
-    .feature-card h3 { margin-bottom: 8px; font-size: 16px; color: var(--slate-900); letter-spacing: -0.02em; }
-    .feature-card p { color: var(--slate-500); line-height: 1.65; font-size: 13.5px; }
+    /* ─── MODULES ─────────────────────────────────────────────────────────── */
+    .modules-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+    .module-card {
+      background: var(--white); border: 1px solid var(--slate-200);
+      border-radius: var(--radius-xl); padding: 26px; box-shadow: var(--shadow);
+      display: flex; flex-direction: column;
+    }
+    .module-card.live { border-color: rgba(99,102,241,0.2); box-shadow: 0 0 0 1px rgba(99,102,241,0.08), var(--shadow); }
+    .module-card.soon { opacity: 0.72; }
+    .module-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; gap: 10px; }
+    .module-icon { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; font-size: 22px; background: var(--slate-50); border: 1px solid var(--slate-200); flex: 0 0 auto; }
+    .module-badge {
+      padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 700;
+      letter-spacing: 0.05em; white-space: nowrap;
+    }
+    .module-badge.live-badge { background: rgba(34,197,94,0.1); color: #15803d; border: 1px solid rgba(34,197,94,0.2); }
+    .module-badge.soon-badge { background: var(--slate-100); color: var(--slate-500); border: 1px solid var(--slate-200); }
+    .module-card h3 { font-size: 17px; letter-spacing: -0.025em; color: var(--slate-900); margin-bottom: 8px; }
+    .module-card p { color: var(--slate-500); font-size: 13.5px; line-height: 1.65; flex: 1; }
+    .module-caps { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+    .cap { padding: 4px 9px; border-radius: 8px; background: var(--slate-50); border: 1px solid var(--slate-200); font-size: 11px; color: var(--slate-500); font-weight: 500; }
+    .module-card.live .cap { background: rgba(99,102,241,0.06); border-color: rgba(99,102,241,0.12); color: var(--indigo-deep); }
 
-    /* SAMPLE REPORT */
+    /* ─── SAMPLE REPORT ───────────────────────────────────────────────────── */
     .report-shell { border-radius: var(--radius-xl); overflow: hidden; border: 1px solid var(--slate-200); box-shadow: var(--shadow-lg); }
     .report-topbar { padding: 16px 20px; border-bottom: 1px solid var(--slate-200); background: var(--slate-50); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .report-title { font-weight: 600; color: var(--slate-900); font-size: 14px; letter-spacing: -0.02em; }
@@ -205,51 +245,43 @@
     .finding-box small { display: block; color: var(--slate-500); margin-bottom: 4px; font-size: 11px; }
     .finding-box strong { color: var(--slate-800); font-size: 13px; }
 
-    /* PRICING */
-    .pricing-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; align-items: stretch; }
-    .pricing-card {
-      background: var(--white); border: 1px solid var(--slate-200);
-      border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow);
-      display: flex; flex-direction: column;
+    /* ─── WHO IT'S FOR ────────────────────────────────────────────────────── */
+    .for-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; }
+    .for-card { background: var(--white); border: 1px solid var(--slate-200); border-radius: var(--radius-xl); padding: 26px; box-shadow: var(--shadow); }
+    .for-icon { font-size: 28px; margin-bottom: 14px; }
+    .for-card h3 { font-size: 16px; letter-spacing: -0.025em; color: var(--slate-900); margin-bottom: 8px; }
+    .for-card p { color: var(--slate-500); font-size: 13.5px; line-height: 1.65; }
+
+    /* ─── CTA BAND ────────────────────────────────────────────────────────── */
+    .cta-band {
+      padding: 48px; border-radius: 28px;
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+      color: var(--white); box-shadow: 0 24px 64px rgba(30,27,75,0.2);
+      display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: center;
     }
-    .pricing-card.featured { border-color: rgba(99,102,241,0.3); box-shadow: 0 0 0 1px rgba(99,102,241,0.15), var(--shadow-lg); }
-    .pricing-badge { display: inline-flex; padding: 5px 10px; border-radius: 999px; margin-bottom: 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; align-self: flex-start; }
-    .pricing-badge.popular { background: var(--indigo); color: var(--white); }
-    .pricing-badge.soon { background: var(--amber); color: #78350f; }
-    .pricing-tier { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: var(--slate-400); text-transform: uppercase; margin-bottom: 8px; }
-    .pricing-card h3 { font-size: 24px; color: var(--slate-950); letter-spacing: -0.03em; margin-bottom: 8px; }
-    .pricing-card > p { color: var(--slate-500); font-size: 13.5px; line-height: 1.65; margin-bottom: 20px; }
-    .price-row { display: flex; align-items: baseline; gap: 4px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--slate-200); }
-    .price-num { font-size: 40px; font-weight: 800; color: var(--slate-950); letter-spacing: -0.05em; line-height: 1; }
-    .price-per { font-size: 13px; color: var(--slate-500); }
-    .price-custom { font-size: 36px; font-weight: 800; color: var(--slate-950); letter-spacing: -0.04em; }
-    .feature-list { list-style: none; display: grid; gap: 9px; margin-bottom: 24px; flex: 1; }
-    .feature-list li { color: var(--slate-600); font-size: 13.5px; padding-left: 20px; position: relative; }
-    .feature-list li::before { content: '✓'; position: absolute; left: 0; color: var(--green); font-weight: 700; }
+    .cta-band h2 { color: var(--white); font-size: clamp(24px,3vw,36px); margin-bottom: 10px; }
+    .cta-band p { color: rgba(255,255,255,0.65); font-size: 15px; line-height: 1.6; }
+    .cta-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
-    /* CTA BAND */
-    .cta-band { padding: 40px; border-radius: 28px; background: var(--slate-950); color: var(--white); box-shadow: 0 24px 64px rgba(2,6,23,0.16); display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center; }
-    .cta-band h2 { color: var(--white); font-size: clamp(24px,3vw,34px); margin-bottom: 8px; }
-    .cta-band p { color: rgba(255,255,255,0.6); font-size: 15px; line-height: 1.6; }
-
-    /* FOOTER */
+    /* ─── FOOTER ──────────────────────────────────────────────────────────── */
     footer { padding: 32px 0 48px; color: var(--slate-400); font-size: 13px; }
     .footer-row { display: flex; justify-content: space-between; gap: 20px; align-items: center; flex-wrap: wrap; padding-top: 24px; border-top: 1px solid var(--slate-200); }
     .footer-links { display: inline-flex; gap: 16px; flex-wrap: wrap; }
     .footer-links a:hover { color: var(--slate-700); }
 
-    /* RESPONSIVE */
+    /* ─── RESPONSIVE ──────────────────────────────────────────────────────── */
     @media (max-width: 960px) {
-      .hero-grid, .split-grid, .report-body { grid-template-columns: 1fr; }
+      .hero-grid, .what-grid, .report-body { grid-template-columns: 1fr; }
       .report-sidebar { border-right: none; border-bottom: 1px solid var(--slate-200); }
-      .feature-grid, .pricing-grid { grid-template-columns: repeat(2,1fr); }
+      .modules-grid, .for-grid { grid-template-columns: repeat(2,1fr); }
       .steps { grid-template-columns: repeat(2,1fr); }
+      .steps::before { display: none; }
       .cta-band { grid-template-columns: 1fr; }
     }
     @media (max-width: 640px) {
       .nav-links, .header-actions .btn-secondary { display: none; }
-      .feature-grid, .pricing-grid, .steps { grid-template-columns: 1fr; }
-      .score-card, .finding-grid { grid-template-columns: 1fr; }
+      .modules-grid, .for-grid, .steps { grid-template-columns: 1fr; }
+      .score-card, .health-score-row, .finding-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -258,73 +290,92 @@
   <header class="site-header">
     <div class="container header-inner">
       <a href="#top" class="brand">
-        <span class="brand-mark"><img src="gdfairy_square.png" alt="gd fairy" /></span>
-        <span class="brand-name">gd fairy <span class="spark">✦</span></span>
+        <span class="brand-icon">✦</span>
+        <span class="brand-name">DataFairy <span class="spark">✦</span></span>
       </a>
       <nav class="nav-links">
-        <a href="#product">Product</a>
+        <a href="#what">What it does</a>
         <a href="#how">How it works</a>
+        <a href="#modules">Modules</a>
         <a href="#report">Sample report</a>
-        <a href="#pricing">Pricing</a>
       </nav>
       <div class="header-actions">
-        <a href="#pricing" class="btn btn-secondary">Pricing</a>
-        <a href="#cta" class="btn btn-primary">Start free audit</a>
+        <a href="#report" class="btn btn-secondary">See sample report</a>
+        <a href="#cta" class="btn btn-primary">Start free scan</a>
       </div>
     </div>
   </header>
 
   <main id="top">
 
+    <!-- ─── HERO ──────────────────────────────────────────────────────────── -->
     <section class="hero">
       <div class="container hero-grid">
         <div class="hero-copy">
-          <div class="eyebrow">Google Data Fairy ✦ GA4 &amp; GTM</div>
-          <h1>Your GA4 &amp; GTM has issues. Find them before they cost you.</h1>
-          <p>Meet your Google Data Fairy. She audits your analytics implementation in real time, scores it, and tells you exactly what to fix.</p>
+          <div class="eyebrow">✦ Autonomous Agent for Digital Data</div>
+          <h1>DataFairy is an autonomous agent for digital data.</h1>
+          <p>It keeps your website's data flowing cleanly to every marketing platform — GTM, GA4, Google Ads, Meta, and more.</p>
+          <p class="hero-subtext">Built for teams without a marketing ops person.</p>
           <div class="hero-actions">
-            <a href="#cta" class="btn btn-primary btn-lg">Start free audit</a>
-            <a href="#report" class="btn btn-secondary btn-lg">See sample report</a>
+            <a href="#cta" class="btn btn-primary btn-lg">Start a free scan</a>
+            <a href="#report" class="btn btn-secondary btn-lg">See a sample report</a>
           </div>
           <div class="hero-meta">
-            <span>No setup required</span>
-            <span>Plain-English findings</span>
-            <span>Free to start</span>
+            <span>Always on</span>
+            <span>Multi-platform</span>
+            <span>Gets smarter over time</span>
           </div>
         </div>
 
         <div class="hero-panel">
           <div class="panel-top">
             <div class="panel-brand">
-              <span class="mark">✦</span>
-              gd fairy audit preview
+              <span class="panel-brand-icon">✦</span>
+              DataFairy agent
             </div>
             <span class="pill">sampledomain.com</span>
           </div>
-          <div class="score-card">
+
+          <div class="health-score-row">
             <div class="score-ring">
               <div class="score-ring-inner"></div>
-              <div class="score-value"><strong>72</strong><span>of 100</span></div>
+              <div class="score-value"><strong>68</strong><span>health</span></div>
             </div>
             <div class="score-copy">
-              <h3>GA4 implementation score</h3>
-              <p>High-impact issues are affecting conversion data and attribution.</p>
+              <h3>Data health score</h3>
+              <p>High-priority issues are affecting attribution and signal quality across platforms.</p>
             </div>
           </div>
+
+          <div class="module-row">
+            <div class="module-row-label">
+              <span class="module-dot active"></span>
+              GTM Module
+            </div>
+            <span class="module-status">3 issues · last checked 4m ago</span>
+          </div>
+          <div class="module-row">
+            <div class="module-row-label">
+              <span class="module-dot active"></span>
+              GA4 Module
+            </div>
+            <span class="module-status">2 issues · last checked 4m ago</span>
+          </div>
+
           <ul class="issue-list">
             <li class="issue-row">
               <span class="severity critical"></span>
-              <div><strong>Purchase event missing on confirmation page</strong><small>Revenue not attributed in GA4.</small></div>
+              <div><strong>purchase event missing on confirmation page</strong><small>Revenue not attributed in GA4 or ad platforms.</small></div>
               <span class="tag">Critical</span>
             </li>
             <li class="issue-row">
               <span class="severity high"></span>
-              <div><strong>Duplicate page_view firing through GTM</strong><small>Inflates sessions and funnel data.</small></div>
+              <div><strong>page_view firing twice via GTM + gtag</strong><small>Sessions and funnel data are inflated.</small></div>
               <span class="tag">High</span>
             </li>
             <li class="issue-row">
               <span class="severity ok"></span>
-              <div><strong>dataLayer present on core templates</strong><small>Strong baseline for event coverage.</small></div>
+              <div><strong>dataLayer present on all core templates</strong><small>Solid baseline for event coverage.</small></div>
               <span class="tag">Passing</span>
             </li>
           </ul>
@@ -332,126 +383,201 @@
       </div>
     </section>
 
-
-    <section id="product">
+    <!-- ─── WHAT IT DOES ──────────────────────────────────────────────────── -->
+    <section id="what">
       <div class="container">
         <div class="section-head">
-          <div class="section-kicker">Why teams use it</div>
-          <h2>Your analytics is probably broken. You just don't know it yet.</h2>
-          <p>Most teams find out when the numbers stop making sense.</p>
+          <div class="section-kicker">What it does</div>
+          <h2>Not just an audit. An always-on data agent.</h2>
+          <p>Most tools tell you something is broken. DataFairy owns the problem and works to fix it.</p>
         </div>
-        <div class="split-grid">
+        <div class="what-grid">
           <div class="panel">
-            <h3>Why GA4 &amp; GTM setups break</h3>
+            <h3>The problem with broken data</h3>
             <ul class="bullet-list">
-              <li><span class="dot">!</span><div><strong>Events fire inconsistently</strong>Different templates send different data — or nothing at all.</div></li>
-              <li><span class="dot">!</span><div><strong>Conversions are misconfigured</strong>Key actions are missing, duplicated, or unattributable.</div></li>
-              <li><span class="dot">!</span><div><strong>Containers drift over time</strong>Agency work and quick fixes leave fragile setups behind.</div></li>
-              <li><span class="dot">!</span><div><strong>No clear priority</strong>It's hard to know which issues actually matter.</div></li>
+              <li>
+                <span class="dot">!</span>
+                <div><strong>Silent data loss</strong>Broken tracking doesn't announce itself. You only notice when the numbers stop making sense.</div>
+              </li>
+              <li>
+                <span class="dot">!</span>
+                <div><strong>Conversion signals are unreliable</strong>Missing purchase events, duplicate pageviews, and misconfigured goals give your ad platforms bad data to optimize on.</div>
+              </li>
+              <li>
+                <span class="dot">!</span>
+                <div><strong>Every platform has its own rules</strong>GTM, GA4, Meta Pixel, Google Ads — each has unique requirements, and they all drift over time.</div>
+              </li>
+              <li>
+                <span class="dot">!</span>
+                <div><strong>No one is watching</strong>Without dedicated ops, issues pile up unnoticed until they affect business decisions.</div>
+              </li>
             </ul>
           </div>
           <div class="panel">
-            <h3>What gd fairy does</h3>
+            <h3>What DataFairy does</h3>
             <ul class="bullet-list">
-              <li><span class="dot">&#10003;</span><div><strong>Crawls your site</strong>Inspects pages and analytics behavior — no engineering work required.</div></li>
-              <li><span class="dot">&#10003;</span><div><strong>Catches implementation issues</strong>Broken, missing, duplicated, and suspicious tagging — all flagged.</div></li>
-              <li><span class="dot">&#10003;</span><div><strong>GA4 &amp; GTM implementation score</strong>A single number that shows how much you can trust your analytics data.</div></li>
-              <li><span class="dot">&#10003;</span><div><strong>Explains what to fix</strong>Plain-English steps your whole team can act on immediately.</div></li>
+              <li>
+                <span class="dot green">✓</span>
+                <div><strong>Continuously checks your data pipeline</strong>Monitors your site across every connected platform — not just when you remember to run an audit.</div>
+              </li>
+              <li>
+                <span class="dot green">✓</span>
+                <div><strong>Detects issues before they cost you</strong>Broken events, duplicate tags, misconfigured conversions — caught and explained in plain English.</div>
+              </li>
+              <li>
+                <span class="dot green">✓</span>
+                <div><strong>Guides the fix or handles it automatically</strong>Step-by-step remediation guidance now; automated fixes as the agent matures.</div>
+              </li>
+              <li>
+                <span class="dot green">✓</span>
+                <div><strong>Gets smarter over time</strong>DataFairy learns what good looks like for your site and your industry — so recommendations get sharper with every scan.</div>
+              </li>
             </ul>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- ─── HOW IT WORKS ──────────────────────────────────────────────────── -->
     <section id="how" style="background:var(--slate-50);">
       <div class="container">
         <div class="section-head">
           <div class="section-kicker">How it works</div>
-          <h2>Audit in three steps</h2>
-          <p>A URL is all she needs.</p>
+          <h2>Connect once. Monitor continuously.</h2>
+          <p>DataFairy works in the background so your team doesn't have to.</p>
         </div>
         <div class="steps">
           <div class="step-card">
             <div class="step-num">01</div>
-            <h3>Scan your site</h3>
-            <p>Start with a URL. gd fairy crawls your pages and inspects how GA4 and GTM are actually behaving.</p>
+            <h3>Connect your site and platforms</h3>
+            <p>Add your domain and link your GA4 property, GTM container, and ad accounts. DataFairy picks up the rest. No engineering setup required.</p>
           </div>
           <div class="step-card">
             <div class="step-num">02</div>
-            <h3>Catch hidden issues</h3>
-            <p>Checks events, GTM behavior, conversions, and implementation consistency across key user journeys.</p>
+            <h3>Audit and monitor continuously</h3>
+            <p>DataFairy crawls your key pages and user journeys, inspects every event fired, and checks that data is flowing correctly to each connected platform.</p>
           </div>
           <div class="step-card">
             <div class="step-num">03</div>
-            <h3>Get a prioritized report</h3>
-            <p>Severity, business impact, and recommended fixes — in language your team can actually use.</p>
+            <h3>Live health score, alerts, and fixes</h3>
+            <p>Your data health score updates with every scan. Issues are prioritized by business impact. Fixes are explained clearly — or handled for you.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <section>
+    <!-- ─── MODULES ───────────────────────────────────────────────────────── -->
+    <section id="modules">
       <div class="container">
         <div class="section-head">
-          <div class="section-kicker">Core capabilities</div>
-          <h2>Everything your data team needs</h2>
-          <p>From real-time browser inspection to full-site scans — all in one place.</p>
+          <div class="section-kicker">Modules</div>
+          <h2>Built platform by platform, so nothing falls through the cracks.</h2>
+          <p>DataFairy is modular. Start with the platforms you use today — more are coming fast.</p>
         </div>
-        <div class="feature-grid">
-          <div class="feature-card">
-            <div class="feature-icon">&#127913;</div>
-            <h3>Your site-specific AI agent</h3>
-            <p>She doesn't just know GA4 — she knows <em>your</em> GA4. Trained on your event structure, GTM containers, and conversion flows.</p>
+        <div class="modules-grid">
+
+          <!-- GTM Module — LIVE -->
+          <div class="module-card live">
+            <div class="module-header">
+              <div class="module-icon">🏷️</div>
+              <span class="module-badge live-badge">● Live</span>
+            </div>
+            <h3>GTM Module</h3>
+            <p>Audits your Google Tag Manager container for misfiring tags, broken triggers, redundant variables, and dataLayer conflicts. Catches issues before they affect downstream data.</p>
+            <div class="module-caps">
+              <span class="cap">Tag audit</span>
+              <span class="cap">Trigger validation</span>
+              <span class="cap">dataLayer inspection</span>
+              <span class="cap">Duplicate detection</span>
+            </div>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon">&#128172;</div>
-            <h3>Chat with your fairy</h3>
-            <p>Ask questions in plain English and get answers grounded in your actual setup — not generic docs.</p>
+
+          <!-- GA4 Module — LIVE -->
+          <div class="module-card live">
+            <div class="module-header">
+              <div class="module-icon">📊</div>
+              <span class="module-badge live-badge">● Live</span>
+            </div>
+            <h3>GA4 Module</h3>
+            <p>Monitors your GA4 implementation for missing events, broken conversions, and inconsistent tracking across page templates. Connects directly to your GA4 property for live data comparison.</p>
+            <div class="module-caps">
+              <span class="cap">Event coverage</span>
+              <span class="cap">Conversion tracking</span>
+              <span class="cap">Property health</span>
+              <span class="cap">GA4 data API</span>
+            </div>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon">&#128123;</div>
-            <h3>Shadow environments</h3>
-            <p>Test new tagging before going live. See exactly what events will fire — without touching production.</p>
+
+          <!-- Google Ads Module — Coming Soon -->
+          <div class="module-card soon">
+            <div class="module-header">
+              <div class="module-icon">📣</div>
+              <span class="module-badge soon-badge">Coming soon</span>
+            </div>
+            <h3>Google Ads Module</h3>
+            <p>Verifies that conversion actions are firing correctly, audience segments are populated, and Enhanced Conversions are configured — so your campaigns optimize on real signals.</p>
+            <div class="module-caps">
+              <span class="cap">Conversion actions</span>
+              <span class="cap">Enhanced Conversions</span>
+              <span class="cap">Audience health</span>
+            </div>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon">&#128269;</div>
-            <h3>Continuous GA4 audit</h3>
-            <p>Not a one-time scan. Your fairy watches every event and catches silent data loss as it appears.</p>
+
+          <!-- Meta Module — Coming Soon -->
+          <div class="module-card soon">
+            <div class="module-header">
+              <div class="module-icon">🔵</div>
+              <span class="module-badge soon-badge">Coming soon</span>
+            </div>
+            <h3>Meta Module</h3>
+            <p>Audits your Meta Pixel and Conversions API setup for duplicate events, missing purchase signals, and signal coverage gaps that reduce ROAS and limit audience optimization.</p>
+            <div class="module-caps">
+              <span class="cap">Pixel audit</span>
+              <span class="cap">CAPI verification</span>
+              <span class="cap">Event match quality</span>
+            </div>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon">&#128202;</div>
-            <h3>GTM container intelligence</h3>
-            <p>Misfiring tags, redundant triggers, dataLayer conflicts — caught before your GTM debugger even blinks.</p>
+
+          <!-- TikTok Module — Coming Soon -->
+          <div class="module-card soon">
+            <div class="module-header">
+              <div class="module-icon">🎵</div>
+              <span class="module-badge soon-badge">Coming soon</span>
+            </div>
+            <h3>TikTok Module</h3>
+            <p>Validates your TikTok Pixel and Events API integration to ensure purchase and lead events are firing and matching correctly — keeping your TikTok campaigns data-complete.</p>
+            <div class="module-caps">
+              <span class="cap">Pixel audit</span>
+              <span class="cap">Events API</span>
+              <span class="cap">Signal matching</span>
+            </div>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon">&#128301;</div>
-            <h3>Visual journey scanner</h3>
-            <p>Your fairy walks actual user flows — filling forms, clicking CTAs — and inspects every event along the way.</p>
-          </div>
+
         </div>
       </div>
     </section>
 
+    <!-- ─── SAMPLE REPORT ─────────────────────────────────────────────────── -->
     <section id="report" style="background:var(--slate-50);">
       <div class="container">
         <div class="section-head">
           <div class="section-kicker">Sample report</div>
-          <h2>See what an audit actually looks like</h2>
-          <p>GA4 &amp; GTM implementation score, severity, business impact, and fixes — not vague promises.</p>
+          <h2>See what a DataFairy report looks like</h2>
+          <p>Data health score, prioritized findings, business impact, and clear next steps — not a wall of vague warnings.</p>
         </div>
         <div class="report-shell">
           <div class="report-topbar">
-            <div class="report-title">Audit report &middot; sampledomain.com</div>
-            <a href="#cta" class="btn btn-secondary">Request a full diagnostic</a>
+            <div class="report-title">DataFairy report &middot; sampledomain.com</div>
+            <a href="#cta" class="btn btn-secondary">Run a free scan on your site</a>
           </div>
           <div class="report-body">
             <aside class="report-sidebar">
               <div class="metric-stack">
-                <div class="metric"><small>GA4 implementation score</small><strong>72 / 100</strong></div>
-                <div class="metric"><small>GA4 &amp; GTM issues found</small><strong>14</strong></div>
-                <div class="metric"><small>Critical GA4 &amp; GTM issues</small><strong>3</strong></div>
+                <div class="metric"><small>Data health score</small><strong>68 / 100</strong></div>
+                <div class="metric"><small>Issues found (GTM + GA4)</small><strong>11</strong></div>
+                <div class="metric"><small>Critical issues</small><strong>2</strong></div>
               </div>
-              <p style="color:var(--slate-500);font-size:13px;line-height:1.65;">Revenue measurement and session quality are both affected by avoidable GTM and event configuration issues.</p>
+              <p style="color:var(--slate-500);font-size:13px;line-height:1.65;">Revenue attribution and paid media optimization are both affected by fixable GTM and GA4 configuration issues.</p>
             </aside>
             <div class="report-main">
               <h3>Top findings</h3>
@@ -460,10 +586,10 @@
                   <div class="finding-title">Purchase event not detected after checkout</div>
                   <span class="tag" style="background:#fee2e2;color:#991b1b;font-size:11px;">Critical</span>
                 </div>
-                <p>The thank-you page loads, but no purchase event was observed. Revenue and order attribution in GA4 will be incomplete.</p>
+                <p>The order confirmation page loads, but no purchase event was observed. Revenue attribution in GA4 is incomplete, and ad platform conversion signals are missing.</p>
                 <div class="finding-grid">
-                  <div class="finding-box"><small>Recommended fix</small><strong>Implement purchase event on the confirmation step and validate event parameters.</strong></div>
-                  <div class="finding-box"><small>Business impact</small><strong>Paid media, conversion rate, and LTV analysis are all affected.</strong></div>
+                  <div class="finding-box"><small>Recommended fix</small><strong>Implement the purchase event with transaction_id, value, and items parameters on the confirmation step.</strong></div>
+                  <div class="finding-box"><small>Business impact</small><strong>Paid media ROAS reporting, conversion rate analysis, and LTV modeling are all unreliable.</strong></div>
                 </div>
               </div>
               <div class="finding">
@@ -471,10 +597,10 @@
                   <div class="finding-title">page_view firing twice on high-traffic templates</div>
                   <span class="tag" style="background:#fef3c7;color:#92400e;font-size:11px;">High</span>
                 </div>
-                <p>GTM and direct gtag overlap on core templates, inflating sessions and breaking engagement metrics.</p>
+                <p>GTM and a direct gtag.js call overlap on core page templates, inflating session counts and distorting engagement metrics used for audience segmentation.</p>
                 <div class="finding-grid">
-                  <div class="finding-box"><small>Recommended fix</small><strong>Remove the duplicate trigger path and standardize pageview ownership.</strong></div>
-                  <div class="finding-box"><small>Business impact</small><strong>Session counts, funnel rates, and landing page performance are all distorted.</strong></div>
+                  <div class="finding-box"><small>Recommended fix</small><strong>Remove the direct gtag.js pageview call and standardize all event firing through GTM.</strong></div>
+                  <div class="finding-box"><small>Business impact</small><strong>Session counts, bounce rate, funnel conversion rates, and remarketing audiences are all distorted.</strong></div>
                 </div>
               </div>
             </div>
@@ -483,74 +609,46 @@
       </div>
     </section>
 
-    <section id="pricing">
+    <!-- ─── WHO IT'S FOR ──────────────────────────────────────────────────── -->
+    <section id="for">
       <div class="container">
         <div class="section-head">
-          <div class="section-kicker">Pricing</div>
-          <h2>Start free. Upgrade when you need more.</h2>
-          <p>A Chrome extension today, with a full agent platform coming soon.</p>
+          <div class="section-kicker">Who it's for</div>
+          <h2>Built for marketing teams who need reliable data.</h2>
+          <p>Without a dedicated ops person to watch every tag and track every event, data problems compound quietly. DataFairy is the ops function you don't have.</p>
         </div>
-        <div class="pricing-grid">
-          <div class="pricing-card">
-            <div class="pricing-tier">Free forever</div>
-            <h3>Fairy Lite</h3>
-            <p>Real-time GA4 &amp; GTM auditing in your browser.</p>
-            <div class="price-row"><span class="price-num">$0</span></div>
-            <ul class="feature-list">
-              <li>Chrome extension with real-time GA4 event inspection</li>
-              <li>GTM tag &amp; trigger validation</li>
-              <li>GA4 &amp; GTM implementation score &amp; risk-bucketed findings</li>
-              <li>1 site audit per month</li>
-              <li>Safe &amp; low-risk fix guidance</li>
-              <li>Export findings as JSON</li>
-            </ul>
-            <a href="#cta" class="btn btn-secondary" style="width:100%;justify-content:center;">Get early access</a>
+        <div class="for-grid">
+          <div class="for-card">
+            <div class="for-icon">📈</div>
+            <h3>Growth-stage marketing teams</h3>
+            <p>You're scaling spend across multiple platforms. You need to trust the numbers — but you don't have a dedicated data engineer to keep your stack clean.</p>
           </div>
-          <div class="pricing-card featured">
-            <div class="pricing-badge popular">Most popular</div>
-            <div class="pricing-tier">For teams &amp; agencies</div>
-            <h3>Fairy Pro</h3>
-            <p>Your own AI agent trained on your site's GA4, GTM, and user flows.</p>
-            <div class="price-row"><span class="price-num">$49</span><span class="price-per">&thinsp;/ mo</span></div>
-            <ul class="feature-list">
-              <li>Everything in Free</li>
-              <li>Site-specific fairy agent &mdash; trained on your GA4 events &amp; GTM containers</li>
-              <li>Chat interface &mdash; ask questions about your implementation</li>
-              <li>Shadow environments for testing new tagging</li>
-              <li>Continuous audit &amp; alerting</li>
-              <li>Visual journey scanner &mdash; walks your funnels like a real user</li>
-              <li>Unlimited audit reports</li>
-            </ul>
-            <a href="#cta" class="btn btn-primary" style="width:100%;justify-content:center;">Join Pro waitlist</a>
+          <div class="for-card">
+            <div class="for-icon">🛒</div>
+            <h3>E-commerce and DTC brands</h3>
+            <p>Every broken purchase event is lost attribution and degraded ROAS. DataFairy watches your checkout flow and alerts you the moment something goes wrong.</p>
           </div>
-          <div class="pricing-card">
-            <div class="pricing-badge soon">Coming soon</div>
-            <div class="pricing-tier">Full platform access</div>
-            <h3>Fairy Godmother</h3>
-            <p>One-click GTM fixes. Shadow CI/CD for tagging. White-glove measurement strategy.</p>
-            <div class="price-row"><span class="price-custom">Custom</span></div>
-            <ul class="feature-list">
-              <li>Everything in Pro</li>
-              <li>One-click GTM changes &mdash; fairy pushes fixes to your container</li>
-              <li>Shadow CI/CD &mdash; test tagging changes in PR-like environments</li>
-              <li>GA4 property monitoring &amp; automated rollback</li>
-              <li>Measurement strategy consulting via your fairy agent</li>
-              <li>Priority support &amp; onboarding</li>
-            </ul>
-            <button class="btn btn-disabled" style="width:100%;justify-content:center;" disabled>Coming soon</button>
+          <div class="for-card">
+            <div class="for-icon">🏢</div>
+            <h3>Agencies managing client analytics</h3>
+            <p>Keep your clients' tracking implementations healthy without manual audits. DataFairy runs in the background and flags issues before clients notice them.</p>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- ─── CTA BAND ───────────────────────────────────────────────────────── -->
     <section id="cta" style="padding-bottom:96px;">
       <div class="container">
         <div class="cta-band">
           <div>
-            <h2>Stop guessing. Start knowing.</h2>
-            <p>Run a free audit. See what your Google Data Fairy finds.</p>
+            <h2>Clean signals. Better outcomes.</h2>
+            <p>Run a free scan and see exactly what DataFairy finds on your site. No setup, no credit card.</p>
           </div>
-          <a href="mailto:hello@gdfairy.com?subject=Free%20audit%20request" class="btn btn-primary btn-lg">Start free audit &rarr;</a>
+          <div class="cta-actions">
+            <a href="mailto:hello@datafairy.ai?subject=Free%20scan%20request" class="btn btn-primary btn-lg">Start a free scan &rarr;</a>
+            <a href="#report" class="btn btn-ghost btn-lg">See a sample report</a>
+          </div>
         </div>
       </div>
     </section>
@@ -560,16 +658,16 @@
   <footer>
     <div class="container footer-row">
       <div class="brand">
-        <span class="brand-mark"><img src="gdfairy_square.png" alt="gd fairy" /></span>
-        <span class="brand-name">gd fairy <span class="spark">✦</span></span>
+        <span class="brand-icon" style="width:28px;height:28px;border-radius:8px;font-size:13px;">✦</span>
+        <span class="brand-name">DataFairy <span class="spark">✦</span></span>
       </div>
       <div class="footer-links">
-        <a href="#product">Product</a>
+        <a href="#what">What it does</a>
+        <a href="#modules">Modules</a>
         <a href="#report">Sample report</a>
-        <a href="#pricing">Pricing</a>
-        <a href="mailto:hello@gdfairy.com">Contact</a>
+        <a href="mailto:hello@datafairy.ai">Contact</a>
       </div>
-      <span>&copy; 2025 DataFairy LLC</span>
+      <span>&copy; 2025 DataFairy &middot; datafairy.ai</span>
     </div>
   </footer>
 
