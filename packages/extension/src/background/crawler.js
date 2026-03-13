@@ -532,15 +532,24 @@ function makePermissivePolicy() {
  * Click obvious, safe interactive elements on the current page to trigger
  * interaction-gated analytics events (e.g. accordion-expand, tab-switch).
  *
- * Targets:
- *   • [aria-expanded="false"]          — collapsed accordions / toggles
- *   • [role="tab"]:not([aria-selected]) — inactive tab panels
- *   • details:not([open]) > summary    — native disclosure widgets
+ * Candidate sources (in order of specificity):
+ *   1. [aria-expanded="false"]                  — any collapsed ARIA toggle
+ *   2. [data-bs-toggle="collapse"|"tab"|"dropdown"] — Bootstrap 5 patterns
+ *   3. [data-toggle="collapse"|"tab"|"dropdown"]    — Bootstrap 4 patterns
+ *   4. .accordion-button.collapsed               — Bootstrap accordion
+ *   5. [role="tab"]:not([aria-selected="true"])  — ARIA tab panels
+ *   6. details:not([open]) > summary             — native disclosure widgets
+ *   7. [aria-haspopup]:not([aria-expanded="true"]) — nav dropdown triggers
  *
  * Safety guards:
- *   • Skips any element whose text contains purchase / auth / destructive words
- *   • Skips off-screen / zero-size elements
- *   • Skips plain <a href="…"> links (would navigate away)
+ *   • Deduplicates candidates so each element is only clicked once
+ *   • Checks Bootstrap collapse target: skips if already expanded (.show/.in)
+ *   • Skips elements whose text / aria-label / title contains purchase, auth,
+ *     or destructive keywords
+ *   • Skips elements with display:none / visibility:hidden / opacity:0
+ *   • Skips elements with zero rendered size (not just off-viewport)
+ *   • Skips plain <a href="…"> links that would navigate away
+ *   • Skips native form controls
  *   • Caps at MAX_INTERACTIONS clicks so the page doesn't spin forever
  *
  * Runs in MAIN world (needed to fire real click handlers that touch window.*).
@@ -551,41 +560,94 @@ async function interactWithPageElements(tabId) {
       target: { tabId },
       world: "MAIN",
       func: () => {
-        const MAX_INTERACTIONS = 8;
+        const MAX_INTERACTIONS = 10;
 
         // Words whose presence in an element's label make it unsafe to click
         const UNSAFE_RE = /\b(buy|checkout|check.?out|cart|purchase|add.?to.?cart|order|submit|login|log.?in|sign.?up|sign.?in|register|delete|remove|cancel|unsubscribe|pay(ment|\.?now)?|subscribe)\b/i;
 
+        // Deduplicated candidate list
+        const seen = new Set();
         const candidates = [];
+        function addCandidate(el) {
+          if (el && !seen.has(el)) { seen.add(el); candidates.push(el); }
+        }
 
-        // 1. Collapsed aria-expanded toggles (buttons, role=button, etc.)
+        // Helper: is a Bootstrap collapse target currently hidden?
+        function bootstrapTargetIsCollapsed(el, targetAttr, expandedClass) {
+          const sel = el.getAttribute(targetAttr) || el.getAttribute("href");
+          if (!sel) return true; // can't tell — include it anyway
+          try {
+            const target = document.querySelector(sel);
+            return !target || !target.classList.contains(expandedClass);
+          } catch { return true; }
+        }
+
+        // ── 1. ARIA aria-expanded="false" (any block-level / interactive tag) ──
         document.querySelectorAll('[aria-expanded="false"]').forEach(el => {
           const tag = el.tagName.toLowerCase();
-          if (tag === "button" || tag === "a" || el.getAttribute("role") === "button") {
-            candidates.push(el);
+          const role = el.getAttribute("role");
+          if (["button", "a", "div", "span", "li", "h1", "h2", "h3", "h4"].includes(tag)
+              || role === "button" || role === "tab") {
+            addCandidate(el);
           }
         });
 
-        // 2. Inactive tab panels
-        document.querySelectorAll('[role="tab"]:not([aria-selected="true"])').forEach(el => {
-          candidates.push(el);
+        // ── 2. Bootstrap 5 collapse (data-bs-toggle="collapse") ───────────────
+        document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(el => {
+          if (bootstrapTargetIsCollapsed(el, "data-bs-target", "show")) addCandidate(el);
         });
 
-        // 3. Native HTML disclosure widgets
-        document.querySelectorAll("details:not([open]) > summary").forEach(el => {
-          candidates.push(el);
+        // ── 3. Bootstrap 4 collapse (data-toggle="collapse") ─────────────────
+        document.querySelectorAll('[data-toggle="collapse"]').forEach(el => {
+          if (bootstrapTargetIsCollapsed(el, "data-target", "in")) addCandidate(el);
         });
 
+        // ── 4. Bootstrap accordion buttons with .collapsed class ──────────────
+        document.querySelectorAll(".accordion-button.collapsed").forEach(addCandidate);
+
+        // ── 5. Bootstrap 5 tab triggers ───────────────────────────────────────
+        document.querySelectorAll('[data-bs-toggle="tab"]:not(.active)').forEach(addCandidate);
+
+        // ── 6. Bootstrap 4 tab triggers ───────────────────────────────────────
+        document.querySelectorAll('[data-toggle="tab"]:not(.active)').forEach(addCandidate);
+
+        // ── 7. ARIA role="tab" (inactive) ─────────────────────────────────────
+        document.querySelectorAll('[role="tab"]:not([aria-selected="true"])').forEach(addCandidate);
+
+        // ── 8. Native HTML disclosure widgets ─────────────────────────────────
+        document.querySelectorAll("details:not([open]) > summary").forEach(addCandidate);
+
+        // ── 9. Navigation dropdown triggers (aria-haspopup) ───────────────────
+        // Only buttons/role=button — avoids triggering link navigations
+        document.querySelectorAll('[aria-haspopup]:not([aria-expanded="true"])').forEach(el => {
+          const tag = el.tagName.toLowerCase();
+          if (tag === "button" || el.getAttribute("role") === "button") addCandidate(el);
+        });
+
+        // ── Visibility helper ─────────────────────────────────────────────────
+        function isRendered(el) {
+          // Must have non-zero rendered size (catches display:none, collapsed height)
+          const rect = el.getBoundingClientRect();
+          if (rect.width === 0 && rect.height === 0) return false;
+          try {
+            const s = window.getComputedStyle(el);
+            return s.display !== "none" && s.visibility !== "hidden" && s.opacity !== "0";
+          } catch { return false; }
+        }
+
+        // ── Click loop ────────────────────────────────────────────────────────
         let clicked = 0;
         for (const el of candidates) {
           if (clicked >= MAX_INTERACTIONS) break;
 
-          // Skip off-screen / invisible elements
-          const rect = el.getBoundingClientRect();
-          if (rect.width === 0 || rect.height === 0) continue;
+          if (!isRendered(el)) continue;
 
-          // Skip elements with unsafe text content or aria-label
-          const label = (el.textContent || el.getAttribute("aria-label") || "").trim();
+          // Skip elements with unsafe text / aria-label / title
+          const label = [
+            el.textContent,
+            el.getAttribute("aria-label"),
+            el.getAttribute("title"),
+          ].filter(Boolean).join(" ").trim();
           if (UNSAFE_RE.test(label)) continue;
 
           // Skip native form controls
@@ -601,7 +663,7 @@ async function interactWithPageElements(tabId) {
           try {
             el.click();
             clicked++;
-          } catch { /* element may have been removed */ }
+          } catch { /* element removed mid-loop */ }
         }
 
         return clicked;
