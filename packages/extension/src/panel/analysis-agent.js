@@ -945,8 +945,28 @@ export function analyzeSession({ events = [], network = [], findings = [], crawl
     ? findings.filter(f => f.category === "gtm")
     : findings.filter(f => f.category !== "gtm");
 
-  // Health score
-  const health = calculateHealthScore(events, network, modeFindings);
+  // Crawl analysis (computed early so we can use it for health + summary
+  // in crawl-only sessions where the recorder never ran)
+  const crawlAnalysis = crawlReport ? analyzeCrawl(crawlReport) : null;
+
+  // For crawl-only sessions (recorder idle, all data from scanner), derive the
+  // "effective" findings and event count so the scorecard reflects reality.
+  const hasRecorderData = events.length + network.length > 0;
+  const crawlModeFindings = crawlAnalysis
+    ? (mode === "gtm"
+        ? crawlAnalysis.allFindings.filter(f => f.category === "gtm")
+        : crawlAnalysis.allFindings.filter(f => f.category !== "gtm"))
+    : [];
+  const effectiveFindings  = hasRecorderData ? modeFindings : crawlModeFindings;
+  const effectiveTotalEvents = hasRecorderData
+    ? events.length + network.length
+    : (crawlAnalysis?.totalEvents || 0);
+
+  // Health score (uses effective data so crawl-only sessions show a real score
+  // instead of "No Data")
+  const health = hasRecorderData
+    ? calculateHealthScore(events, network, modeFindings)
+    : calculateHealthScore(Array.from({ length: effectiveTotalEvents }), [], effectiveFindings);
 
   // Group into themes
   const themedGroups = groupByTheme(modeFindings);
@@ -957,15 +977,9 @@ export function analyzeSession({ events = [], network = [], findings = [], crawl
   // Session-level insights
   const insights = deriveInsights(events, network, modeFindings);
 
-  // Crawl analysis (if available)
-  const crawlAnalysis = crawlReport ? analyzeCrawl(crawlReport) : null;
-
   // Merge crawl findings into action items if present
   let finalActions = actionItems;
   if (crawlAnalysis && crawlAnalysis.allFindings.length > 0) {
-    const crawlModeFindings = mode === "gtm"
-      ? crawlAnalysis.allFindings.filter(f => f.category === "gtm")
-      : crawlAnalysis.allFindings.filter(f => f.category !== "gtm");
     const crawlGroups = groupByTheme(crawlModeFindings);
     const crawlActions = generateActionItems(crawlGroups);
 
@@ -988,21 +1002,22 @@ export function analyzeSession({ events = [], network = [], findings = [], crawl
 
   return {
     health,
+    mode,
     themedGroups,
     actionItems: finalActions,
     riskBuckets,
     insights,
     crawlAnalysis,
-    totalFindings: modeFindings.length,
+    totalFindings: effectiveFindings.length,
     summary: {
-      totalEvents: events.length + network.length,
+      totalEvents: effectiveTotalEvents,
       eventsWithErrors: new Set(
-        modeFindings.filter(f => f.severity === "error")
+        effectiveFindings.filter(f => f.severity === "error")
           .map(f => f.eventIndex)
           .filter(idx => idx !== undefined)
       ).size,
-      errors: modeFindings.filter(f => f.severity === "error").length,
-      warnings: modeFindings.filter(f => f.severity === "warning").length,
+      errors: effectiveFindings.filter(f => f.severity === "error").length,
+      warnings: effectiveFindings.filter(f => f.severity === "warning").length,
     },
     tierBreakdown: { free: freeActions, pro: proActions },
     ga4Version: ga4Version || crawlAnalysis?.ga4Version || { version: "free", hints: [] },
