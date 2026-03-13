@@ -310,6 +310,9 @@ export function useDomainAgent() {
         bqSnapshot: data.bqSnapshot,
         aiAnalysis: data.aiAnalysis,
         analysisId: data.analysisId,
+        // Fairy master: cross-domain industry patterns for this business type
+        masterPatterns: data.masterPatterns || null,
+        masterBusinessType: data.masterBusinessType || null,
       };
     } catch (err) {
       console.warn("[useDomainAgent] analyzeWithAgent failed:", err.message);

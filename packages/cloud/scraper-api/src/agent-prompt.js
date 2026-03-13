@@ -40,6 +40,83 @@ SITE TYPE EXPERTISE:
 }
 
 /**
+ * Build an enriched system prompt that layers in per-domain context from
+ * the fairy slave (agentContext) and cross-domain learnings from the
+ * fairy master (masterContext).
+ *
+ * The base system prompt always comes first; domain and master context
+ * are appended as additional instruction blocks so Gemini knows to
+ * personalise recommendations and reference industry benchmarks.
+ *
+ * @param {Object|null} domainContext  — domain.agentContext from Firestore
+ * @param {Object|null} masterContext  — result of getMasterContext() from master-fairy.js
+ * @returns {string}
+ */
+export function buildEnrichedSystemPrompt(domainContext, masterContext) {
+  const base = buildSystemPrompt();
+  const parts = [base];
+
+  // ── Domain-specific context (fairy slave knowledge) ────────────────────────
+  if (domainContext) {
+    const lines = [];
+
+    if (domainContext.businessType) {
+      lines.push(`Business type: ${domainContext.businessType}`);
+    }
+    if (domainContext.businessDescription) {
+      lines.push(`Business description: ${domainContext.businessDescription}`);
+    }
+    if (domainContext.keyEvents?.length) {
+      lines.push(`Critical conversion events: ${domainContext.keyEvents.join(", ")}`);
+      lines.push(
+        `These events are the primary KPIs. Flag any issues with them as CRITICAL regardless of other heuristics.`
+      );
+    }
+    if (domainContext.funnelStages?.length) {
+      lines.push(`User funnel stages (in order): ${domainContext.funnelStages.join(" → ")}`);
+      lines.push(
+        `When evaluating missing tracking, prioritise coverage across each funnel stage.`
+      );
+    }
+    if (domainContext.notes) {
+      lines.push(`Analyst context / known issues: ${domainContext.notes}`);
+    }
+
+    if (lines.length) {
+      parts.push(
+        `\nDOMAIN CONTEXT (provided by the analyst — treat as ground truth):\n${lines.join("\n")}`
+      );
+    }
+  }
+
+  // ── Master fairy learnings (cross-domain patterns) ─────────────────────────
+  if (masterContext?.patterns?.length) {
+    const topPatterns = masterContext.patterns.slice(0, 10);
+    const businessType = masterContext.businessType || "similar";
+    const domainCount = masterContext.domainCount || "multiple";
+    const analysisCount = masterContext.analysisCount || "multiple";
+
+    const patternLines = topPatterns.map(
+      (p) =>
+        `  - [${p.severity}] ${p.pattern}` +
+        ` (found in ${Math.round(p.frequency * 100)}% of ${businessType} sites` +
+        ` across ${analysisCount} analyses)`
+    );
+
+    parts.push(
+      `\nFAIRY MASTER LEARNINGS — Cross-domain patterns from ${domainCount} ${businessType} sites:` +
+        `\n${patternLines.join("\n")}` +
+        `\n\nFor each of these patterns: explicitly state whether this site is affected, ` +
+        `and how it compares to the industry baseline. Use phrases like ` +
+        `"Like ${Math.round(topPatterns[0]?.frequency * 100) || "many"}% of ${businessType} sites, ..." ` +
+        `to give the client benchmark context.`
+    );
+  }
+
+  return parts.join("\n");
+}
+
+/**
  * Build the user prompt with scan data for analysis.
  *
  * @param {Object} scanReport - The raw scan report from recon or full scan

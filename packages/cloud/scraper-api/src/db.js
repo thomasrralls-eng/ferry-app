@@ -55,6 +55,13 @@ export async function getUser(sub) {
  *   ga4Connected: boolean,
  *   gtmConnected: boolean,
  *   bqConnected: boolean,
+ *   agentContext: {            // Per-domain context for the fairy slave + master
+ *     businessType: string|null,           // "ecommerce", "b2b-saas", etc.
+ *     businessDescription: string|null,    // free-text brief for the agent
+ *     keyEvents: string[],                 // critical GA4 event names
+ *     funnelStages: string[],              // ordered funnel stage labels
+ *     notes: string|null,                  // analyst notes (migration state, quirks)
+ *   }|null,
  *   createdAt: Timestamp,
  *   updatedAt: Timestamp,
  * }
@@ -77,6 +84,7 @@ export async function createDomain(ownerSub, { hostname, displayName }) {
     ga4Connected: false,
     gtmConnected: false,
     bqConnected: false,
+    agentContext: null,
     createdAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp(),
   };
@@ -108,7 +116,8 @@ export async function updateDomainConfig(domainId, ownerSub, updates) {
   if (!doc.exists) throw new Error("Domain not found");
   if (doc.data().ownerSub !== ownerSub) throw new Error("Not authorized");
 
-  const allowed = ["ga4PropertyId", "gtmContainerId", "bqProjectId", "bqDataset", "displayName"];
+  // agentContext is stored as a full sub-object (replace entire context on update)
+  const allowed = ["ga4PropertyId", "gtmContainerId", "bqProjectId", "bqDataset", "displayName", "agentContext"];
   const safeUpdates = {};
   for (const key of allowed) {
     if (key in updates) safeUpdates[key] = updates[key] ?? null;

@@ -34,7 +34,8 @@ import { storeSAKey, getSAKey, deleteSAKey, validateSAJson } from "./secrets.js"
 import { getGA4Snapshot, getGA4PropertyMeta, testGA4Access } from "./ga4.js";
 import { getGTMContainerSummary, testGTMAccess } from "./gtm.js";
 import { queryGA4Events, queryGA4ConversionDetails, testBQAccess } from "./bigquery.js";
-import { analyzeFullScan } from "./agent.js";
+import { analyzeFullScan, analyzeWithDomainContext } from "./agent.js";
+import { getMasterContext, aggregateLearnings, listMasterLearnings } from "./master-fairy.js";
 
 const router = Router();
 
@@ -227,8 +228,8 @@ router.post("/:id/analyze", async (req, res) => {
   try {
     const saJson = domain.saKeySecretId ? await getSAKey(req.params.id).catch(() => null) : null;
 
-    // Collect GA4, GTM, BQ data in parallel (best-effort — failures don't block analysis)
-    const [ga4Snapshot, ga4Meta, gtmSnapshot, bqSnapshot] = await Promise.all([
+    // Fetch GA4 / GTM / BQ live data AND master learnings in parallel
+    const [ga4Snapshot, ga4Meta, gtmSnapshot, bqSnapshot, masterContext] = await Promise.all([
       domain.ga4Connected && saJson
         ? getGA4Snapshot(domain.ga4PropertyId, saJson).catch((e) => ({ error: e.message }))
         : null,
@@ -241,15 +242,15 @@ router.post("/:id/analyze", async (req, res) => {
       domain.bqConnected && saJson
         ? queryGA4Events(domain.bqProjectId, domain.bqDataset, saJson).catch((e) => ({ error: e.message }))
         : null,
+      // Fairy master: fetch cross-domain learnings for this business type (non-fatal)
+      getMasterContext(domain.agentContext?.businessType).catch(() => null),
     ]);
 
-    // Build an enriched context for Gemini that layers in the live GA4/GTM/BQ data
+    // Build enriched report with live GA4/GTM/BQ data + domain identity
     const enrichedReport = {
       ...crawlReport,
       connectedData: {
-        ga4: ga4Snapshot
-          ? { ...ga4Snapshot, propertyMeta: ga4Meta }
-          : null,
+        ga4: ga4Snapshot ? { ...ga4Snapshot, propertyMeta: ga4Meta } : null,
         gtm: gtmSnapshot || null,
         bq: bqSnapshot || null,
         domain: {
@@ -260,15 +261,28 @@ router.post("/:id/analyze", async (req, res) => {
       },
     };
 
-    // Run Gemini analysis with the enriched context
+    // Run Gemini analysis — use enriched (domain + master context) when available,
+    // fall back to the standard full scan analysis
     let aiAnalysis = null;
     try {
-      aiAnalysis = await analyzeFullScan(enrichedReport);
+      const hasDomainContext = !!(
+        domain.agentContext?.businessType ||
+        domain.agentContext?.keyEvents?.length
+      );
+      if (hasDomainContext || masterContext) {
+        aiAnalysis = await analyzeWithDomainContext(
+          enrichedReport,
+          domain.agentContext || null,
+          masterContext
+        );
+      } else {
+        aiAnalysis = await analyzeFullScan(enrichedReport);
+      }
     } catch (err) {
       console.warn("[domains] Gemini analysis failed:", err.message);
     }
 
-    // Persist the analysis
+    // Persist the analysis to Firestore
     const crawlSummary = crawlReport
       ? {
           totalPages: crawlReport.pages?.length || 0,
@@ -292,9 +306,38 @@ router.post("/:id/analyze", async (req, res) => {
       gtmSnapshot,
       bqSnapshot,
       aiAnalysis,
+      // Surface master patterns so the extension can show industry benchmarks
+      masterPatterns: masterContext?.patterns?.slice(0, 10) || null,
+      masterBusinessType: masterContext?.businessType || null,
     });
   } catch (err) {
     console.error("[domains] analyze error:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── POST /domains/master/aggregate — Run fairy master aggregation ─────────────
+// Must be defined BEFORE /:id routes to prevent "master" being treated as a domain ID
+router.post("/master/aggregate", async (req, res) => {
+  const { analysesPerDomain, minFrequency } = req.body || {};
+  try {
+    const result = await aggregateLearnings({
+      ...(analysesPerDomain && { analysesPerDomain: Number(analysesPerDomain) }),
+      ...(minFrequency && { minFrequency: Number(minFrequency) }),
+    });
+    res.json({ success: true, ...result });
+  } catch (err) {
+    console.error("[domains] master aggregate error:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /domains/master/learnings — List all master learning documents ────────
+router.get("/master/learnings", async (req, res) => {
+  try {
+    const learnings = await listMasterLearnings();
+    res.json({ success: true, learnings });
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });

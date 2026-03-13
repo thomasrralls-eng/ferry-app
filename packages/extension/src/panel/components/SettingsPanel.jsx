@@ -61,14 +61,29 @@ function DomainRow({ domain, isActive, onSelect, onEdit }) {
           </button>
         </div>
       </div>
-      <div className="flex gap-1 mt-1">
+      <div className="flex gap-1 mt-1 flex-wrap">
         <ConnectionBadge ok={domain.ga4Connected || null} label="GA4" />
         <ConnectionBadge ok={domain.gtmConnected || null} label="GTM" />
         <ConnectionBadge ok={domain.bqConnected || null} label="BQ" />
+        {domain.agentContext?.businessType && (
+          <span className="text-[10px] font-medium text-indigo-600 bg-indigo-50 border border-indigo-100 rounded px-1.5 py-0.5">
+            {domain.agentContext.businessType}
+          </span>
+        )}
       </div>
     </button>
   );
 }
+
+const BUSINESS_TYPES = [
+  { value: "", label: "— Select type —" },
+  { value: "ecommerce", label: "Ecommerce" },
+  { value: "b2b-saas", label: "B2B SaaS" },
+  { value: "b2c-saas", label: "B2C SaaS" },
+  { value: "lead-gen", label: "Lead Generation" },
+  { value: "media", label: "Media / Publisher" },
+  { value: "other", label: "Other" },
+];
 
 // ── Domain editor form ─────────────────────────────────────────────────────────
 function DomainEditor({ domain, onSave, onCancel, onUploadSA, onTestConnection, onRemoveSA, loading }) {
@@ -80,6 +95,12 @@ function DomainEditor({ domain, onSave, onCancel, onUploadSA, onTestConnection, 
     gtmContainerId: domain?.gtmContainerId || "",
     bqProjectId: domain?.bqProjectId || "",
     bqDataset: domain?.bqDataset || "",
+    // Agent context fields
+    agentBusinessType: domain?.agentContext?.businessType || "",
+    agentDescription: domain?.agentContext?.businessDescription || "",
+    agentKeyEvents: (domain?.agentContext?.keyEvents || []).join(", "),
+    agentFunnelStages: (domain?.agentContext?.funnelStages || []).join("\n"),
+    agentNotes: domain?.agentContext?.notes || "",
   });
   const [testResult, setTestResult] = useState(null);
   const [testLoading, setTestLoading] = useState(false);
@@ -87,7 +108,20 @@ function DomainEditor({ domain, onSave, onCancel, onUploadSA, onTestConnection, 
 
   const update = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
-  const handleSave = () => onSave(form, domain?.domainId);
+  const handleSave = () => {
+    const agentContext = {
+      businessType: form.agentBusinessType || null,
+      businessDescription: form.agentDescription.trim() || null,
+      keyEvents: form.agentKeyEvents
+        ? form.agentKeyEvents.split(",").map((s) => s.trim()).filter(Boolean)
+        : [],
+      funnelStages: form.agentFunnelStages
+        ? form.agentFunnelStages.split("\n").map((s) => s.trim()).filter(Boolean)
+        : [],
+      notes: form.agentNotes.trim() || null,
+    };
+    onSave({ ...form, agentContext }, domain?.domainId);
+  };
 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -184,6 +218,87 @@ function DomainEditor({ domain, onSave, onCancel, onUploadSA, onTestConnection, 
             placeholder="analytics_123456789"
             value={form.bqDataset}
             onChange={update("bqDataset")}
+          />
+        </div>
+      </div>
+
+      {/* ── Agent Context ───────────────────────────────────────────────── */}
+      <div className="border-t border-slate-200 pt-3">
+        <div className="flex items-center gap-1.5 mb-2">
+          <span className="text-[11px] font-bold text-slate-600">Agent Context</span>
+          <span className="text-[10px] text-slate-400 font-normal">
+            — helps gd fairy personalise analysis and learn across clients
+          </span>
+        </div>
+
+        {/* Business type */}
+        <div className="mb-2">
+          <label className="text-[11px] font-medium text-slate-500 block mb-0.5">
+            Business type
+          </label>
+          <select
+            className={inputClass}
+            value={form.agentBusinessType}
+            onChange={update("agentBusinessType")}
+          >
+            {BUSINESS_TYPES.map((bt) => (
+              <option key={bt.value} value={bt.value}>{bt.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Business description */}
+        <div className="mb-2">
+          <label className="text-[11px] font-medium text-slate-500 block mb-0.5">
+            Description <span className="text-slate-400">(optional — e.g. "SaaS CRM, free trial → upgrade funnel")</span>
+          </label>
+          <textarea
+            className={`${inputClass} resize-none`}
+            rows={2}
+            placeholder="Brief description of the client's business model and key goals"
+            value={form.agentDescription}
+            onChange={update("agentDescription")}
+          />
+        </div>
+
+        {/* Key events */}
+        <div className="mb-2">
+          <label className="text-[11px] font-medium text-slate-500 block mb-0.5">
+            Key conversion events <span className="text-slate-400">(comma-separated GA4 event names)</span>
+          </label>
+          <input
+            className={inputClass}
+            placeholder="purchase, generate_lead, trial_start, upgrade"
+            value={form.agentKeyEvents}
+            onChange={update("agentKeyEvents")}
+          />
+        </div>
+
+        {/* Funnel stages */}
+        <div className="mb-2">
+          <label className="text-[11px] font-medium text-slate-500 block mb-0.5">
+            Funnel stages <span className="text-slate-400">(one per line, in order)</span>
+          </label>
+          <textarea
+            className={`${inputClass} resize-none`}
+            rows={3}
+            placeholder={"Homepage\nProduct page\nCart\nCheckout\nConfirmation"}
+            value={form.agentFunnelStages}
+            onChange={update("agentFunnelStages")}
+          />
+        </div>
+
+        {/* Notes */}
+        <div>
+          <label className="text-[11px] font-medium text-slate-500 block mb-0.5">
+            Notes for gd fairy <span className="text-slate-400">(migration history, known quirks, etc.)</span>
+          </label>
+          <textarea
+            className={`${inputClass} resize-none`}
+            rows={2}
+            placeholder="e.g. Recently migrated from UA. Mobile checkout has known missing purchase event."
+            value={form.agentNotes}
+            onChange={update("agentNotes")}
           />
         </div>
       </div>
@@ -303,6 +418,17 @@ export default function SettingsPanel({
 
   const handleSave = async (form, domainId) => {
     setLocalError(null);
+
+    // Build the config payload (always includes agentContext)
+    const configPayload = {
+      ga4PropertyId: form.ga4PropertyId || null,
+      gtmContainerId: form.gtmContainerId || null,
+      bqProjectId: form.bqProjectId || null,
+      bqDataset: form.bqDataset || null,
+      displayName: form.displayName || null,
+      agentContext: form.agentContext || null,
+    };
+
     try {
       if (!domainId) {
         // Create new domain
@@ -310,25 +436,11 @@ export default function SettingsPanel({
           hostname: form.hostname,
           displayName: form.displayName,
         });
-        // Immediately configure with IDs
-        if (form.ga4PropertyId || form.gtmContainerId || form.bqProjectId) {
-          await onUpdateDomainConfig(domain.domainId, {
-            ga4PropertyId: form.ga4PropertyId || null,
-            gtmContainerId: form.gtmContainerId || null,
-            bqProjectId: form.bqProjectId || null,
-            bqDataset: form.bqDataset || null,
-            displayName: form.displayName || null,
-          });
-        }
+        // Immediately apply all config (IDs + agent context)
+        await onUpdateDomainConfig(domain.domainId, configPayload);
         onSetActiveDomain(domain.domainId);
       } else {
-        await onUpdateDomainConfig(domainId, {
-          ga4PropertyId: form.ga4PropertyId || null,
-          gtmContainerId: form.gtmContainerId || null,
-          bqProjectId: form.bqProjectId || null,
-          bqDataset: form.bqDataset || null,
-          displayName: form.displayName || null,
-        });
+        await onUpdateDomainConfig(domainId, configPayload);
       }
       setEditingDomain(null);
     } catch (err) {

@@ -6,7 +6,12 @@
  */
 
 import { GoogleAuth } from "google-auth-library";
-import { buildSystemPrompt, buildAnalysisPrompt, buildFullAnalysisPrompt } from "./agent-prompt.js";
+import {
+  buildSystemPrompt,
+  buildEnrichedSystemPrompt,
+  buildAnalysisPrompt,
+  buildFullAnalysisPrompt,
+} from "./agent-prompt.js";
 
 const VERTEX_API_BASE = "https://us-central1-aiplatform.googleapis.com/v1";
 const MODEL = "gemini-2.0-flash-001";
@@ -151,6 +156,65 @@ export async function analyzeReconScan(scanReport) {
       error: err.message,
       model: MODEL,
       duration: `${duration}s`,
+    };
+  }
+}
+
+/**
+ * Analyze a full scan with domain-specific context and master learnings injected.
+ *
+ * Called by the /domains/:id/analyze endpoint when the domain has agentContext
+ * configured. The enriched system prompt tells Gemini about the client's
+ * business type, key events, funnel stages, and cross-domain patterns from
+ * the fairy master — producing much more targeted, benchmark-aware analysis.
+ *
+ * @param {Object} enrichedReport          — scan report + connectedData (GA4/GTM/BQ)
+ * @param {Object|null} domainContext      — domain.agentContext from Firestore
+ * @param {Object|null} masterContext      — result of getMasterContext() from master-fairy.js
+ * @returns {Promise<Object>} AI analysis with domain-personalised recommendations
+ */
+export async function analyzeWithDomainContext(
+  enrichedReport,
+  domainContext = null,
+  masterContext = null
+) {
+  const startTime = Date.now();
+
+  try {
+    const systemPrompt = buildEnrichedSystemPrompt(domainContext, masterContext);
+    const userPrompt = buildFullAnalysisPrompt(enrichedReport);
+
+    const hasMaster = masterContext?.patterns?.length > 0;
+    const hasDomain = !!(domainContext?.businessType || domainContext?.keyEvents?.length);
+    console.log(
+      `[agent] Enriched analysis — domain ctx: ${hasDomain}, master learnings: ${hasMaster}`
+    );
+
+    const responseText = await callGemini(systemPrompt, userPrompt, {
+      maxTokens: 8192,
+    });
+    const analysis = parseAgentResponse(responseText);
+
+    const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+    console.log(`[agent] Enriched analysis complete (${duration}s)`);
+
+    return {
+      success: true,
+      analysis,
+      model: MODEL,
+      duration: `${duration}s`,
+      enriched: true,
+    };
+  } catch (err) {
+    const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+    console.error(`[agent] Enriched analysis error (${duration}s):`, err.message);
+
+    return {
+      success: false,
+      error: err.message,
+      model: MODEL,
+      duration: `${duration}s`,
+      enriched: true,
     };
   }
 }

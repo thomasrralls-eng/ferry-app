@@ -371,7 +371,7 @@ function SeverityDot({ severity }) {
 
 function ConnectedInsights({ agentAnalysis }) {
   const [expanded, setExpanded] = useState(true);
-  const { ga4Snapshot, gtmSnapshot, bqSnapshot, aiAnalysis } = agentAnalysis;
+  const { ga4Snapshot, gtmSnapshot, bqSnapshot, aiAnalysis, masterPatterns, masterBusinessType } = agentAnalysis;
 
   return (
     <div className="rounded-lg border border-indigo-200 bg-gradient-to-br from-indigo-50/60 to-violet-50/40 overflow-hidden">
@@ -505,6 +505,43 @@ function ConnectedInsights({ agentAnalysis }) {
                     <span className="text-gray-400 flex-shrink-0 ml-2">{fmtCompact(e.count)}</span>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Fairy Master — Industry Patterns */}
+          {masterPatterns?.length > 0 && (
+            <div className="p-2.5 rounded-lg bg-white/70 border border-violet-100">
+              <h5 className="text-[10px] font-semibold text-violet-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <span>Industry Patterns</span>
+                {masterBusinessType && (
+                  <span className="font-mono font-normal text-violet-300 normal-case">
+                    — {masterBusinessType}
+                  </span>
+                )}
+              </h5>
+              <p className="text-[10px] text-gray-400 mb-1.5 leading-relaxed">
+                Common issues found across similar sites by the fairy master.
+              </p>
+              <div className="space-y-1.5">
+                {masterPatterns.map((p, i) => {
+                  const severityColor = {
+                    error: "text-red-600 bg-red-50 border-red-100",
+                    warning: "text-amber-600 bg-amber-50 border-amber-100",
+                    info: "text-violet-600 bg-violet-50 border-violet-100",
+                  }[p.severity] || "text-gray-600 bg-gray-50 border-gray-100";
+                  return (
+                    <div key={i} className={`rounded border px-2 py-1.5 ${severityColor}`}>
+                      <div className="flex items-center justify-between gap-2 mb-0.5">
+                        <span className="text-[10px] font-semibold uppercase">{p.severity}</span>
+                        <span className="text-[10px] font-medium opacity-70">
+                          {Math.round(p.frequency * 100)}% of sites
+                        </span>
+                      </div>
+                      <p className="text-[11px] leading-snug">{p.pattern}</p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
