@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "path";
-import { copyFileSync, mkdirSync, existsSync, rmSync, readdirSync } from "fs";
+import { copyFileSync, mkdirSync, existsSync, rmSync, readdirSync, readFileSync, writeFileSync } from "fs";
 
 /**
  * Custom plugin: cleans dist/ then copies static extension files (manifest,
@@ -39,9 +39,9 @@ function copyStaticFiles() {
         resolve(dist, "manifest.json")
       );
 
+      // Simple file copies (no transformation needed)
       const staticFiles = [
         ["src/background/service-worker.js", "service-worker.js"],
-        ["src/background/crawler.js", "crawler.js"],
         ["src/background/ferry-hook.js", "ferry-hook.js"],
         ["src/content/content-script.js", "content-script.js"],
         ["src/content/injected-hook.js", "injected-hook.js"],
@@ -54,6 +54,15 @@ function copyStaticFiles() {
         if (!existsSync(destDir)) mkdirSync(destDir, { recursive: true });
         copyFileSync(resolve(__dirname, src), destPath);
       }
+
+      // Inline ferry-hook.js into crawler.js so the service worker needs only
+      // one importScripts("crawler.js") call. Chrome MV3 service workers support
+      // importScripts() from the manifest-registered SW file, but scripts loaded
+      // *by* importScripts() cannot themselves call importScripts() — so we
+      // pre-bundle ferry-hook.js + crawler.js into a single output file.
+      const ferryHook = readFileSync(resolve(__dirname, "src/background/ferry-hook.js"), "utf-8");
+      const crawler   = readFileSync(resolve(__dirname, "src/background/crawler.js"), "utf-8");
+      writeFileSync(resolve(dist, "crawler.js"), ferryHook + "\n\n" + crawler);
 
       // Copy icon files
       const iconsDir = resolve(__dirname, "icons");
