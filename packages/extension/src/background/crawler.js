@@ -18,7 +18,8 @@
  * into each page entry by service-worker.js's webRequest listener.
  */
 
-importScripts("ferry-hook.js");
+// ferry-hook.js is inlined before this content by the vite.config.js build step,
+// so globalThis.ferryHookFn is already available here.
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -160,6 +161,13 @@ async function crawlNext(tabId, panelPort) {
 
     // Smart wait: poll for dataLayer stability instead of a fixed sleep
     await waitForEventStability(tabId);
+
+    // Click obvious interactive elements (accordions, tabs, etc.) so that
+    // interaction-gated tags fire, simulating real user journeys
+    await interactWithPageElements(tabId);
+
+    // Secondary wait: let any interaction-triggered events settle
+    await waitForEventStability(tabId, { minWaitMs: 200, hardTimeoutMs: 2500, stabilityWindowMs: 800 });
 
     // Drain all captured events
     pageEntry.events = await drainEventsViaScripting(tabId);
@@ -516,6 +524,92 @@ function matchRobotsPath(pattern, path) {
 
 function makePermissivePolicy() {
   return { isAllowed: () => true, crawlDelayMs: null };
+}
+
+// ── Interaction simulation ────────────────────────────────────────────────────
+
+/**
+ * Click obvious, safe interactive elements on the current page to trigger
+ * interaction-gated analytics events (e.g. accordion-expand, tab-switch).
+ *
+ * Targets:
+ *   • [aria-expanded="false"]          — collapsed accordions / toggles
+ *   • [role="tab"]:not([aria-selected]) — inactive tab panels
+ *   • details:not([open]) > summary    — native disclosure widgets
+ *
+ * Safety guards:
+ *   • Skips any element whose text contains purchase / auth / destructive words
+ *   • Skips off-screen / zero-size elements
+ *   • Skips plain <a href="…"> links (would navigate away)
+ *   • Caps at MAX_INTERACTIONS clicks so the page doesn't spin forever
+ *
+ * Runs in MAIN world (needed to fire real click handlers that touch window.*).
+ */
+async function interactWithPageElements(tabId) {
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      world: "MAIN",
+      func: () => {
+        const MAX_INTERACTIONS = 8;
+
+        // Words whose presence in an element's label make it unsafe to click
+        const UNSAFE_RE = /\b(buy|checkout|check.?out|cart|purchase|add.?to.?cart|order|submit|login|log.?in|sign.?up|sign.?in|register|delete|remove|cancel|unsubscribe|pay(ment|\.?now)?|subscribe)\b/i;
+
+        const candidates = [];
+
+        // 1. Collapsed aria-expanded toggles (buttons, role=button, etc.)
+        document.querySelectorAll('[aria-expanded="false"]').forEach(el => {
+          const tag = el.tagName.toLowerCase();
+          if (tag === "button" || tag === "a" || el.getAttribute("role") === "button") {
+            candidates.push(el);
+          }
+        });
+
+        // 2. Inactive tab panels
+        document.querySelectorAll('[role="tab"]:not([aria-selected="true"])').forEach(el => {
+          candidates.push(el);
+        });
+
+        // 3. Native HTML disclosure widgets
+        document.querySelectorAll("details:not([open]) > summary").forEach(el => {
+          candidates.push(el);
+        });
+
+        let clicked = 0;
+        for (const el of candidates) {
+          if (clicked >= MAX_INTERACTIONS) break;
+
+          // Skip off-screen / invisible elements
+          const rect = el.getBoundingClientRect();
+          if (rect.width === 0 || rect.height === 0) continue;
+
+          // Skip elements with unsafe text content or aria-label
+          const label = (el.textContent || el.getAttribute("aria-label") || "").trim();
+          if (UNSAFE_RE.test(label)) continue;
+
+          // Skip native form controls
+          const tag = el.tagName.toLowerCase();
+          if (["input", "select", "textarea", "form"].includes(tag)) continue;
+
+          // Skip anchors with real hrefs — they would navigate away
+          if (tag === "a") {
+            const href = (el.getAttribute("href") || "").trim();
+            if (href && !href.startsWith("#") && !href.startsWith("javascript")) continue;
+          }
+
+          try {
+            el.click();
+            clicked++;
+          } catch { /* element may have been removed */ }
+        }
+
+        return clicked;
+      },
+    });
+  } catch {
+    // Page navigated, crashed, or restricted origin — silently skip
+  }
 }
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
