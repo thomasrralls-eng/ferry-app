@@ -42,6 +42,7 @@ function copyStaticFiles() {
       const staticFiles = [
         ["src/background/service-worker.js", "service-worker.js"],
         ["src/background/crawler.js", "crawler.js"],
+        ["src/background/ferry-hook.js", "ferry-hook.js"],
         ["src/content/content-script.js", "content-script.js"],
         ["src/content/injected-hook.js", "injected-hook.js"],
         ["src/rules/index.js", "rules/index.js"],
