@@ -3,7 +3,7 @@
   "name": "gd fairy",
   "version": "0.3.0",
   "description": "Monitor, record, and analyze dataLayer events, GA4 hits, and GTM containers in real-time.",
-  "permissions": ["storage", "tabs", "scripting", "sidePanel", "webRequest"],
+  "permissions": ["storage", "tabs", "scripting", "sidePanel", "webRequest", "identity"],
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "service-worker.js"
@@ -37,6 +37,13 @@
       "matches": ["<all_urls>"]
     }
   ],
+  "oauth2": {
+    "client_id": "REPLACE_WITH_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/userinfo.profile"
+    ]
+  },
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",

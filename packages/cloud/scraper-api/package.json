@@ -10,8 +10,12 @@
   },
   "dependencies": {
     "@ferry/scraper": "*",
+    "@google-analytics/data": "^5.2.1",
+    "@google-cloud/firestore": "^8.3.0",
+    "@google-cloud/secret-manager": "^6.1.1",
     "express": "^4.21.0",
-    "google-auth-library": "^9.0.0"
+    "google-auth-library": "^9.0.0",
+    "googleapis": "^171.4.0"
   },
   "license": "UNLICENSED",
   "private": true

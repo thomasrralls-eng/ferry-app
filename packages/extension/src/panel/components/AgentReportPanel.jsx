@@ -11,7 +11,7 @@ import React, { useState } from "react";
  *   Medium → changes active tracking, needs care
  *   High   → structural changes, needs GTM/GA4 access (Pro)
  */
-export default function AgentReportPanel({ report, onDismiss, onViewFindings }) {
+export default function AgentReportPanel({ report, agentAnalysis, onDismiss, onViewFindings }) {
   const [expandedAction, setExpandedAction] = useState(null);
   const [collapsedBuckets, setCollapsedBuckets] = useState({});
 
@@ -118,6 +118,11 @@ export default function AgentReportPanel({ report, onDismiss, onViewFindings }) 
       {/* ── Crawl Summary (if scanner) ── */}
       {crawlAnalysis && (
         <CrawlSummary crawlAnalysis={crawlAnalysis} />
+      )}
+
+      {/* ── Connected Insights (domain agent enriched analysis) ── */}
+      {agentAnalysis && (
+        <ConnectedInsights agentAnalysis={agentAnalysis} />
       )}
 
       {/* ── Risk-Bucketed Action Items ── */}
@@ -357,6 +362,170 @@ function InsightIcon({ type }) {
 function SeverityDot({ severity }) {
   const colors = { error: "bg-red-400", warning: "bg-amber-400", info: "bg-violet-400" };
   return <span className={`w-1.5 h-1.5 rounded-full ${colors[severity] || "bg-gray-300"} flex-shrink-0 mt-1`} />;
+}
+
+
+// ──────────────────────────────────────────────
+// Connected Insights — GA4 / GTM / BQ enrichment
+// ──────────────────────────────────────────────
+
+function ConnectedInsights({ agentAnalysis }) {
+  const [expanded, setExpanded] = useState(true);
+  const { ga4Snapshot, gtmSnapshot, bqSnapshot, aiAnalysis } = agentAnalysis;
+
+  return (
+    <div className="rounded-lg border border-indigo-200 bg-gradient-to-br from-indigo-50/60 to-violet-50/40 overflow-hidden">
+      {/* Header */}
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-indigo-50/60 transition"
+      >
+        <div className="flex items-center gap-2">
+          <span className="w-5 h-5 rounded-full bg-indigo-500 flex items-center justify-center">
+            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </span>
+          <span className="text-xs font-semibold text-indigo-900">Connected Insights</span>
+          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-600 font-medium">Live</span>
+        </div>
+        <ChevronIcon rotated={expanded} />
+      </button>
+
+      {expanded && (
+        <div className="px-3 pb-3 space-y-3">
+          {/* AI Analysis (Gemini) */}
+          {aiAnalysis && (
+            <div className="p-2.5 rounded-lg bg-white/70 border border-indigo-100">
+              <h5 className="text-[10px] font-semibold text-indigo-500 uppercase tracking-wider mb-1.5">
+                AI Analysis
+              </h5>
+              <p className="text-[12px] text-gray-600 leading-relaxed">{aiAnalysis}</p>
+            </div>
+          )}
+
+          {/* GA4 Snapshot */}
+          {ga4Snapshot && (
+            <div className="p-2.5 rounded-lg bg-white/70 border border-indigo-100">
+              <h5 className="text-[10px] font-semibold text-indigo-500 uppercase tracking-wider mb-2">
+                GA4 — Last 30 Days
+              </h5>
+              <div className="grid grid-cols-3 gap-2 text-center mb-2">
+                <StatPill value={fmtNum(ga4Snapshot.sessions)} label="Sessions" color="indigo" />
+                <StatPill value={fmtNum(ga4Snapshot.totalUsers)} label="Users" color="blue" />
+                <StatPill value={fmtNum(ga4Snapshot.conversions)} label="Conversions" color="amber" />
+              </div>
+              {ga4Snapshot.topEvents?.length > 0 && (
+                <div>
+                  <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide mb-1">
+                    Top Events
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {ga4Snapshot.topEvents.slice(0, 8).map((e) => (
+                      <span
+                        key={e.eventName}
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-indigo-50 border border-indigo-100 text-[11px] font-mono text-indigo-700"
+                        title={`${fmtNum(e.eventCount)} events`}
+                      >
+                        {e.eventName}
+                        <span className="text-[10px] text-indigo-400">{fmtCompact(e.eventCount)}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* GTM Snapshot */}
+          {gtmSnapshot && (
+            <div className="p-2.5 rounded-lg bg-white/70 border border-indigo-100">
+              <h5 className="text-[10px] font-semibold text-indigo-500 uppercase tracking-wider mb-2">
+                GTM Container
+                {gtmSnapshot.containerId && (
+                  <span className="ml-1.5 font-mono text-indigo-400 normal-case">{gtmSnapshot.containerId}</span>
+                )}
+              </h5>
+              <div className="flex gap-3 text-center mb-2">
+                <div>
+                  <div className="text-base font-bold text-gray-800">{gtmSnapshot.tagCount ?? "—"}</div>
+                  <div className="text-[10px] text-gray-400">Tags</div>
+                </div>
+                <div>
+                  <div className="text-base font-bold text-gray-800">{gtmSnapshot.triggerCount ?? "—"}</div>
+                  <div className="text-[10px] text-gray-400">Triggers</div>
+                </div>
+                <div>
+                  <div className="text-base font-bold text-gray-800">{gtmSnapshot.variableCount ?? "—"}</div>
+                  <div className="text-[10px] text-gray-400">Variables</div>
+                </div>
+                {gtmSnapshot.customHtmlTags > 0 && (
+                  <div>
+                    <div className="text-base font-bold text-amber-500">{gtmSnapshot.customHtmlTags}</div>
+                    <div className="text-[10px] text-gray-400">Custom HTML</div>
+                  </div>
+                )}
+              </div>
+              {gtmSnapshot.ga4ConfigTags?.length > 0 && (
+                <div className="mt-1.5">
+                  <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide mb-1">
+                    GA4 Config Tags
+                  </p>
+                  {gtmSnapshot.ga4ConfigTags.map((t) => (
+                    <div key={t.measurementId} className="flex items-center gap-1.5 text-[11px]">
+                      <span className="text-green-500">✓</span>
+                      <span className="font-mono text-gray-600">{t.measurementId}</span>
+                      <span className="text-gray-400 truncate">{t.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {gtmSnapshot.publishedVersion?.versionId && (
+                <p className="text-[10px] text-gray-400 mt-1.5">
+                  Published version: <span className="font-mono text-gray-600">v{gtmSnapshot.publishedVersion.versionId}</span>
+                  {gtmSnapshot.publishedVersion.name && ` — ${gtmSnapshot.publishedVersion.name}`}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* BigQuery Snapshot */}
+          {bqSnapshot?.events?.length > 0 && (
+            <div className="p-2.5 rounded-lg bg-white/70 border border-indigo-100">
+              <h5 className="text-[10px] font-semibold text-indigo-500 uppercase tracking-wider mb-2">
+                BigQuery — Raw GA4 360 Events
+              </h5>
+              <p className="text-[10px] text-gray-400 mb-1.5">
+                Top events by volume over last 30 days
+              </p>
+              <div className="space-y-1">
+                {bqSnapshot.events.slice(0, 8).map((e) => (
+                  <div key={e.eventName} className="flex items-center justify-between text-[11px]">
+                    <span className="font-mono text-gray-600 truncate">{e.eventName}</span>
+                    <span className="text-gray-400 flex-shrink-0 ml-2">{fmtCompact(e.count)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Format number with K/M suffix */
+function fmtCompact(n) {
+  if (!n && n !== 0) return "—";
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return String(n);
+}
+
+/** Format number with locale commas */
+function fmtNum(n) {
+  if (!n && n !== 0) return "—";
+  return Number(n).toLocaleString();
 }
 
 

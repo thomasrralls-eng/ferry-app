@@ -7,8 +7,10 @@ import EventRow, { GroupedEventRow } from "./components/EventRow.jsx";
 import EmptyState from "./components/EmptyState.jsx";
 import CrawlPanel from "./components/CrawlPanel.jsx";
 import AgentReportPanel from "./components/AgentReportPanel.jsx";
+import SettingsPanel from "./components/SettingsPanel.jsx";
 import useFerryRecorder from "./hooks/useFerryRecorder.js";
 import useFerryCrawler from "./hooks/useFerryCrawler.js";
+import { useDomainAgent } from "./hooks/useDomainAgent.js";
 import { analyzeSession } from "./analysis-agent.js";
 
 // ── Fairy logo — loaded via chrome.runtime.getURL for extension compatibility ──
@@ -27,6 +29,7 @@ const GA4_TABS = [
   { id: "events",   label: "Events" },
   { id: "network",  label: "Network" },
   { id: "scanner",  label: "Scanner" },
+  { id: "settings", label: "⚙" },
 ];
 
 const GTM_TABS = [
@@ -34,6 +37,7 @@ const GTM_TABS = [
   { id: "gtm-datalayer", label: "DataLayer" },
   { id: "gtm-network",  label: "Network" },
   { id: "gtm-scanner",  label: "Scanner" },
+  { id: "settings",    label: "⚙" },
 ];
 
 export default function App() {
@@ -42,10 +46,20 @@ export default function App() {
     startRecording, stopRecording, clear, exportJSON,
   } = useFerryRecorder();
 
+  // ── Domain agent (cloud-backed enriched analysis) ──
   const {
-    crawling, progress, crawlReport, errors: crawlErrors,
+    user, domains, activeDomain, activeDomainId, loading: agentLoading, error: agentError,
+    signIn, signOut,
+    setActiveDomainId,
+    createDomain, updateDomainConfig, deleteDomain,
+    uploadServiceAccount, removeServiceAccount, testConnection,
+    analyzeWithAgent,
+  } = useDomainAgent();
+
+  const {
+    crawling, progress, crawlReport, agentAnalysis, errors: crawlErrors,
     startCrawl, stopCrawl, clearReport,
-  } = useFerryCrawler(activeTabId);
+  } = useFerryCrawler(activeTabId, analyzeWithAgent);
 
   const [mode, setMode] = useState("ga4"); // "ga4" or "gtm"
   const [activeTab, setActiveTab] = useState("findings");
@@ -115,9 +129,30 @@ export default function App() {
 
   const handleClear = useCallback(() => {
     clear();
+    clearReport();
     setAgentReport(null);
     setShowAgentReport(false);
-  }, [clear]);
+  }, [clear, clearReport]);
+
+  // ── Settings renderer ──
+  const renderSettings = () => (
+    <SettingsPanel
+      user={user}
+      domains={domains}
+      activeDomainId={activeDomainId}
+      loading={agentLoading}
+      error={agentError}
+      onSignIn={signIn}
+      onSignOut={signOut}
+      onSetActiveDomain={setActiveDomainId}
+      onCreateDomain={createDomain}
+      onUpdateDomainConfig={updateDomainConfig}
+      onDeleteDomain={deleteDomain}
+      onUploadSA={uploadServiceAccount}
+      onRemoveSA={removeServiceAccount}
+      onTestConnection={testConnection}
+    />
+  );
 
   // ── Computed stats ──
   const modeFindings = useMemo(() => {
@@ -272,6 +307,8 @@ export default function App() {
           onStop={stopRecording}
           onExport={exportJSON}
           onClear={handleClear}
+          onSettings={() => setActiveTab("settings")}
+          hasAgent={!!activeDomain}
         />
       </div>
 
@@ -304,6 +341,7 @@ export default function App() {
         <div className="mb-3">
           <AgentReportPanel
             report={agentReport}
+            agentAnalysis={agentAnalysis}
             onDismiss={() => setShowAgentReport(false)}
             onViewFindings={() => {
               setShowAgentReport(false);
@@ -344,8 +382,11 @@ export default function App() {
       {/* ── Tabs ── */}
       <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} counts={tabCounts} />
 
+      {/* ── Shared Settings Tab ── */}
+      {activeTab === "settings" && renderSettings()}
+
       {/* ── GA4 Tab Content ── */}
-      {mode === "ga4" && (
+      {mode === "ga4" && activeTab !== "settings" && (
         <>
           {activeTab === "findings" && <div>{renderFindings()}</div>}
           {activeTab === "events" && <div>{renderEvents()}</div>}
@@ -355,7 +396,7 @@ export default function App() {
       )}
 
       {/* ── GTM Tab Content ── */}
-      {mode === "gtm" && (
+      {mode === "gtm" && activeTab !== "settings" && (
         <>
           {activeTab === "gtm-findings" && <div>{renderFindings()}</div>}
           {activeTab === "gtm-datalayer" && <div>{renderEvents()}</div>}

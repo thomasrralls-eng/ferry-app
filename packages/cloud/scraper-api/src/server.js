@@ -15,9 +15,24 @@ import express from "express";
 import { reconScan, scanSite } from "@ferry/scraper";
 import { analyzeReconScan, analyzeFullScan } from "./agent.js";
 import { visualScan } from "./visual-agent.js";
+import domainsRouter from "./domains-router.js";
 
 const app = express();
-app.use(express.json({ limit: "5mb" }));
+app.use(express.json({ limit: "10mb" }));
+
+// ─── CORS — allow Chrome extension origins ────────────────────────────────────
+app.use((req, res, next) => {
+  const origin = req.headers.origin || "";
+  // Allow Chrome extension origins (chrome-extension://<id>) and localhost for dev
+  if (origin.startsWith("chrome-extension://") || origin.startsWith("http://localhost")) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.setHeader("Access-Control-Max-Age", "86400");
+  }
+  if (req.method === "OPTIONS") return res.sendStatus(204);
+  next();
+});
 
 const PORT = process.env.PORT || 8080;
 
@@ -54,6 +69,9 @@ setInterval(() => {
 // Apply rate limiting to scan endpoints
 app.use("/scan", rateLimit);
 app.use("/analyze", rateLimit);
+
+// ─── Domain agent API ────────────────────────────────────────────
+app.use("/domains", domainsRouter);
 
 // ─── URL validation ──────────────────────────────────────────────
 function validateUrl(url) {
@@ -231,7 +249,7 @@ app.post("/scan/visual", async (req, res) => {
 
 // ─── 404 handler ────────────────────────────────────────────────
 app.use((_req, res) => {
-  res.status(404).json({ error: "Not found. Available endpoints: /scan/recon, /scan/full, /scan/visual, /analyze, /health" });
+  res.status(404).json({ error: "Not found. Available endpoints: /scan/recon, /scan/full, /scan/visual, /analyze, /domains, /health" });
 });
 
 // ─── Global error handler ───────────────────────────────────────
@@ -242,7 +260,7 @@ app.use((err, _req, res, _next) => {
 
 // ─── Start server ───────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`gd fairy scraper API v0.4.0 listening on port ${PORT}`);
+  console.log(`gd fairy scraper API v0.5.0 listening on port ${PORT}`);
   console.log(`AI agent: Gemini 2.0 Flash via Vertex AI`);
-  console.log(`Endpoints: /scan/recon, /scan/full, /scan/visual, /analyze, /health`);
+  console.log(`Endpoints: /scan/recon, /scan/full, /scan/visual, /analyze, /domains, /health`);
 });
