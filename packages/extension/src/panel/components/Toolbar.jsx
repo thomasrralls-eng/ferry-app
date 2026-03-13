@@ -6,7 +6,7 @@ export default function Toolbar({ recording, onStart, onStop, onExport, onClear,
       {!recording ? (
         <button
           onClick={onStart}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-indigo-600 text-white text-[12px] font-semibold hover:bg-indigo-700 active:bg-indigo-800 transition-colors shadow-sm"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-indigo-500 text-white text-[12px] font-semibold hover:bg-indigo-600 active:bg-indigo-700 transition-colors shadow-sm"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-red-300" />
           Record

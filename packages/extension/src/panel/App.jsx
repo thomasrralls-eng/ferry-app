@@ -13,14 +13,18 @@ import useFairyCrawler from "./hooks/useFairyCrawler.js";
 import { useDomainAgent } from "./hooks/useDomainAgent.js";
 import { analyzeSession } from "./analysis-agent.js";
 
-// ── Fairy logo — loaded via chrome.runtime.getURL for extension compatibility ──
+// ── Fairy logo — CSS icon with gold star on dark navy ──
 function FairyLogo({ size = 28 }) {
-  const src = typeof chrome !== "undefined" && chrome.runtime
-    ? chrome.runtime.getURL("icons/gdfairy_square.png")
-    : "../icons/gdfairy_square.png";
   return (
-    <img src={src} alt="gd fairy" width={size} height={size}
-      style={{ display: "block", flexShrink: 0, borderRadius: 8 }} />
+    <span style={{
+      width: size, height: size,
+      borderRadius: Math.round(size * 0.3),
+      background: "#1e1b4b",
+      display: "grid", placeItems: "center",
+      fontSize: Math.round(size * 0.62), lineHeight: 1,
+      color: "#f59e0b",
+      flexShrink: 0,
+    }}>✦</span>
   );
 }
 
@@ -237,8 +241,8 @@ export default function App() {
       <EmptyState
         title={recording ? "No issues found yet" : "Start recording to analyze events"}
         subtitle={recording
-          ? "Browse the site — gd fairy will flag data quality issues in real time."
-          : "Click Record, then browse the site. gd fairy catches every dataLayer push and GA4 hit."
+          ? "Browse the site — data fairy will flag data quality issues in real time."
+          : "Click Record, then browse the site. data fairy catches every dataLayer push and GA4 hit."
         }
       />
     ) : (
@@ -298,7 +302,7 @@ export default function App() {
         <div className="flex items-center gap-0.5">
           <FairyLogo size={22} />
           <span className="text-[14px] font-bold tracking-tight text-slate-800">
-            gd fairy<span className="text-indigo-400 ml-0.5">✦</span>
+            data fairy
           </span>
         </div>
         <Toolbar

@@ -442,7 +442,7 @@ async function fetchRobotsTxt(origin) {
   try {
     const res = await fetch(`${origin}/robots.txt`, {
       signal: AbortSignal.timeout(5000),
-      headers: { "User-Agent": "GdFairyBot/1.0 (+https://gdfairy.com/bot)" },
+      headers: { "User-Agent": "DataFairyBot/1.0 (+https://datafairy.ai/bot)" },
     });
     if (!res.ok) return makePermissivePolicy();
     const text = await res.text();
@@ -484,7 +484,7 @@ function parseRobotsTxt(text) {
   }
 
   // Find the most-specific applicable block
-  const botBlock      = blocks.find(b => b.agents.some(a => a.includes("gdfairy")));
+  const botBlock      = blocks.find(b => b.agents.some(a => a.includes("datafairy")));
   const wildcardBlock = blocks.find(b => b.agents.includes("*"));
   const applicable    = botBlock || wildcardBlock || null;
 

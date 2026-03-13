@@ -227,7 +227,7 @@ function DomainEditor({ domain, onSave, onCancel, onUploadSA, onTestConnection, 
         <div className="flex items-center gap-1.5 mb-2">
           <span className="text-[11px] font-bold text-slate-600">Agent Context</span>
           <span className="text-[10px] text-slate-400 font-normal">
-            — helps gd fairy personalise analysis and learn across clients
+            — helps data fairy personalise analysis and learn across clients
           </span>
         </div>
 
@@ -291,7 +291,7 @@ function DomainEditor({ domain, onSave, onCancel, onUploadSA, onTestConnection, 
         {/* Notes */}
         <div>
           <label className="text-[11px] font-medium text-slate-500 block mb-0.5">
-            Notes for gd fairy <span className="text-slate-400">(migration history, known quirks, etc.)</span>
+            Notes for data fairy <span className="text-slate-400">(migration history, known quirks, etc.)</span>
           </label>
           <textarea
             className={`${inputClass} resize-none`}
@@ -308,7 +308,7 @@ function DomainEditor({ domain, onSave, onCancel, onUploadSA, onTestConnection, 
         <button
           onClick={handleSave}
           disabled={loading}
-          className="flex-1 py-1.5 text-[12px] font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50 transition"
+          className="flex-1 py-1.5 text-[12px] font-semibold text-white bg-indigo-500 rounded-md hover:bg-indigo-600 disabled:opacity-50 transition"
         >
           {isNew ? "Create Agent" : "Save Changes"}
         </button>
@@ -464,7 +464,7 @@ export default function SettingsPanel({
         <button
           onClick={onSignIn}
           disabled={loading}
-          className="px-5 py-2 text-[12px] font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition shadow-sm flex items-center gap-2"
+          className="px-5 py-2 text-[12px] font-semibold text-white bg-indigo-500 rounded-lg hover:bg-indigo-600 disabled:opacity-50 transition shadow-sm flex items-center gap-2"
         >
           {loading ? "Connecting…" : "Sign in with Google"}
         </button>
@@ -525,7 +525,7 @@ export default function SettingsPanel({
                 <p className="text-[12px] text-slate-500 mb-3">No domain agents yet</p>
                 <button
                   onClick={() => setEditingDomain(false)}
-                  className="px-4 py-1.5 text-[12px] font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition"
+                  className="px-4 py-1.5 text-[12px] font-semibold text-white bg-indigo-500 rounded-lg hover:bg-indigo-600 transition"
                 >
                   Add your first domain
                 </button>

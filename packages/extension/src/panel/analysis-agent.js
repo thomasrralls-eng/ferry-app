@@ -502,13 +502,13 @@ const FIX_SUGGESTIONS = {
     steps: [
       "Standard GA4 truncates at 100 characters; GA4 360 allows up to 500",
       "If you need long values, consider using a shorter identifier and storing the full value in your own database",
-      "gd fairy auto-detects your GA4 version — if detection is wrong, you can override it in settings",
+      "data fairy auto-detects your GA4 version — if detection is wrong, you can override it in settings",
     ],
   },
   "ga4-version-detected": {
     summary: "GA4 property version was detected from client-side signals",
     steps: [
-      "gd fairy adjusts parameter value limits, custom dimension limits, and other thresholds based on your GA4 version",
+      "data fairy adjusts parameter value limits, custom dimension limits, and other thresholds based on your GA4 version",
       "GA4 Free: 100 char param values, 500 distinct events, 50 custom dimensions, 25 user properties",
       "GA4 360: 500 char param values, 2000 distinct events, 125 custom dimensions, 100 user properties",
       "If the auto-detection is incorrect, you can override it in extension settings",
@@ -702,7 +702,7 @@ function deriveInsights(events, network, findings) {
     insights.push({
       type: "no-data",
       title: "No analytics events detected",
-      detail: "gd fairy didn't capture any dataLayer pushes or GA4 network hits. Check that the site has GA4 or GTM installed.",
+      detail: "data fairy didn't capture any dataLayer pushes or GA4 network hits. Check that the site has GA4 or GTM installed.",
     });
     return insights;
   }
@@ -802,7 +802,7 @@ function deriveInsights(events, network, findings) {
     insights.push({
       type: "clean",
       title: "No issues found — looking clean!",
-      detail: "gd fairy checked all events against GA4 best practices and found no issues.",
+      detail: "data fairy checked all events against GA4 best practices and found no issues.",
     });
   }
 

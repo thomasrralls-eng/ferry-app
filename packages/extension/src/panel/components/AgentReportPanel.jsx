@@ -218,7 +218,7 @@ export default function AgentReportPanel({ report, agentAnalysis, onDismiss, onV
               </h4>
               <p className="text-xs text-gray-500 leading-relaxed mb-2">
                 Medium- and high-risk changes require connecting your GTM container or GA4 property
-                so gd fairy can safely apply changes, preview them, and roll back if needed.
+                so data fairy can safely apply changes, preview them, and roll back if needed.
               </p>
               <button className="px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-indigo-500 to-violet-500 rounded-lg hover:from-indigo-600 hover:to-violet-600 shadow-sm transition">
                 Connect GTM/GA4 — Coming Soon

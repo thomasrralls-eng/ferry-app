@@ -1,6 +1,6 @@
-// Create the gd fairy panel in Chrome DevTools
+// Create the data fairy panel in Chrome DevTools
 chrome.devtools.panels.create(
-  "gd fairy",
+  "data fairy",
   "",
   "panel/index.html",
   () => {}

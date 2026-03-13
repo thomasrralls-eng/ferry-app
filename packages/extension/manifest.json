@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "gd fairy",
+  "name": "data fairy",
   "version": "0.3.0",
   "description": "Monitor, record, and analyze dataLayer events, GA4 hits, and GTM containers in real-time.",
   "permissions": ["storage", "tabs", "scripting", "sidePanel", "webRequest", "identity"],
@@ -9,7 +9,7 @@
     "service_worker": "service-worker.js"
   },
   "action": {
-    "default_title": "Open gd fairy",
+    "default_title": "Open data fairy",
     "default_icon": {
       "16": "icons/icon-16.png",
       "48": "icons/icon-48.png",
