@@ -11,6 +11,12 @@
  *   5. Forwards content-script events to the panel
  */
 
+// ferry-hook.js must be loaded first (sets globalThis.ferryHookFn),
+// then crawler.js which uses it. Both importScripts() calls must come
+// from this file — the manifest-registered service worker — because
+// Chrome MV3 only supports importScripts() from the top-level SW file,
+// not from within scripts that were themselves loaded via importScripts().
+importScripts("ferry-hook.js");
 importScripts("crawler.js");
 
 // ── Side Panel: open on toolbar icon click ────────────────────────────────────

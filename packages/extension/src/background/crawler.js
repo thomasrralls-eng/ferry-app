@@ -18,7 +18,8 @@
  * into each page entry by service-worker.js's webRequest listener.
  */
 
-importScripts("ferry-hook.js");
+// ferry-hook.js is loaded by service-worker.js before this script,
+// so globalThis.ferryHookFn is already available here.
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
