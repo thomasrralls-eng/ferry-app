@@ -1,5 +1,5 @@
 /**
- * @ferry/scraper — gd fairy cloud scraper
+ * /scraper — gd fairy cloud scraper
  *
  * Headless browser crawler that visits websites, captures GA4/GTM
  * events from the dataLayer, and runs them through the lint rules
@@ -10,7 +10,7 @@
  *   2. Deep crawl (up to 200 pages) — full report with lint findings
  *
  * Usage:
- *   import { reconScan, deepCrawl, scanSite, generateReport } from "@ferry/scraper";
+ *   import { reconScan, deepCrawl, scanSite, generateReport } from "/scraper";
  *
  *   // Quick scan (free tier)
  *   const recon = await reconScan("https://example.com");

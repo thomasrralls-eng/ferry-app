@@ -4,12 +4,12 @@
  * Manages a headless Chrome instance for the scraper. Each page visit:
  *   1. Navigates to the URL
  *   2. Intercepts GA4 /collect network requests
- *   3. Injects the Ferry dataLayer/gtag hook (ferryHookFn)
+ *   3. Injects the Ferry dataLayer/gtag hook (fairyHookFn)
  *   4. Waits for events to stabilize (via wait-strategy)
  *   5. Drains captured events and returns them
  *
- * ferryHookFn is intentionally kept in sync with the Chrome extension's
- * packages/extension/src/background/ferry-hook.js so cloud and user-Chrome
+ * fairyHookFn is intentionally kept in sync with the Chrome extension's
+ * packages/extension/src/background/fairy-hook.js so cloud and user-Chrome
  * runs capture events identically.
  */
 
@@ -118,7 +118,7 @@ export async function visitPage(browser, url, options = {}) {
     });
 
     // Inject the Ferry dataLayer/gtag hook
-    await injectFerryHook(page);
+    await injectFairyHook(page);
 
     // Wait for dataLayer to stabilize
     const waitResult = await waitForDataLayer(page, waitOptions);
@@ -175,9 +175,9 @@ export async function visitPage(browser, url, options = {}) {
 }
 
 /**
- * ferryHookFn — the Ferry dataLayer/gtag hook injected into each page.
+ * fairyHookFn — the Ferry dataLayer/gtag hook injected into each page.
  *
- * KEEP IN SYNC with packages/extension/src/background/ferry-hook.js.
+ * KEEP IN SYNC with packages/extension/src/background/fairy-hook.js.
  * Both implementations must be identical so cloud and extension crawls
  * produce consistent capture results.
  *
@@ -185,11 +185,11 @@ export async function visitPage(browser, url, options = {}) {
  * page's JS context via page.evaluate().
  */
 /* eslint-disable no-var */
-function ferryHookFn() {
-  if (window.__ferryHooked) return;
-  window.__ferryHooked = true;
-  window.__ferryEvents     = window.__ferryEvents    || [];
-  window.__ferrySPAChanges = window.__ferrySPAChanges || [];
+function fairyHookFn() {
+  if (window.__fairyHooked) return;
+  window.__fairyHooked = true;
+  window.__fairyEvents     = window.__fairyEvents    || [];
+  window.__fairySPAChanges = window.__fairySPAChanges || [];
 
   var LIMITS = { maxDepth: 6, maxKeys: 200, maxArray: 200 };
 
@@ -252,12 +252,12 @@ function ferryHookFn() {
   }
 
   function post(payload) {
-    window.__ferryEvents.push(safeClone(payload, LIMITS));
+    window.__fairyEvents.push(safeClone(payload, LIMITS));
   }
 
   function hookDataLayer(dl) {
-    if (!dl || dl.__ferry_hooked) return;
-    dl.__ferry_hooked = true;
+    if (!dl || dl.__fairy_hooked) return;
+    dl.__fairy_hooked = true;
     var origPush = dl.push.bind(dl);
     dl.push = function () {
       for (var ai = 0; ai < arguments.length; ai++) {
@@ -307,14 +307,14 @@ function ferryHookFn() {
   // Hook gtag
   function tryWrapGtag() {
     if (typeof window.gtag !== "function") return false;
-    if (window.gtag.__ferry_hooked) return true;
+    if (window.gtag.__fairy_hooked) return true;
     var orig = window.gtag;
     window.gtag = function () {
       var args = Array.prototype.slice.call(arguments);
       post({ source: "gtag", type: args[0], time: new Date().toISOString(), args: args });
       return orig.apply(this, arguments);
     };
-    window.gtag.__ferry_hooked = true;
+    window.gtag.__fairy_hooked = true;
     return true;
   }
   if (!tryWrapGtag()) {
@@ -325,13 +325,13 @@ function ferryHookFn() {
   }
 
   // SPA history patching
-  if (!history.__ferry_hooked) {
-    history.__ferry_hooked = true;
+  if (!history.__fairy_hooked) {
+    history.__fairy_hooked = true;
     function patchHistory(method) {
       var orig = history[method];
       history[method] = function () {
         var result = orig.apply(this, arguments);
-        window.__ferrySPAChanges.push({ method: method, url: location.href, ts: Date.now() });
+        window.__fairySPAChanges.push({ method: method, url: location.href, ts: Date.now() });
         return result;
       };
     }
@@ -341,10 +341,10 @@ function ferryHookFn() {
 }
 
 /**
- * Inject ferryHookFn into the Puppeteer page context.
+ * Inject fairyHookFn into the Puppeteer page context.
  */
-async function injectFerryHook(page) {
-  await page.evaluate(ferryHookFn);
+async function injectFairyHook(page) {
+  await page.evaluate(fairyHookFn);
 }
 
 /**
@@ -353,8 +353,8 @@ async function injectFerryHook(page) {
 async function drainEvents(page) {
   try {
     return await page.evaluate(() => {
-      const events = window.__ferryEvents || [];
-      window.__ferryEvents = [];
+      const events = window.__fairyEvents || [];
+      window.__fairyEvents = [];
       return JSON.parse(JSON.stringify(events));
     });
   } catch {

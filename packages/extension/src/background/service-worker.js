@@ -23,21 +23,21 @@ chrome.action.onClicked.addListener((tab) => {
 chrome.sidePanel.setOptions({ enabled: true });
 
 // ── Port Management ───────────────────────────────────────────────────────────
-// The side panel connects with name "ferry-panel" and sends FERRY_INIT { tabId }
+// The side panel connects with name "fairy-panel" and sends FAIRY_INIT { tabId }
 
 const connections = new Map(); // tabId → port
 
 chrome.runtime.onConnect.addListener((port) => {
-  if (port.name !== "ferry-panel") return;
+  if (port.name !== "fairy-panel") return;
 
   port.onMessage.addListener(function initListener(msg) {
-    if (msg.type === "FERRY_INIT" && msg.tabId) {
+    if (msg.type === "FAIRY_INIT" && msg.tabId) {
       connections.set(msg.tabId, port);
 
       port.onDisconnect.addListener(() => {
         connections.delete(msg.tabId);
-        if (globalThis.FerryCrawler) {
-          globalThis.FerryCrawler.stopCrawl(msg.tabId);
+        if (globalThis.FairyCrawler) {
+          globalThis.FairyCrawler.stopCrawl(msg.tabId);
         }
       });
 
@@ -52,17 +52,17 @@ chrome.runtime.onConnect.addListener((port) => {
 // ── Panel message handler (crawl commands) ────────────────────────────────────
 
 function handlePanelMessage(msg, tabId, port) {
-  if (!globalThis.FerryCrawler) return;
+  if (!globalThis.FairyCrawler) return;
 
-  if (msg.type === "FERRY_CRAWL_START") {
-    globalThis.FerryCrawler.startCrawl(tabId, msg.startUrl, msg.maxPages || 50, port);
+  if (msg.type === "FAIRY_CRAWL_START") {
+    globalThis.FairyCrawler.startCrawl(tabId, msg.startUrl, msg.maxPages || 50, port);
   }
 
-  if (msg.type === "FERRY_CRAWL_STOP") {
-    globalThis.FerryCrawler.stopCrawl(tabId);
-    const state = globalThis.FerryCrawler.crawlStates.get(tabId);
+  if (msg.type === "FAIRY_CRAWL_STOP") {
+    globalThis.FairyCrawler.stopCrawl(tabId);
+    const state = globalThis.FairyCrawler.crawlStates.get(tabId);
     port.postMessage({
-      type: "FERRY_CRAWL_COMPLETE",
+      type: "FAIRY_CRAWL_COMPLETE",
       pages: state?.pages || [],
       totalVisited: state?.visited?.size || 0,
       totalQueued: 0,
@@ -115,8 +115,8 @@ chrome.webRequest.onBeforeRequest.addListener(
     // ── 1. Buffer into current crawl page entry ───────────────────────────────
     // Enables per-page joins of dataLayer events + /collect network hits,
     // which is what an audit needs to validate that events fired AND reached GA4.
-    if (globalThis.FerryCrawler) {
-      const crawlState = globalThis.FerryCrawler.crawlStates.get(details.tabId);
+    if (globalThis.FairyCrawler) {
+      const crawlState = globalThis.FairyCrawler.crawlStates.get(details.tabId);
       if (crawlState?.running && crawlState.pages.length > 0) {
         crawlState.pages[crawlState.pages.length - 1].network.push(networkHit);
       }
@@ -127,7 +127,7 @@ chrome.webRequest.onBeforeRequest.addListener(
     if (port) {
       try {
         port.postMessage({
-          type: "FERRY_NETWORK_HIT",
+          type: "FAIRY_NETWORK_HIT",
           ...networkHit,
           tabId: details.tabId,
         });
@@ -141,7 +141,7 @@ chrome.webRequest.onBeforeRequest.addListener(
 // Used by the Record feature — content script relays window.postMessage events.
 
 chrome.runtime.onMessage.addListener((msg, sender) => {
-  if (msg?.type !== "FERRY_EVENT") return;
+  if (msg?.type !== "FAIRY_EVENT") return;
 
   const tabId = sender.tab?.id;
   const port = connections.get(tabId);

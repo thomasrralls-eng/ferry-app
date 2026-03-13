@@ -23,18 +23,18 @@ Allow: /admin/public/
     assert.equal(policy.isAllowed("https://example.com/admin/public/page"), true);
   });
 
-  it("respects FerryBot-specific rules over wildcard", () => {
+  it("respects FairyBot-specific rules over wildcard", () => {
     const txt = `
 User-agent: *
 Disallow: /
 
-User-agent: FerryBot
+User-agent: FairyBot
 Disallow: /secret/
 Allow: /
     `;
     const policy = parseRobotsTxt(txt, origin);
 
-    // FerryBot rules should apply, not the wildcard block-all
+    // FairyBot rules should apply, not the wildcard block-all
     assert.equal(policy.isAllowed("https://example.com/"), true);
     assert.equal(policy.isAllowed("https://example.com/page"), true);
     assert.equal(policy.isAllowed("https://example.com/secret/data"), false);

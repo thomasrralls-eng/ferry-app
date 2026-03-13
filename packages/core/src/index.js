@@ -1,5 +1,5 @@
 /**
- * @ferry/core — shared data transformation primitives
+ * /core — shared data transformation primitives
  *
  * This package contains the schemas, validators, transforms, and utilities
  * shared between the Chrome extension, cloud platform, and monitoring tools.

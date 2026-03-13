@@ -46,7 +46,7 @@ async function getAccessToken() {
 async function callGeminiVision(systemPrompt, textPrompt, screenshotBuffer, options = {}) {
   const { maxTokens = 4096, temperature = 0.3, retries = 2 } = options;
 
-  const projectId = process.env.GCP_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || "ferry-prod";
+  const projectId = process.env.GCP_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || "fairy-prod";
   const location = process.env.GCP_REGION || "us-central1";
 
   const endpoint = `${VERTEX_API_BASE}/projects/${projectId}/locations/${location}/publishers/google/models/${MODEL}:generateContent`;
@@ -149,14 +149,14 @@ async function capturePageState(page) {
     encoding: "binary",
   });
 
-  // Capture dataLayer events — with per-step reset via __ferryStepMarker
+  // Capture dataLayer events — with per-step reset via __fairyStepMarker
   const dataLayerState = await page.evaluate(() => {
-    const events = window.__ferryEvents || [];
+    const events = window.__fairyEvents || [];
     const dl = window.dataLayer || [];
-    const marker = window.__ferryStepMarker || 0;
+    const marker = window.__fairyStepMarker || 0;
     const stepEvents = events.slice(marker);
     // Update marker for next step
-    window.__ferryStepMarker = events.length;
+    window.__fairyStepMarker = events.length;
     return {
       ferryEvents: JSON.parse(JSON.stringify(stepEvents.slice(-30))),
       allTimeEventCount: events.length,
@@ -842,8 +842,8 @@ async function setupPage(browser, url, networkHitsArr) {
 
   // Inject event capture hook BEFORE page loads
   await page.evaluateOnNewDocument(() => {
-    window.__ferryEvents = [];
-    window.__ferryStepMarker = 0;
+    window.__fairyEvents = [];
+    window.__fairyStepMarker = 0;
 
     // Hook dataLayer.push
     window.dataLayer = window.dataLayer || [];
@@ -853,7 +853,7 @@ async function setupPage(browser, url, networkHitsArr) {
       args.forEach(item => {
         try {
           const clone = JSON.parse(JSON.stringify(item));
-          window.__ferryEvents.push(clone);
+          window.__fairyEvents.push(clone);
         } catch {}
       });
       return origPush(...args);
@@ -872,7 +872,7 @@ async function setupPage(browser, url, networkHitsArr) {
               args.forEach(item => {
                 try {
                   const clone = JSON.parse(JSON.stringify(item));
-                  window.__ferryEvents.push(clone);
+                  window.__fairyEvents.push(clone);
                 } catch {}
               });
               return origNewPush(...args);
@@ -895,7 +895,7 @@ async function setupPage(browser, url, networkHitsArr) {
             const origTrack = val.track.bind(val);
             val.track = function (name, props, ...rest) {
               try {
-                window.__ferryEvents.push({ source: "segment", eventName: name, properties: JSON.parse(JSON.stringify(props || {})) });
+                window.__fairyEvents.push({ source: "segment", eventName: name, properties: JSON.parse(JSON.stringify(props || {})) });
               } catch {}
               return origTrack(name, props, ...rest);
             };

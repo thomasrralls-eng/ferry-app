@@ -6,20 +6,20 @@
  * via port messages.
  *
  * Flow:
- *   1. Panel sends FERRY_CRAWL_START with startUrl + maxPages
+ *   1. Panel sends FAIRY_CRAWL_START with startUrl + maxPages
  *   2. Crawler fetches robots.txt, then begins crawl loop
- *   3. Per page: navigate → wait for load → inject hook (from ferry-hook.js)
+ *   3. Per page: navigate → wait for load → inject hook (from fairy-hook.js)
  *      → smart stability wait → drain events + links
  *   4. Queues same-origin links; respects robots.txt and safe-mode skip paths
  *   5. Applies crawl delay between pages (default 1500ms, respects Crawl-Delay)
- *   6. Sends FERRY_CRAWL_PROGRESS updates and final FERRY_CRAWL_COMPLETE to panel
+ *   6. Sends FAIRY_CRAWL_PROGRESS updates and final FAIRY_CRAWL_COMPLETE to panel
  *
  * The network hits (GA4 /collect, GTM script loads) are buffered directly
  * into each page entry by service-worker.js's webRequest listener.
  */
 
-// ferry-hook.js is inlined before this content by the vite.config.js build step,
-// so globalThis.ferryHookFn is already available here.
+// fairy-hook.js is inlined before this content by the vite.config.js build step,
+// so globalThis.fairyHookFn is already available here.
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -117,7 +117,7 @@ async function crawlNext(tabId, panelPort) {
   if (!nextUrl || state.visited.size >= state.maxPages) {
     state.running = false;
     panelPort.postMessage({
-      type: "FERRY_CRAWL_COMPLETE",
+      type: "FAIRY_CRAWL_COMPLETE",
       pages: state.pages,
       totalVisited: state.visited.size,
       totalQueued: state.queue.length,
@@ -141,7 +141,7 @@ async function crawlNext(tabId, panelPort) {
   state.pages.push(pageEntry);
 
   panelPort.postMessage({
-    type: "FERRY_CRAWL_PROGRESS",
+    type: "FAIRY_CRAWL_PROGRESS",
     currentUrl: nextUrl,
     visited: state.visited.size,
     queued: state.queue.length,
@@ -153,7 +153,7 @@ async function crawlNext(tabId, panelPort) {
     await chrome.tabs.update(tabId, { url: nextUrl });
     await waitForPageLoad(tabId);
 
-    // Inject the Ferry hook (from ferry-hook.js via globalThis.ferryHookFn)
+    // Inject the Ferry hook (from fairy-hook.js via globalThis.fairyHookFn)
     await injectHookViaScripting(tabId);
 
     // Also patch history.pushState so virtual SPA navigations are tracked
@@ -184,7 +184,7 @@ async function crawlNext(tabId, panelPort) {
     setTimeout(() => crawlNext(tabId, panelPort), state.crawlDelayMs);
 
   } catch (e) {
-    panelPort.postMessage({ type: "FERRY_CRAWL_ERROR", url: nextUrl, error: e.message });
+    panelPort.postMessage({ type: "FAIRY_CRAWL_ERROR", url: nextUrl, error: e.message });
     if (state.running) {
       setTimeout(() => crawlNext(tabId, panelPort), state.crawlDelayMs);
     }
@@ -194,7 +194,7 @@ async function crawlNext(tabId, panelPort) {
 // ── Hook injection ────────────────────────────────────────────────────────────
 
 /**
- * Inject ferryHookFn (from ferry-hook.js) into the page's MAIN world.
+ * Inject fairyHookFn (from fairy-hook.js) into the page's MAIN world.
  *
  * MAIN world is required to access window.dataLayer and window.gtag —
  * the default ISOLATED world cannot see page JS globals.
@@ -204,7 +204,7 @@ async function injectHookViaScripting(tabId) {
     await chrome.scripting.executeScript({
       target: { tabId },
       world: "MAIN",
-      func: globalThis.ferryHookFn, // defined in ferry-hook.js via importScripts
+      func: globalThis.fairyHookFn, // defined in fairy-hook.js via importScripts
     });
   } catch {
     // chrome:// pages, restricted origins — silently skip
@@ -218,8 +218,8 @@ async function injectHookViaScripting(tabId) {
  * can detect virtual pageview navigations on single-page apps and
  * extend the stability wait if a route change happens mid-wait.
  *
- * Note: ferryHookFn already patches history — this is a guard in case
- * the hook was skipped or window.__ferryHooked was already true from
+ * Note: fairyHookFn already patches history — this is a guard in case
+ * the hook was skipped or window.__fairyHooked was already true from
  * a previous navigation on a persistent SPA tab.
  */
 async function injectSPAHook(tabId) {
@@ -228,15 +228,15 @@ async function injectSPAHook(tabId) {
       target: { tabId },
       world: "MAIN",
       func: () => {
-        if (history.__ferry_hooked) return;
-        history.__ferry_hooked = true;
-        window.__ferrySPAChanges = window.__ferrySPAChanges || [];
+        if (history.__fairy_hooked) return;
+        history.__fairy_hooked = true;
+        window.__fairySPAChanges = window.__fairySPAChanges || [];
 
         const patch = (method) => {
           const orig = history[method];
           history[method] = function (...args) {
             const result = orig.apply(this, args);
-            window.__ferrySPAChanges.push({ method, url: location.href, ts: Date.now() });
+            window.__fairySPAChanges.push({ method, url: location.href, ts: Date.now() });
             return result;
           };
         };
@@ -254,13 +254,13 @@ async function injectSPAHook(tabId) {
  *
  * Strategy (mirrors the cloud scraper's wait-strategy.js):
  *   1. Wait at least minWaitMs (tags need time to initialise)
- *   2. Poll window.__ferryEvents.length every pollIntervalMs
+ *   2. Poll window.__fairyEvents.length every pollIntervalMs
  *   3. Return when event count has been stable for stabilityWindowMs
  *   4. Hard timeout at hardTimeoutMs regardless
  *   5. Early exit if no events after 60% of hardTimeoutMs
  *      (site may not have GA4/GTM at all)
  *
- * Also checks window.__ferrySPAChanges — if a virtual route change fires
+ * Also checks window.__fairySPAChanges — if a virtual route change fires
  * during the wait, the stability clock is reset to capture route-level events.
  */
 async function waitForEventStability(tabId, opts = {}) {
@@ -289,8 +289,8 @@ async function waitForEventStability(tabId, opts = {}) {
         target: { tabId },
         world: "MAIN",
         func: () => ({
-          events: (window.__ferryEvents    || []).length,
-          spa:    (window.__ferrySPAChanges || []).length,
+          events: (window.__fairyEvents    || []).length,
+          spa:    (window.__fairySPAChanges || []).length,
         }),
       });
       const counts = results?.[0]?.result;
@@ -326,9 +326,9 @@ async function drainEventsViaScripting(tabId) {
       target: { tabId },
       world: "MAIN",
       func: () => {
-        const events = window.__ferryEvents || [];
-        window.__ferryEvents = [];
-        window.__ferryHooked = false; // allow re-hook on next page
+        const events = window.__fairyEvents || [];
+        window.__fairyEvents = [];
+        window.__fairyHooked = false; // allow re-hook on next page
         return JSON.parse(JSON.stringify(events));
       },
     });
@@ -683,5 +683,5 @@ function sleep(ms) {
 // ── Module export ─────────────────────────────────────────────────────────────
 
 if (typeof globalThis !== "undefined") {
-  globalThis.FerryCrawler = { startCrawl, stopCrawl, crawlStates };
+  globalThis.FairyCrawler = { startCrawl, stopCrawl, crawlStates };
 }

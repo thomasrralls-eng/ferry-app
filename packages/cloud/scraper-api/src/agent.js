@@ -40,7 +40,7 @@ async function getAccessToken() {
 async function callGemini(systemPrompt, userPrompt, options = {}) {
   const { maxTokens = 4096, temperature = 0.2 } = options;
 
-  const projectId = process.env.GCP_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || "ferry-prod";
+  const projectId = process.env.GCP_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || "fairy-prod";
   const location = process.env.GCP_REGION || "us-central1";
   const token = await getAccessToken();
 

@@ -7,7 +7,7 @@ import "./index.css";
 const root = createRoot(document.getElementById("root"));
 root.render(<App />);
 
-// Load the lint rules engine (sets window.FerryLint) in background
+// Load the lint rules engine (sets window.FairyLint) in background
 try {
   const script = document.createElement("script");
   script.src = chrome.runtime.getURL("rules/index.js");

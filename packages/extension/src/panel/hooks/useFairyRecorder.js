@@ -3,12 +3,12 @@ import { useState, useRef, useEffect, useCallback } from "react";
 /**
  * The hook injection script. Executed directly in the page's MAIN world
  * via chrome.scripting.executeScript. Hooks dataLayer.push and gtag()
- * and stores captured events in window.__ferryEvents for the panel to poll.
+ * and stores captured events in window.__fairyEvents for the panel to poll.
  */
 const INJECT_HOOK_CODE = () => {
-  if (window.__ferryHooked) return;
-  window.__ferryHooked = true;
-  window.__ferryEvents = [];
+  if (window.__fairyHooked) return;
+  window.__fairyHooked = true;
+  window.__fairyEvents = [];
 
   function safeClone(v, depth) {
     if (depth === undefined) depth = 0;
@@ -62,15 +62,15 @@ const INJECT_HOOK_CODE = () => {
     var safe = safeClone(normalized);
     safe.time = new Date().toISOString();
     safe.pageUrl = location.href;
-    window.__ferryEvents.push(safe);
+    window.__fairyEvents.push(safe);
   }
 
   /* Hook dataLayer.push */
   function hookDL() {
     if (!window.dataLayer) window.dataLayer = [];
     var dl = window.dataLayer;
-    if (dl.__ferryH) return;
-    dl.__ferryH = true;
+    if (dl.__fairyH) return;
+    dl.__fairyH = true;
     var origPush = dl.push.bind(dl);
     dl.push = function() {
       for (var i = 0; i < arguments.length; i++) capture(arguments[i]);
@@ -90,17 +90,17 @@ const INJECT_HOOK_CODE = () => {
       set: function(v) { _dl = v; hookDL(); }
     });
   } catch(e) {}
-  setInterval(function() { if (window.dataLayer && !window.dataLayer.__ferryH) hookDL(); }, 1000);
+  setInterval(function() { if (window.dataLayer && !window.dataLayer.__fairyH) hookDL(); }, 1000);
 
   /* Hook gtag() */
   function hookGtag() {
-    if (typeof window.gtag !== "function" || window.gtag.__ferryH) return false;
+    if (typeof window.gtag !== "function" || window.gtag.__fairyH) return false;
     var orig = window.gtag;
     window.gtag = function() {
       capture(Array.from(arguments));
       return orig.apply(this, arguments);
     };
-    window.gtag.__ferryH = true;
+    window.gtag.__fairyH = true;
     return true;
   }
   if (!hookGtag()) {
@@ -112,11 +112,11 @@ const INJECT_HOOK_CODE = () => {
 };
 
 /**
- * Drain window.__ferryEvents from the page. Returns the array and resets it.
+ * Drain window.__fairyEvents from the page. Returns the array and resets it.
  */
 const DRAIN_EVENTS_CODE = () => {
-  var e = window.__ferryEvents || [];
-  window.__ferryEvents = [];
+  var e = window.__fairyEvents || [];
+  window.__fairyEvents = [];
   return JSON.parse(JSON.stringify(e));
 };
 
@@ -124,7 +124,7 @@ const DRAIN_EVENTS_CODE = () => {
  * Clear stale events and reset hook flag so a fresh start is possible.
  */
 const CLEAR_EVENTS_CODE = () => {
-  window.__ferryEvents = [];
+  window.__fairyEvents = [];
 };
 
 
@@ -135,7 +135,7 @@ const CLEAR_EVENTS_CODE = () => {
  * DataLayer events: injected + polled via chrome.scripting.executeScript (MAIN world).
  * Network hits: captured by the service worker via webRequest, relayed via port.
  */
-export default function useFerryRecorder() {
+export default function useFairyRecorder() {
   const [recording, setRecording] = useState(false);
   const [events, setEvents] = useState([]);
   const [network, setNetwork] = useState([]);
@@ -185,14 +185,14 @@ export default function useFerryRecorder() {
   useEffect(() => {
     if (!activeTabId) return;
 
-    const port = chrome.runtime.connect({ name: "ferry-panel" });
+    const port = chrome.runtime.connect({ name: "fairy-panel" });
     portRef.current = port;
 
-    port.postMessage({ type: "FERRY_INIT", tabId: activeTabId });
+    port.postMessage({ type: "FAIRY_INIT", tabId: activeTabId });
 
     port.onMessage.addListener((msg) => {
       // Network hits relayed from service worker's webRequest listener
-      if (msg.type === "FERRY_NETWORK_HIT" && recordingRef.current) {
+      if (msg.type === "FAIRY_NETWORK_HIT" && recordingRef.current) {
         const hit = parseGa4Hit(msg.url);
         if (hit) {
           hit.hitType = msg.hitType;
@@ -208,7 +208,7 @@ export default function useFerryRecorder() {
       }
 
       // Crawl messages forwarded through
-      // (handled by useFerryCrawler via its own port)
+      // (handled by useFairyCrawler via its own port)
     });
 
     port.onDisconnect.addListener(() => {
@@ -266,8 +266,8 @@ export default function useFerryRecorder() {
 
   // ── Lint a single event ──
   const lintNewEvent = useCallback((event, index) => {
-    if (!window.FerryLint) return [];
-    const results = window.FerryLint.lintEvent(event, sessionStateRef.current);
+    if (!window.FairyLint) return [];
+    const results = window.FairyLint.lintEvent(event, sessionStateRef.current);
     results.forEach((f) => { f.eventIndex = index; });
     return results;
   }, []);
@@ -362,7 +362,7 @@ export default function useFerryRecorder() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `ferry-recording-${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.json`;
+    a.download = `fairy-recording-${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }, [events, network, findings]);

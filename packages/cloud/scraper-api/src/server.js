@@ -12,7 +12,7 @@
  */
 
 import express from "express";
-import { reconScan, scanSite } from "@ferry/scraper";
+import { reconScan, scanSite } from "/scraper";
 import { analyzeReconScan, analyzeFullScan } from "./agent.js";
 import { visualScan } from "./visual-agent.js";
 import domainsRouter from "./domains-router.js";

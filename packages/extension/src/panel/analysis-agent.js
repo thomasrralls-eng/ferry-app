@@ -361,7 +361,7 @@ const FIX_SUGGESTIONS = {
       "Add a guard: only push the purchase event once per order ID",
       "Store the sent transaction ID in sessionStorage to deduplicate",
     ],
-    snippet: `// Deduplicate purchases on the confirmation page\nconst txId = 'ORDER_12345';\nif (!sessionStorage.getItem('ferry_tx_' + txId)) {\n  sessionStorage.setItem('ferry_tx_' + txId, '1');\n  gtag('event', 'purchase', { transaction_id: txId, /* ... */ });\n}`,
+    snippet: `// Deduplicate purchases on the confirmation page\nconst txId = 'ORDER_12345';\nif (!sessionStorage.getItem('fairy_tx_' + txId)) {\n  sessionStorage.setItem('fairy_tx_' + txId, '1');\n  gtag('event', 'purchase', { transaction_id: txId, /* ... */ });\n}`,
   },
   "user-id-contains-pii": {
     summary: "Hash or replace the user_id — raw emails violate Google's TOS",
@@ -841,11 +841,11 @@ function analyzeCrawl(crawlReport) {
     }
   }
 
-  // Run lintSession on all events (if FerryLint is available)
+  // Run lintSession on all events (if FairyLint is available)
   let allFindings = [];
   let crawlGA4Version = null;
-  if (typeof window !== "undefined" && window.FerryLint) {
-    const result = window.FerryLint.lintSession(allEvents, { networkHits: allNetworkHits });
+  if (typeof window !== "undefined" && window.FairyLint) {
+    const result = window.FairyLint.lintSession(allEvents, { networkHits: allNetworkHits });
     allFindings = result.findings;
     crawlGA4Version = result.ga4Version || null;
   }
@@ -918,8 +918,8 @@ function analyzeCrawl(crawlReport) {
 export function analyzeSession({ events = [], network = [], findings = [], crawlReport = null, mode = "ga4", ga4VersionOverride = "auto" }) {
   // Detect GA4 version from events + network hits
   let ga4Version = null;
-  if (typeof window !== "undefined" && window.FerryLint) {
-    ga4Version = window.FerryLint.detectGA4Version(events, network);
+  if (typeof window !== "undefined" && window.FairyLint) {
+    ga4Version = window.FairyLint.detectGA4Version(events, network);
     // Allow user override
     if (ga4VersionOverride && ga4VersionOverride !== "auto") {
       ga4Version = { version: ga4VersionOverride, hints: ["user override"] };

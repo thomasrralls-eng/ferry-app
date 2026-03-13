@@ -1,5 +1,5 @@
 {
-  "name": "@ferry/extension",
+  "name": "/extension",
   "version": "0.1.0",
   "description": "gd fairy — data quality inspector for GA4, GTM, and Google platforms",
   "private": true,

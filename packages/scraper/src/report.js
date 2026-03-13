@@ -44,12 +44,12 @@ async function loadRules() {
     _detectGA4Version = sandbox.module.exports.detectGA4Version;
 
     if (!_lintSession) {
-      console.warn("[ferry-scraper] Lint rules loaded but lintSession not found in exports");
+      console.warn("[fairy-scraper] Lint rules loaded but lintSession not found in exports");
     }
 
     return { lintSession: _lintSession, detectGA4Version: _detectGA4Version };
   } catch (err) {
-    console.error("[ferry-scraper] Could not load lint rules:", err.message);
+    console.error("[fairy-scraper] Could not load lint rules:", err.message);
     return { lintSession: null, detectGA4Version: null };
   }
 }

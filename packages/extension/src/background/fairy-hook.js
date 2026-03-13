@@ -1,5 +1,5 @@
 /**
- * ferry-hook.js — Shared dataLayer/gtag hook injection function.
+ * fairy-hook.js — Shared dataLayer/gtag hook injection function.
  *
  * This function runs in the page's MAIN world via chrome.scripting.executeScript.
  * It must be fully self-contained (no external references or imports).
@@ -14,16 +14,16 @@
  *   - history.pushState /
  *     history.replaceState      → tracks virtual SPA pageviews
  *
- * Captured events land in window.__ferryEvents[] for drain by the crawler.
- * SPA route changes land in window.__ferrySPAChanges[].
+ * Captured events land in window.__fairyEvents[] for drain by the crawler.
+ * SPA route changes land in window.__fairySPAChanges[].
  */
 
 /* eslint-disable no-var */
-function ferryHookFn() {
-  if (window.__ferryHooked) return;
-  window.__ferryHooked = true;
-  window.__ferryEvents    = window.__ferryEvents    || [];
-  window.__ferrySPAChanges = window.__ferrySPAChanges || [];
+function fairyHookFn() {
+  if (window.__fairyHooked) return;
+  window.__fairyHooked = true;
+  window.__fairyEvents    = window.__fairyEvents    || [];
+  window.__fairySPAChanges = window.__fairySPAChanges || [];
 
   // ── Safe structured clone with depth/key/array limits ──────────────────────
   var LIMITS = { maxDepth: 6, maxKeys: 200, maxArray: 200 };
@@ -94,13 +94,13 @@ function ferryHookFn() {
   }
 
   function post(payload) {
-    window.__ferryEvents.push(safeClone(payload, LIMITS));
+    window.__fairyEvents.push(safeClone(payload, LIMITS));
   }
 
   // ── Hook a dataLayer array ───────────────────────────────────────────────
   function hookDataLayer(dl) {
-    if (!dl || dl.__ferry_hooked) return;
-    dl.__ferry_hooked = true;
+    if (!dl || dl.__fairy_hooked) return;
+    dl.__fairy_hooked = true;
 
     var origPush = dl.push.bind(dl);
     dl.push = function () {
@@ -161,14 +161,14 @@ function ferryHookFn() {
   // Poll until it appears, then wrap it.
   function tryWrapGtag() {
     if (typeof window.gtag !== "function") return false;
-    if (window.gtag.__ferry_hooked) return true;
+    if (window.gtag.__fairy_hooked) return true;
     var orig = window.gtag;
     window.gtag = function () {
       var args = Array.prototype.slice.call(arguments);
       post({ source: "gtag", type: args[0], time: new Date().toISOString(), args: args });
       return orig.apply(this, arguments);
     };
-    window.gtag.__ferry_hooked = true;
+    window.gtag.__fairy_hooked = true;
     return true;
   }
 
@@ -181,16 +181,16 @@ function ferryHookFn() {
 
   // ── SPA: patch history.pushState / replaceState ───────────────────────────
   // Records virtual pageview route changes so the crawler can detect them.
-  // Does NOT reset __ferryHooked — hook continuity across virtual pages is
+  // Does NOT reset __fairyHooked — hook continuity across virtual pages is
   // handled by the crawler draining and re-injecting per page.
-  if (!history.__ferry_hooked) {
-    history.__ferry_hooked = true;
+  if (!history.__fairy_hooked) {
+    history.__fairy_hooked = true;
 
     function patchHistory(method) {
       var orig = history[method];
       history[method] = function () {
         var result = orig.apply(this, arguments);
-        window.__ferrySPAChanges.push({
+        window.__fairySPAChanges.push({
           method: method,
           url: location.href,
           ts: Date.now(),
@@ -206,7 +206,7 @@ function ferryHookFn() {
 
 // ── Export ────────────────────────────────────────────────────────────────────
 // Make available in the service-worker context so crawler.js can pass
-// `func: globalThis.ferryHookFn` to chrome.scripting.executeScript.
+// `func: globalThis.fairyHookFn` to chrome.scripting.executeScript.
 if (typeof globalThis !== "undefined") {
-  globalThis.ferryHookFn = ferryHookFn;
+  globalThis.fairyHookFn = fairyHookFn;
 }

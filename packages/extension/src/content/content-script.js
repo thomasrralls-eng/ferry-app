@@ -6,8 +6,8 @@
  */
 
 (() => {
-  if (window.__ferry_content_script_loaded) return;
-  window.__ferry_content_script_loaded = true;
+  if (window.__fairy_content_script_loaded) return;
+  window.__fairy_content_script_loaded = true;
 
   function injectScriptFile(file) {
     try {
@@ -29,11 +29,11 @@
   window.addEventListener("message", (event) => {
     if (event.source !== window) return;
     const data = event.data;
-    if (!data || data.type !== "FERRY_EVENT") return;
+    if (!data || data.type !== "FAIRY_EVENT") return;
 
     try {
       chrome.runtime.sendMessage({
-        type: "FERRY_EVENT",
+        type: "FAIRY_EVENT",
         payload: data.payload
       });
     } catch (e) {
@@ -41,9 +41,9 @@
     }
   });
 
-  // Respond to FERRY_GET_LINKS requests from the crawler
+  // Respond to FAIRY_GET_LINKS requests from the crawler
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    if (msg?.type !== "FERRY_GET_LINKS") return;
+    if (msg?.type !== "FAIRY_GET_LINKS") return;
 
     try {
       const links = Array.from(document.querySelectorAll("a[href]"))

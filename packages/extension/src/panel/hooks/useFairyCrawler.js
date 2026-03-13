@@ -14,7 +14,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
  *   if provided, called with the crawlReport after crawl completes and the
  *   enriched analysis is stored in agentAnalysis state.
  */
-export default function useFerryCrawler(activeTabId, analyzeWithAgent = null) {
+export default function useFairyCrawler(activeTabId, analyzeWithAgent = null) {
   const [crawling, setCrawling] = useState(false);
   const [progress, setProgress] = useState(null);
   const [crawlReport, setCrawlReport] = useState(null);
@@ -39,14 +39,14 @@ export default function useFerryCrawler(activeTabId, analyzeWithAgent = null) {
   const connectPort = useCallback(() => {
     disconnectPort();
 
-    const port = chrome.runtime.connect({ name: "ferry-panel" });
+    const port = chrome.runtime.connect({ name: "fairy-panel" });
     portRef.current = port;
 
-    port.postMessage({ type: "FERRY_INIT", tabId: activeTabId });
+    port.postMessage({ type: "FAIRY_INIT", tabId: activeTabId });
 
     port.onMessage.addListener((msg) => {
       switch (msg.type) {
-        case "FERRY_CRAWL_PROGRESS":
+        case "FAIRY_CRAWL_PROGRESS":
           setProgress({
             currentUrl: msg.currentUrl,
             visited: msg.visited,
@@ -55,7 +55,7 @@ export default function useFerryCrawler(activeTabId, analyzeWithAgent = null) {
           });
           break;
 
-        case "FERRY_CRAWL_COMPLETE": {
+        case "FAIRY_CRAWL_COMPLETE": {
           const report = {
             pages: msg.pages || [],
             totalVisited: msg.totalVisited,
@@ -80,7 +80,7 @@ export default function useFerryCrawler(activeTabId, analyzeWithAgent = null) {
           break;
         }
 
-        case "FERRY_CRAWL_ERROR":
+        case "FAIRY_CRAWL_ERROR":
           setErrors((prev) => [
             ...prev,
             { url: msg.url, error: msg.error, time: new Date().toISOString() },
@@ -105,7 +105,7 @@ export default function useFerryCrawler(activeTabId, analyzeWithAgent = null) {
 
     const port = connectPort();
     port.postMessage({
-      type: "FERRY_CRAWL_START",
+      type: "FAIRY_CRAWL_START",
       startUrl,
       maxPages,
     });
@@ -113,7 +113,7 @@ export default function useFerryCrawler(activeTabId, analyzeWithAgent = null) {
 
   const stopCrawl = useCallback(() => {
     try {
-      portRef.current?.postMessage({ type: "FERRY_CRAWL_STOP" });
+      portRef.current?.postMessage({ type: "FAIRY_CRAWL_STOP" });
     } catch (e) {}
   }, []);
 

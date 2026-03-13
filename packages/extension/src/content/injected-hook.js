@@ -7,7 +7,7 @@
  *
  * NOTE: This file must be self-contained (no imports). It runs in the
  * page's JS context, not the extension context. The same logic is
- * extracted into @ferry/core for server-side use.
+ * extracted into /core for server-side use.
  */
 
 (() => {
@@ -114,7 +114,7 @@
   // --------------------------
   // Event buffer (polled by the DevTools panel directly)
   // --------------------------
-  window.__ferryEvents = window.__ferryEvents || [];
+  window.__fairyEvents = window.__fairyEvents || [];
 
   // --------------------------
   // Messaging
@@ -126,9 +126,9 @@
   function post(payload) {
     const safePayload = safeClone(payload, DEFAULT_LIMITS);
     // Store in page-level buffer for direct polling by DevTools panel
-    window.__ferryEvents.push(safePayload);
+    window.__fairyEvents.push(safePayload);
     // Also post to content script for the crawler / service worker path
-    window.postMessage({ type: "FERRY_EVENT", payload: safePayload }, "*");
+    window.postMessage({ type: "FAIRY_EVENT", payload: safePayload }, "*");
   }
 
   // --------------------------
@@ -161,14 +161,14 @@
   function hookDataLayer() {
     window.dataLayer = window.dataLayer || [];
     const dl = window.dataLayer;
-    if (dl.__ferry_hooked) return;
+    if (dl.__fairy_hooked) return;
 
     // Some sites (e.g. Marriott) define dataLayer via Object.defineProperty with
     // a getter, so the assignment above silently fails and dl may be a custom
     // object with no push/forEach. Bail out gracefully rather than throwing.
     if (typeof dl.push !== "function") return;
 
-    dl.__ferry_hooked = true;
+    dl.__fairy_hooked = true;
 
     const originalPush = dl.push.bind(dl);
     dl.push = function (...args) {
@@ -230,7 +230,7 @@
   function hookGtag() {
     const tryWrap = () => {
       if (typeof window.gtag !== "function") return false;
-      if (window.gtag.__ferry_hooked) return true;
+      if (window.gtag.__fairy_hooked) return true;
       const original = window.gtag;
       window.gtag = function (...args) {
         post({
@@ -242,7 +242,7 @@
         });
         return original.apply(this, args);
       };
-      window.gtag.__ferry_hooked = true;
+      window.gtag.__fairy_hooked = true;
       return true;
     };
 

@@ -465,7 +465,7 @@ export default function SettingsPanel({
           <ol className="text-[11px] text-slate-600 space-y-1 list-decimal list-inside">
             <li>Open <strong>Google Cloud Console</strong> in the client's GCP project</li>
             <li>Go to <strong>IAM &amp; Admin → Service Accounts</strong> → Create</li>
-            <li>Name it something like <code className="bg-slate-200 px-1 rounded">ferry-reader</code></li>
+            <li>Name it something like <code className="bg-slate-200 px-1 rounded">fairy-reader</code></li>
             <li>Grant roles: <code className="bg-slate-200 px-1 rounded">Viewer</code> on GA4, <code className="bg-slate-200 px-1 rounded">Tag Manager Read-Only</code> on GTM</li>
             <li>For BigQuery: grant <code className="bg-slate-200 px-1 rounded">BigQuery Data Viewer</code> on their analytics dataset</li>
             <li>Create a JSON key → download → upload here</li>

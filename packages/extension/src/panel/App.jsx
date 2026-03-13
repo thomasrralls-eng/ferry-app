@@ -8,8 +8,8 @@ import EmptyState from "./components/EmptyState.jsx";
 import CrawlPanel from "./components/CrawlPanel.jsx";
 import AgentReportPanel from "./components/AgentReportPanel.jsx";
 import SettingsPanel from "./components/SettingsPanel.jsx";
-import useFerryRecorder from "./hooks/useFerryRecorder.js";
-import useFerryCrawler from "./hooks/useFerryCrawler.js";
+import useFairyRecorder from "./hooks/useFairyRecorder.js";
+import useFairyCrawler from "./hooks/useFairyCrawler.js";
 import { useDomainAgent } from "./hooks/useDomainAgent.js";
 import { analyzeSession } from "./analysis-agent.js";
 
@@ -44,7 +44,7 @@ export default function App() {
   const {
     recording, events, network, findings, activeTabId,
     startRecording, stopRecording, clear, exportJSON,
-  } = useFerryRecorder();
+  } = useFairyRecorder();
 
   // ── Domain agent (cloud-backed enriched analysis) ──
   const {
@@ -59,7 +59,7 @@ export default function App() {
   const {
     crawling, progress, crawlReport, agentAnalysis, errors: crawlErrors,
     startCrawl, stopCrawl, clearReport,
-  } = useFerryCrawler(activeTabId, analyzeWithAgent);
+  } = useFairyCrawler(activeTabId, analyzeWithAgent);
 
   const [mode, setMode] = useState("ga4"); // "ga4" or "gtm"
   const [activeTab, setActiveTab] = useState("findings");

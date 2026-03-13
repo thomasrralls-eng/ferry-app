@@ -42,7 +42,7 @@ function copyStaticFiles() {
       // Simple file copies (no transformation needed)
       const staticFiles = [
         ["src/background/service-worker.js", "service-worker.js"],
-        ["src/background/ferry-hook.js", "ferry-hook.js"],
+        ["src/background/fairy-hook.js", "fairy-hook.js"],
         ["src/content/content-script.js", "content-script.js"],
         ["src/content/injected-hook.js", "injected-hook.js"],
         ["src/rules/index.js", "rules/index.js"],
@@ -55,14 +55,14 @@ function copyStaticFiles() {
         copyFileSync(resolve(__dirname, src), destPath);
       }
 
-      // Inline ferry-hook.js into crawler.js so the service worker needs only
+      // Inline fairy-hook.js into crawler.js so the service worker needs only
       // one importScripts("crawler.js") call. Chrome MV3 service workers support
       // importScripts() from the manifest-registered SW file, but scripts loaded
       // *by* importScripts() cannot themselves call importScripts() — so we
-      // pre-bundle ferry-hook.js + crawler.js into a single output file.
-      const ferryHook = readFileSync(resolve(__dirname, "src/background/ferry-hook.js"), "utf-8");
+      // pre-bundle fairy-hook.js + crawler.js into a single output file.
+      const fairyHook = readFileSync(resolve(__dirname, "src/background/fairy-hook.js"), "utf-8");
       const crawler   = readFileSync(resolve(__dirname, "src/background/crawler.js"), "utf-8");
-      writeFileSync(resolve(dist, "crawler.js"), ferryHook + "\n\n" + crawler);
+      writeFileSync(resolve(dist, "crawler.js"), fairyHook + "\n\n" + crawler);
 
       // Copy icon files
       const iconsDir = resolve(__dirname, "icons");

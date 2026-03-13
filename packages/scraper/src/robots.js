@@ -105,8 +105,8 @@ export function parseRobotsTxt(text, origin) {
     }
   }
 
-  // Find the most specific matching group: prefer "ferrybot" > "*"
-  const botName = "ferrybot";
+  // Find the most specific matching group: prefer "fairybot" > "*"
+  const botName = "fairybot";
   let matchedGroup = ruleGroups.find(g => g.agents.has(botName));
   if (!matchedGroup) {
     matchedGroup = ruleGroups.find(g => g.agents.has("*"));

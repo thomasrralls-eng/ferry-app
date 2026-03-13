@@ -6,7 +6,7 @@
  * is smarter:
  *
  *   1. After DOMContentLoaded, inject the Ferry hook
- *   2. Poll `window.__ferryEvents` every 250ms
+ *   2. Poll `window.__fairyEvents` every 250ms
  *   3. Wait until the event count stabilizes (no new events for 1.5s)
  *   4. Hard timeout at 10s — move on regardless
  *
@@ -56,7 +56,7 @@ export async function waitForDataLayer(page, options = {}) {
     let currentCount;
     try {
       currentCount = await page.evaluate(() => {
-        return (window.__ferryEvents || []).length;
+        return (window.__fairyEvents || []).length;
       });
     } catch {
       // Page might have navigated or crashed

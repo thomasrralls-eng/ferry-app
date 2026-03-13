@@ -23,7 +23,7 @@
 
 // ──────────────────────────────────────────────
 // Schema data (inlined for extension context — no require())
-// In a bundled build, this would import from @ferry/core
+// In a bundled build, this would import from /core
 // ──────────────────────────────────────────────
 
 const RESERVED_EVENT_NAMES = new Set([
@@ -1373,7 +1373,7 @@ function lintSession(events, options = {}) {
 
 // Make available to panel.js (global scope in extension)
 if (typeof window !== "undefined") {
-  window.FerryLint = { lintEvent, lintSession, detectGA4Version, getEffectiveLimits, LIMITS, LIMITS_360 };
+  window.FairyLint = { lintEvent, lintSession, detectGA4Version, getEffectiveLimits, LIMITS, LIMITS_360 };
 }
 
 // Make available to Node.js / tests

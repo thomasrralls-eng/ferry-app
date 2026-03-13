@@ -3,14 +3,14 @@
 /* ── gd fairy Design Tokens ── */
 :root {
   /* Primary — Indigo */
-  --ferry-50: #EEF2FF;
-  --ferry-100: #E0E7FF;
-  --ferry-200: #C7D2FE;
-  --ferry-400: #818CF8;
-  --ferry-500: #6366F1;
-  --ferry-600: #4F46E5;
-  --ferry-700: #4338CA;
-  --ferry-900: #312E81;
+  --fairy-50: #EEF2FF;
+  --fairy-100: #E0E7FF;
+  --fairy-200: #C7D2FE;
+  --fairy-400: #818CF8;
+  --fairy-500: #6366F1;
+  --fairy-600: #4F46E5;
+  --fairy-700: #4338CA;
+  --fairy-900: #312E81;
 
   /* Secondary — Lavender */
   --lavender-50: #F5F3FF;

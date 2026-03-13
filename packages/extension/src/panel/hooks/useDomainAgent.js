@@ -20,10 +20,10 @@ import { useState, useEffect, useCallback, useRef } from "react";
 // ── Config ────────────────────────────────────────────────────────────────────
 
 // Change to your Cloud Run URL when deployed
-const API_BASE = process.env.VITE_FERRY_API_URL
-  || "https://ferry-api-PLACEHOLDER.run.app";
+const API_BASE = process.env.VITE_FAIRY_API_URL
+  || "https://fairy-api-PLACEHOLDER.run.app";
 
-const STORAGE_KEY = "ferry_domain_agent";
+const STORAGE_KEY = "fairy_domain_agent";
 
 // ── Token helpers ─────────────────────────────────────────────────────────────
 
@@ -285,7 +285,7 @@ export function useDomainAgent() {
    * Send a completed crawl report to the backend for enriched analysis.
    * Returns the enriched analysis object, or null if not configured / fails.
    *
-   * @param {Object} crawlReport — from useFerryCrawler
+   * @param {Object} crawlReport — from useFairyCrawler
    * @param {string} mode — "ga4" | "gtm"
    */
   const analyzeWithAgent = useCallback(async (crawlReport, mode = "ga4") => {

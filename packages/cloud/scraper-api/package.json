@@ -1,5 +1,5 @@
 {
-  "name": "@ferry/scraper-api",
+  "name": "/scraper-api",
   "version": "0.1.0",
   "description": "gd fairy — Cloud Run API for the GA4/GTM scraper",
   "type": "module",
@@ -9,7 +9,7 @@
     "dev": "node --watch src/server.js"
   },
   "dependencies": {
-    "@ferry/scraper": "*",
+    "/scraper": "*",
     "@google-analytics/data": "^5.2.1",
     "@google-cloud/firestore": "^8.3.0",
     "@google-cloud/secret-manager": "^6.1.1",

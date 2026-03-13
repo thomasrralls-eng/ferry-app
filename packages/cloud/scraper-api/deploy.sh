@@ -14,7 +14,7 @@ set -euo pipefail
 PROJECT_ID=$(gcloud config get-value project 2>/dev/null)
 REGION="us-central1"
 REPO_NAME="ferry"
-SERVICE_NAME="ferry-scraper"
+SERVICE_NAME="fairy-scraper"
 IMAGE="us-central1-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/scraper-api"
 
 echo "═══════════════════════════════════════════"

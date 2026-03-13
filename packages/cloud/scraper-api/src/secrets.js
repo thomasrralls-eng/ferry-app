@@ -2,7 +2,7 @@
  * secrets.js — Google Cloud Secret Manager integration
  *
  * Stores per-domain service account JSON keys securely.
- * Secret naming convention: ferry-domain-{domainId}-sa-key
+ * Secret naming convention: fairy-domain-{domainId}-sa-key
  *
  * We always write a new version on update (Secret Manager is append-only)
  * and always read the "latest" version alias.
@@ -14,10 +14,10 @@ const client = new SecretManagerServiceClient();
 
 const PROJECT_ID = process.env.GCP_PROJECT_ID
   || process.env.GOOGLE_CLOUD_PROJECT
-  || "ferry-prod";
+  || "fairy-prod";
 
 function secretName(domainId) {
-  return `ferry-domain-${domainId}-sa-key`;
+  return `fairy-domain-${domainId}-sa-key`;
 }
 
 function secretPath(domainId) {
@@ -47,7 +47,7 @@ export async function storeSAKey(domainId, saJsonString) {
       secretId: name,
       secret: {
         replication: { automatic: {} },
-        labels: { "ferry-domain": domainId },
+        labels: { "fairy-domain": domainId },
       },
     });
   } catch (err) {

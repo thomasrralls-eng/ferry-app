@@ -1,5 +1,5 @@
 {
-  "name": "@ferry/scraper",
+  "name": "/scraper",
   "version": "0.1.0",
   "description": "gd fairy cloud scraper — headless browser crawler for GA4/GTM data quality analysis",
   "type": "module",
@@ -9,7 +9,7 @@
     "scan": "node src/cli.js"
   },
   "dependencies": {
-    "@ferry/core": "*"
+    "/core": "*"
   },
   "peerDependencies": {
     "puppeteer": "^24.38.0"

@@ -14,9 +14,9 @@ steps:
     args:
       - "build"
       - "-t"
-      - "us-central1-docker.pkg.dev/$PROJECT_ID/ferry/scraper-api:${_TAG}"
+      - "us-central1-docker.pkg.dev/$PROJECT_ID/fairy/scraper-api:${_TAG}"
       - "-t"
-      - "us-central1-docker.pkg.dev/$PROJECT_ID/ferry/scraper-api:latest"
+      - "us-central1-docker.pkg.dev/$PROJECT_ID/fairy/scraper-api:latest"
       - "-f"
       - "packages/cloud/scraper-api/Dockerfile"
       - "."
@@ -26,7 +26,7 @@ steps:
     args:
       - "push"
       - "--all-tags"
-      - "us-central1-docker.pkg.dev/$PROJECT_ID/ferry/scraper-api"
+      - "us-central1-docker.pkg.dev/$PROJECT_ID/fairy/scraper-api"
 
   # Deploy to Cloud Run
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
@@ -34,9 +34,9 @@ steps:
     args:
       - "run"
       - "deploy"
-      - "ferry-scraper"
+      - "fairy-scraper"
       - "--image"
-      - "us-central1-docker.pkg.dev/$PROJECT_ID/ferry/scraper-api:latest"
+      - "us-central1-docker.pkg.dev/$PROJECT_ID/fairy/scraper-api:latest"
       - "--region"
       - "us-central1"
       - "--platform"
@@ -56,7 +56,7 @@ steps:
       - "--allow-unauthenticated"
 
 images:
-  - "us-central1-docker.pkg.dev/$PROJECT_ID/ferry/scraper-api:latest"
+  - "us-central1-docker.pkg.dev/$PROJECT_ID/fairy/scraper-api:latest"
 
 options:
   logging: CLOUD_LOGGING_ONLY

@@ -4,7 +4,7 @@
 
 **Name:** gd fairy (all lowercase)
 **Legal entity:** DataFairy LLC
-**Domains:** gdfairy.com (primary), gdferry.com (redirects), datafairy.com (corporate)
+**Domains:** gdfairy.com (primary), gdfairy.com (redirects), datafairy.com (corporate)
 
 **Concept:** "gd" stands for Google Data — the lowercase g mirrors Google's own lowercase styling. It's also the other thing you mutter when your GA4 is broken. Fairy is the AI agent: whimsical, smart, and a little bit magic. The fairy inspects your data with a wave of its wand, turning chaos into clarity. No boat required — just pure enchantment.
 
