@@ -252,6 +252,28 @@
     .for-card h3 { font-size: 16px; letter-spacing: -0.025em; color: var(--slate-900); margin-bottom: 8px; }
     .for-card p { color: var(--slate-500); font-size: 13.5px; line-height: 1.65; }
 
+    /* ─── PRICING ─────────────────────────────────────────────────────────── */
+    .pricing-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; align-items: stretch; }
+    .pricing-card {
+      background: var(--white); border: 1px solid var(--slate-200);
+      border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow);
+      display: flex; flex-direction: column;
+    }
+    .pricing-card.featured { border-color: rgba(99,102,241,0.3); box-shadow: 0 0 0 1px rgba(99,102,241,0.15), var(--shadow-lg); }
+    .pricing-badge { display: inline-flex; padding: 5px 10px; border-radius: 999px; margin-bottom: 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; align-self: flex-start; }
+    .pricing-badge.popular { background: var(--indigo); color: var(--white); }
+    .pricing-badge.soon { background: rgba(245,158,11,0.15); color: #92400e; border: 1px solid rgba(245,158,11,0.25); }
+    .pricing-tier { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: var(--slate-400); text-transform: uppercase; margin-bottom: 8px; }
+    .pricing-card h3 { font-size: 24px; color: var(--slate-950); letter-spacing: -0.03em; margin-bottom: 8px; }
+    .pricing-card > p { color: var(--slate-500); font-size: 13.5px; line-height: 1.65; margin-bottom: 20px; }
+    .price-row { display: flex; align-items: baseline; gap: 4px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--slate-200); }
+    .price-num { font-size: 40px; font-weight: 800; color: var(--slate-950); letter-spacing: -0.05em; line-height: 1; }
+    .price-per { font-size: 13px; color: var(--slate-500); }
+    .price-custom { font-size: 36px; font-weight: 800; color: var(--slate-950); letter-spacing: -0.04em; }
+    .feature-list { list-style: none; display: grid; gap: 9px; margin-bottom: 24px; flex: 1; }
+    .feature-list li { color: var(--slate-600); font-size: 13.5px; padding-left: 20px; position: relative; line-height: 1.5; }
+    .feature-list li::before { content: '✓'; position: absolute; left: 0; color: var(--green); font-weight: 700; }
+
     /* ─── CTA BAND ────────────────────────────────────────────────────────── */
     .cta-band {
       padding: 48px; border-radius: 28px;
@@ -273,14 +295,14 @@
     @media (max-width: 960px) {
       .hero-grid, .what-grid, .report-body { grid-template-columns: 1fr; }
       .report-sidebar { border-right: none; border-bottom: 1px solid var(--slate-200); }
-      .modules-grid, .for-grid { grid-template-columns: repeat(2,1fr); }
+      .modules-grid, .for-grid, .pricing-grid { grid-template-columns: repeat(2,1fr); }
       .steps { grid-template-columns: repeat(2,1fr); }
       .steps::before { display: none; }
       .cta-band { grid-template-columns: 1fr; }
     }
     @media (max-width: 640px) {
       .nav-links, .header-actions .btn-secondary { display: none; }
-      .modules-grid, .for-grid, .steps { grid-template-columns: 1fr; }
+      .modules-grid, .for-grid, .pricing-grid, .steps { grid-template-columns: 1fr; }
       .score-card, .health-score-row, .finding-grid { grid-template-columns: 1fr; }
     }
   </style>
@@ -295,8 +317,8 @@
       </a>
       <nav class="nav-links">
         <a href="#what">What it does</a>
-        <a href="#how">How it works</a>
         <a href="#modules">Modules</a>
+        <a href="#pricing">Pricing</a>
         <a href="#report">Sample report</a>
       </nav>
       <div class="header-actions">
@@ -637,6 +659,75 @@
       </div>
     </section>
 
+    <!-- ─── PRICING ──────────────────────────────────────────────────────────── -->
+    <section id="pricing" style="background:var(--slate-50);">
+      <div class="container">
+        <div class="section-head">
+          <div class="section-kicker">Pricing</div>
+          <h2>Start free. Upgrade when you need more.</h2>
+          <p>A Chrome extension today, with a full agent platform coming soon.</p>
+        </div>
+        <div class="pricing-grid">
+
+          <!-- Free tier -->
+          <div class="pricing-card">
+            <div class="pricing-tier">Free forever</div>
+            <h3>Fairy Lite</h3>
+            <p>Real-time GA4 &amp; GTM signal inspection in your browser.</p>
+            <div class="price-row"><span class="price-num">$0</span></div>
+            <ul class="feature-list">
+              <li>Chrome extension with real-time GA4 event inspection</li>
+              <li>GTM tag &amp; trigger validation</li>
+              <li>Signal health score &amp; risk-bucketed findings</li>
+              <li>dataLayer push monitoring</li>
+              <li>Safe &amp; low-risk fix guidance</li>
+              <li>Export findings as JSON</li>
+            </ul>
+            <a href="#cta" class="btn btn-secondary" style="width:100%;justify-content:center;margin-top:auto;">Get early access</a>
+          </div>
+
+          <!-- Pro tier — featured -->
+          <div class="pricing-card featured">
+            <div class="pricing-badge popular">Most popular</div>
+            <div class="pricing-tier">For teams &amp; agencies</div>
+            <h3>data fairy Pro</h3>
+            <p>Your own signal agent trained on your site's GA4, GTM, and conversion flows.</p>
+            <div class="price-row"><span class="price-num">$49</span><span class="price-per">&thinsp;/ mo</span></div>
+            <ul class="feature-list">
+              <li>Everything in Fairy Lite</li>
+              <li>Domain agent — trained on your GA4 events &amp; GTM container</li>
+              <li>GA4 Data API integration — compares live signals to historical baseline</li>
+              <li>Continuous monitoring &amp; alerting on signal drift</li>
+              <li>Visual journey scanner — walks your funnels like a real user</li>
+              <li>Unlimited audit reports</li>
+              <li>Chat interface — ask questions about your signal layer</li>
+            </ul>
+            <a href="#cta" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:auto;">Join Pro waitlist</a>
+          </div>
+
+          <!-- Godmother tier — coming soon -->
+          <div class="pricing-card">
+            <div class="pricing-badge soon">Coming soon</div>
+            <div class="pricing-tier">Full platform access</div>
+            <h3>Fairy Godmother</h3>
+            <p>Self-healing signals. One-click GTM fixes. White-glove measurement strategy.</p>
+            <div class="price-row"><span class="price-custom">Custom</span></div>
+            <ul class="feature-list">
+              <li>Everything in data fairy Pro</li>
+              <li>One-click GTM fixes — fairy pushes signal fixes to your container</li>
+              <li>Automated signal rollback if a deploy breaks conversion tracking</li>
+              <li>Shadow CI/CD — test tagging changes before they reach production</li>
+              <li>Cross-platform signal reconciliation (GA4, Ads, Meta, TikTok)</li>
+              <li>Measurement strategy consulting via your fairy agent</li>
+              <li>Priority support &amp; onboarding</li>
+            </ul>
+            <button class="btn btn-disabled" style="width:100%;justify-content:center;margin-top:auto;" disabled>Coming soon</button>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
     <!-- ─── CTA BAND ───────────────────────────────────────────────────────── -->
     <section id="cta" style="padding-bottom:96px;">
       <div class="container">
@@ -664,6 +755,7 @@
       <div class="footer-links">
         <a href="#what">What it does</a>
         <a href="#modules">Modules</a>
+        <a href="#pricing">Pricing</a>
         <a href="#report">Sample report</a>
         <a href="mailto:hello@datafairy.ai">Contact</a>
       </div>
