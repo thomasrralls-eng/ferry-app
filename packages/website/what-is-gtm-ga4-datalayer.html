@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>What is GTM, GA4 & the dataLayer? A Visual Guide | gd fairy</title>
+  <title>What is GTM, GA4 & the dataLayer? A Visual Guide | data fairy</title>
   <meta name="description" content="A plain-English visual guide to Google Tag Manager (GTM), Google Analytics 4 (GA4), the dataLayer, and why data hygiene matters for your analytics." />
   <meta property="og:title" content="What is GTM, GA4 & the dataLayer? A Visual Guide" />
   <meta property="og:description" content="Understand how GTM, GA4, and your dataLayer actually work together — and what breaks when they don't." />
   <meta property="og:type" content="article" />
-  <link rel="canonical" href="https://gdfairy.com/what-is-gtm-ga4-datalayer" />
+  <link rel="canonical" href="https://datafairy.ai/what-is-gtm-ga4-datalayer" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -64,15 +64,9 @@
       height: 64px; gap: 24px;
       width: min(1120px, calc(100% - 48px)); margin: 0 auto;
     }
-    .brand { display: inline-flex; align-items: center; gap: 2px; font-weight: 700; letter-spacing: -0.03em; color: var(--slate-900); font-size: 17px; }
-    .brand-mark {
-      width: 36px; height: 36px; border-radius: 12px; flex: 0 0 auto;
-      background: linear-gradient(135deg, var(--indigo) 0%, var(--indigo-mid) 100%);
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 2px 8px rgba(99,102,241,0.3);
-    }
-    .brand-name { display: inline-flex; align-items: center; gap: 4px; }
-    .brand-name .spark { color: var(--gold); font-size: 13px; transform: translateY(-3px); }
+    .brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; letter-spacing: -0.03em; color: var(--slate-900); font-size: 17px; }
+    .brand-icon { width: 36px; height: 36px; border-radius: 12px; background: #1e1b4b; display: grid; place-items: center; font-size: 17px; line-height: 1; flex: 0 0 auto; color: var(--gold); }
+    .brand-name { display: inline-flex; align-items: center; }
     .btn { display: inline-flex; align-items: center; gap: 7px; border-radius: 12px; padding: 10px 18px; font-weight: 600; font-size: 13px; font-family: inherit; transition: 0.15s ease; border: 1px solid transparent; cursor: pointer; }
     .btn:hover { transform: translateY(-1px); }
     .btn-primary { background: var(--indigo); color: var(--white); box-shadow: 0 4px 14px rgba(99,102,241,0.25); }
@@ -455,10 +449,10 @@
   <header class="site-header">
     <div class="header-inner">
       <a href="index.html" class="brand">
-        <span class="brand-mark"><svg width="20" height="20" viewBox="0 0 32 32" fill="none"><path d="M15 13C13 10 10.5 10.5 10 9C9.5 7.5 11 6.5 12.5 7.5C13.5 8.2 14.5 10 15 12Z" fill="white" opacity="0.9"/><path d="M17 13C19 10 21.5 10.5 22 9C22.5 7.5 21 6.5 19.5 7.5C18.5 8.2 17.5 10 17 12Z" fill="white" opacity="0.9"/><path d="M15 14.5C13.5 13 11.5 13.5 11 12.5C10.5 11.5 12 11 13 11.8C13.8 12.3 14.5 13.5 15 14.5Z" fill="white" opacity="0.65"/><path d="M17 14.5C18.5 13 20.5 13.5 21 12.5C21.5 11.5 20 11 19 11.8C18.2 12.3 17.5 13.5 17 14.5Z" fill="white" opacity="0.65"/><circle cx="16" cy="12.5" r="2.5" fill="#fbbf24" opacity="0.25"/><circle cx="16" cy="12.5" r="1.2" fill="#fbbf24"/><rect x="12.5" y="16" width="7" height="3" rx="0.8" fill="white"/><circle cx="14.5" cy="17.5" r="0.7" fill="#818cf8"/><circle cx="17.5" cy="17.5" r="0.7" fill="#818cf8"/><path d="M10 20L11.5 23H20.5L22 20Z" fill="white"/><path d="M8 24.5Q11 23.5 14 24.5T20 24.5T26 23.5" stroke="#a5b4fc" stroke-width="1" fill="none" opacity="0.7"/></svg></span>
-        <span class="brand-name">gd ferry <span class="spark">✦</span></span>
+        <span class="brand-icon">✦</span>
+        <span class="brand-name">data fairy</span>
       </a>
-      <a href="index.html#cta" class="btn btn-primary">Get early access</a>
+      <a href="index.html#cta" class="btn btn-primary">Start a free scan</a>
     </div>
   </header>
 
@@ -467,7 +461,7 @@
     <!-- HERO -->
     <section class="article-hero">
       <div class="container">
-        <div class="eyebrow">GA4 &amp; GTM Guide ✦ gd fairy</div>
+        <div class="eyebrow">GA4 &amp; GTM Guide ✦ data fairy</div>
         <h1>What is GTM, GA4,<br>and the dataLayer?</h1>
         <p class="lead">A plain-English visual guide to how Google Tag Manager, Google Analytics 4, and your dataLayer actually work together — and what breaks when they don't.</p>
         <div class="article-meta">
@@ -485,6 +479,7 @@
         <nav class="toc" aria-label="Table of contents">
           <h4>In this guide</h4>
           <ol>
+            <li><a href="#metaphor">The restaurant metaphor</a></li>
             <li><a href="#what-is-ga4">What is GA4?</a></li>
             <li><a href="#what-is-gtm">What is Google Tag Manager (GTM)?</a></li>
             <li><a href="#what-is-datalayer">What is the dataLayer?</a></li>
@@ -493,6 +488,62 @@
             <li><a href="#common-issues">Common implementation issues</a></li>
           </ol>
         </nav>
+
+        <!-- ── SECTION 0: METAPHOR ── -->
+        <article class="article-section" id="metaphor">
+          <span class="section-label label-hygiene">The Metaphor</span>
+          <h2>Think of it like a restaurant</h2>
+          <p>GTM, the dataLayer, and GA4 are the three moving parts behind every analytics event on your website. Before diving into the technical details, here's a mental model that makes their relationship click.</p>
+
+          <div class="impact-grid anim-cards">
+            <div class="impact-card" style="border-top-color: var(--indigo);">
+              <div class="icon">🍳</div>
+              <h4>The Prep Station (dataLayer)</h4>
+              <p>When a customer places an order, kitchen staff organize the ingredients into labelled bowls — <code style="font-size:12px;color:var(--indigo-deep);background:rgba(99,102,241,0.07);padding:1px 5px;border-radius:4px;">event: "purchase"</code>, <code style="font-size:12px;color:var(--indigo-deep);background:rgba(99,102,241,0.07);padding:1px 5px;border-radius:4px;">value: 50</code>. The dataLayer is that prep station: a shared, structured holding area where your site assembles event data before anything acts on it.</p>
+            </div>
+            <div class="impact-card" style="border-top-color: var(--gtm-blue);">
+              <div class="icon">🤵</div>
+              <h4>The Waiter (GTM)</h4>
+              <p>The waiter watches the prep station. When a bowl appears — that is, when an event is pushed — they punch the order into a tablet and route it to the right destination: GA4, Google Ads, Meta Pixel. GTM is the waiter: it listens for dataLayer events, reads the data from those "bowls," and fires the right tags to the right tools.</p>
+            </div>
+            <div class="impact-card" style="border-top-color: var(--ga4-orange);">
+              <div class="icon">🖥️</div>
+              <h4>The POS System (GA4 &amp; Partners)</h4>
+              <p>Every order goes into the point-of-sale system, which tracks revenue, highlights what's selling, and feeds the data back to suppliers. GA4 is your POS: it aggregates every event the waiter sends, surfaces trends in reports, and shares conversion signals with Google Ads and other platforms that optimize on your data.</p>
+            </div>
+          </div>
+
+          <h3 style="margin-top: 40px;">How "bad data" breaks the business</h3>
+          <p>Just like in a restaurant, small errors in the handoff cascade into real problems. Here are two scenarios that play out on real websites every day.</p>
+
+          <div class="compare-grid anim-cards">
+            <div class="compare-card compare-bad">
+              <div class="compare-head"><span class="dot"></span>The Wrong Button</div>
+              <p style="font-size:13px;color:var(--slate-600);margin-bottom:14px;">A developer wires the "Add to Cart" click to the <em>purchase</em> event instead of the <em>add_to_cart</em> event. The dataLayer bowl gets labelled wrong at the prep station.</p>
+              <ul class="compare-list">
+                <li>The waiter (GTM) faithfully reads the label and fires a <code style="font-size:11px;">purchase</code> tag — for a $5 salad instead of a $50 steak.</li>
+                <li>GA4 records hundreds of fake purchases. Revenue looks fine; conversion rate looks great.</li>
+                <li>Google Ads optimizes toward "buyers" who never actually bought anything. CPAs inflate silently.</li>
+                <li>The team doesn't discover the misfire until a quarterly audit — months of wasted spend later.</li>
+              </ul>
+            </div>
+            <div class="compare-card compare-bad">
+              <div class="compare-head"><span class="dot"></span>The Double Punch</div>
+              <p style="font-size:13px;color:var(--slate-600);margin-bottom:14px;">The site fires <code style="font-size:11px;">dataLayer.push</code> twice on the same checkout confirmation — once from legacy code and once from the new implementation.</p>
+              <ul class="compare-list">
+                <li>The waiter sees two bowls for the same order and punches it twice into the POS.</li>
+                <li>GA4 counts one purchase as two. Revenue appears doubled for that SKU.</li>
+                <li>Smart Bidding receives duplicate conversion signals and over-weights that product.</li>
+                <li>Suppression lists built from "converters" miss real users, burning retargeting budget.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="callout callout-indigo" style="margin-top:28px;">
+            <strong>The takeaway</strong>
+            <p>The kitchen analogy holds end to end: it doesn't matter how good your waiter is, or how powerful your POS system is — if the prep station sends out mislabelled or duplicate bowls, everything downstream degrades. GA4, GTM, and your dataLayer are only as reliable as the quality of what gets pushed into that shared array.</p>
+          </div>
+        </article>
 
         <!-- ── SECTION 1: GA4 ── -->
         <article class="article-section" id="what-is-ga4">
@@ -834,7 +885,7 @@
         <article class="article-section" id="common-issues">
           <span class="section-label label-hygiene">Common Issues</span>
           <h2>Common GA4 &amp; GTM implementation issues</h2>
-          <p>These are the issues gd fairy flags most frequently when auditing real-world GA4 and GTM setups.</p>
+          <p>These are the issues data fairy flags most frequently when auditing real-world GA4 and GTM setups.</p>
 
           <!-- Issue cards — stagger slide in from left -->
           <div style="display:grid;gap:16px;margin:32px 0;">
@@ -889,10 +940,10 @@
 
         <!-- CTA -->
         <div class="guide-cta">
-          <div class="eyebrow" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.15);color:rgba(255,255,255,0.85);margin-bottom:20px;display:inline-flex;">Google Data Fairy ✦ Free Chrome Extension</div>
+          <div class="eyebrow" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.15);color:rgba(255,255,255,0.85);margin-bottom:20px;display:inline-flex;">✦ data fairy · datafairy.ai</div>
           <h2>See what's wrong with your GA4 &amp; GTM right now</h2>
-          <p>gd fairy audits your GA4 implementation in real time — catching every broken event, duplicate tag, and missing parameter as you browse your own site. No setup required.</p>
-          <a href="index.html#cta" class="btn btn-primary btn-lg">Start free audit →</a>
+          <p>data fairy audits your GA4 and GTM implementation in real time — catching every broken event, duplicate tag, and missing parameter. No setup required.</p>
+          <a href="index.html#cta" class="btn btn-primary btn-lg">Start a free scan →</a>
         </div>
 
       </div><!-- /container -->
@@ -903,17 +954,17 @@
   <footer>
     <div class="footer-row">
       <a href="index.html" class="brand">
-        <span class="brand-mark"><svg width="20" height="20" viewBox="0 0 32 32" fill="none"><path d="M15 13C13 10 10.5 10.5 10 9C9.5 7.5 11 6.5 12.5 7.5C13.5 8.2 14.5 10 15 12Z" fill="white" opacity="0.9"/><path d="M17 13C19 10 21.5 10.5 22 9C22.5 7.5 21 6.5 19.5 7.5C18.5 8.2 17.5 10 17 12Z" fill="white" opacity="0.9"/><path d="M15 14.5C13.5 13 11.5 13.5 11 12.5C10.5 11.5 12 11 13 11.8C13.8 12.3 14.5 13.5 15 14.5Z" fill="white" opacity="0.65"/><path d="M17 14.5C18.5 13 20.5 13.5 21 12.5C21.5 11.5 20 11 19 11.8C18.2 12.3 17.5 13.5 17 14.5Z" fill="white" opacity="0.65"/><circle cx="16" cy="12.5" r="2.5" fill="#fbbf24" opacity="0.25"/><circle cx="16" cy="12.5" r="1.2" fill="#fbbf24"/><rect x="12.5" y="16" width="7" height="3" rx="0.8" fill="white"/><circle cx="14.5" cy="17.5" r="0.7" fill="#818cf8"/><circle cx="17.5" cy="17.5" r="0.7" fill="#818cf8"/><path d="M10 20L11.5 23H20.5L22 20Z" fill="white"/><path d="M8 24.5Q11 23.5 14 24.5T20 24.5T26 23.5" stroke="#a5b4fc" stroke-width="1" fill="none" opacity="0.7"/></svg></span>
-        <span class="brand-name">gd ferry <span class="spark">✦</span></span>
+        <span class="brand-icon" style="width:28px;height:28px;border-radius:8px;font-size:13px;">✦</span>
+        <span class="brand-name">data fairy</span>
       </a>
       <div class="footer-links">
-        <a href="index.html#product">Product</a>
+        <a href="index.html#what">What it does</a>
+        <a href="index.html#modules">Modules</a>
         <a href="index.html#report">Sample report</a>
-        <a href="index.html#pricing">Pricing</a>
         <a href="what-is-gtm-ga4-datalayer.html">GTM &amp; GA4 Guide</a>
-        <a href="mailto:hello@gdfairy.com">Contact</a>
+        <a href="mailto:hello@datafairy.ai">Contact</a>
       </div>
-      <span>&copy; 2025 DataFairy LLC</span>
+      <span>&copy; 2025 data fairy &middot; datafairy.ai</span>
     </div>
   </footer>
 
