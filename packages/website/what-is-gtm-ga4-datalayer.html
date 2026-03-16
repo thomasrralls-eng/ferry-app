@@ -850,8 +850,8 @@
             <div class="compare-card compare-bad">
               <div class="compare-head"><span class="dot"></span>Poor hygiene — what we see constantly</div>
               <ul class="compare-list">
-                <li>Events with spaces or special characters in the name (<code style="font-size:11px;">add to cart</code> instead of <code style="font-size:11px;">add_to_cart</code>)</li>
-                <li>Missing <code style="font-size:11px;">transaction_id</code> on purchase events — purchases can't be deduplicated</li>
+                <li>Events with spaces or special characters in the name (e.g. "add to cart" instead of "add_to_cart")</li>
+                <li>Missing transaction_id on purchase events — purchases can't be deduplicated</li>
                 <li>Duplicate page_view fires because GTM and gtag.js are both on the page</li>
                 <li>Parameters that are silently truncated because they exceed GA4's 100-character limit</li>
                 <li>dataLayer pushes that fire before GTM has loaded — GTM misses the event entirely</li>
@@ -862,8 +862,8 @@
               <div class="compare-head"><span class="dot"></span>Good hygiene — what to aim for</div>
               <ul class="compare-list">
                 <li>Event names use only lowercase letters, numbers, and underscores</li>
-                <li>Every purchase includes a unique <code style="font-size:11px;">transaction_id</code> for deduplication</li>
-                <li>A single tag management approach — GTM <em>or</em> direct gtag, not both</li>
+                <li>Every purchase includes a unique transaction_id for deduplication</li>
+                <li>A single tag management approach — GTM or direct gtag, not both</li>
                 <li>Parameter values stay within GA4's character limits (100 for strings)</li>
                 <li>dataLayer initialised before the GTM snippet to avoid missed events</li>
                 <li>All custom dimensions and metrics registered in GA4 before being sent</li>
@@ -873,7 +873,7 @@
 
           <div class="callout callout-red">
             <strong>The silent failure problem</strong>
-            <p>Most GA4 data quality issues produce no errors. Events fire, GTM shows green, GA4 receives the hit — but the data is wrong. A purchase event with a missing <code style="font-size:12px;">transaction_id</code> still lands in GA4. It just can't be deduplicated, so every page refresh on the thank-you page creates a duplicate conversion. You won't see this in the UI unless you're actively looking.</p>
+            <p>Most GA4 data quality issues produce no errors. Events fire, GTM shows green, GA4 receives the hit — but the data is wrong. A purchase event with a missing transaction_id still lands in GA4. It just can't be deduplicated, so every page refresh on the thank-you page creates a duplicate conversion. You won't see this in the UI unless you're actively looking.</p>
           </div>
         </article>
 
