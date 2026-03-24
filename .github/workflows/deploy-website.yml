@@ -18,10 +18,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
       - name: Deploy to Firebase Hosting
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DATAFAIRY_PROD_2 }}
-          channelId: live
-          projectId: datafairy-prod-2
+        run: firebase deploy --only hosting --project datafairy-prod-2 --token "${{ secrets.FIREBASE_TOKEN }}"
