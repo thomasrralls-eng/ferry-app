@@ -9,6 +9,7 @@ on:
       - "firebase.json"
       - ".firebaserc"
       - ".github/workflows/deploy-website.yml"
+  workflow_dispatch:
 
 jobs:
   deploy:
