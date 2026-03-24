@@ -39,7 +39,7 @@ function DomainRow({ domain, isActive, onSelect, onEdit }) {
       onClick={() => onSelect(domain.domainId)}
       className={`w-full text-left px-3 py-2 rounded-lg border transition-all ${
         isActive
-          ? "bg-indigo-50 border-indigo-200 text-indigo-800"
+          ? "bg-amber-50 border-amber-200 text-amber-800"
           : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
       }`}
     >
@@ -50,7 +50,7 @@ function DomainRow({ domain, isActive, onSelect, onEdit }) {
         </div>
         <div className="flex items-center gap-1">
           {isActive && (
-            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" title="Active" />
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" title="Active" />
           )}
           <button
             onClick={(e) => { e.stopPropagation(); onEdit(domain); }}
@@ -66,7 +66,7 @@ function DomainRow({ domain, isActive, onSelect, onEdit }) {
         <ConnectionBadge ok={domain.gtmConnected || null} label="GTM" />
         <ConnectionBadge ok={domain.bqConnected || null} label="BQ" />
         {domain.agentContext?.businessType && (
-          <span className="text-[10px] font-medium text-indigo-600 bg-indigo-50 border border-indigo-100 rounded px-1.5 py-0.5">
+          <span className="text-[10px] font-medium text-amber-600 bg-amber-50 border border-amber-100 rounded px-1.5 py-0.5">
             {domain.agentContext.businessType}
           </span>
         )}
@@ -145,7 +145,7 @@ function DomainEditor({ domain, onSave, onCancel, onUploadSA, onTestConnection, 
   };
 
   const inputClass =
-    "w-full px-2.5 py-1.5 text-[12px] border border-slate-200 rounded-md bg-white text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:border-indigo-300";
+    "w-full px-2.5 py-1.5 text-[12px] border border-slate-200 rounded-md bg-white text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-400 focus:border-amber-300";
 
   return (
     <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
@@ -308,7 +308,7 @@ function DomainEditor({ domain, onSave, onCancel, onUploadSA, onTestConnection, 
         <button
           onClick={handleSave}
           disabled={loading}
-          className="flex-1 py-1.5 text-[12px] font-semibold text-white bg-indigo-500 rounded-md hover:bg-indigo-600 disabled:opacity-50 transition"
+          className="flex-1 py-1.5 text-[12px] font-semibold text-white bg-amber-500 rounded-md hover:bg-amber-600 disabled:opacity-50 transition"
         >
           {isNew ? "Create Agent" : "Save Changes"}
         </button>
@@ -365,7 +365,7 @@ function DomainEditor({ domain, onSave, onCancel, onUploadSA, onTestConnection, 
                 <button
                   onClick={handleTest}
                   disabled={!domain.saKeySecretId || testLoading}
-                  className="px-3 py-1.5 text-[12px] font-medium text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-md hover:bg-indigo-100 disabled:opacity-40 transition"
+                  className="px-3 py-1.5 text-[12px] font-medium text-amber-600 bg-amber-50 border border-amber-100 rounded-md hover:bg-amber-100 disabled:opacity-40 transition"
                 >
                   {testLoading ? "Testing…" : "Test Connection"}
                 </button>
@@ -451,7 +451,7 @@ export default function SettingsPanel({
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-6 text-center gap-4">
-        <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-2xl">
+        <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-2xl">
           🔑
         </div>
         <div>
@@ -464,7 +464,7 @@ export default function SettingsPanel({
         <button
           onClick={onSignIn}
           disabled={loading}
-          className="px-5 py-2 text-[12px] font-semibold text-white bg-indigo-500 rounded-lg hover:bg-indigo-600 disabled:opacity-50 transition shadow-sm flex items-center gap-2"
+          className="px-5 py-2 text-[12px] font-semibold text-white bg-amber-500 rounded-lg hover:bg-amber-600 disabled:opacity-50 transition shadow-sm flex items-center gap-2"
         >
           {loading ? "Connecting…" : "Sign in with Google"}
         </button>
@@ -480,7 +480,7 @@ export default function SettingsPanel({
           {user.picture ? (
             <img src={user.picture} alt="" className="w-6 h-6 rounded-full" />
           ) : (
-            <div className="w-6 h-6 rounded-full bg-indigo-200 flex items-center justify-center text-[10px] font-bold text-indigo-700">
+            <div className="w-6 h-6 rounded-full bg-amber-200 flex items-center justify-center text-[10px] font-bold text-amber-700">
               {user.email?.[0]?.toUpperCase()}
             </div>
           )}
@@ -514,7 +514,7 @@ export default function SettingsPanel({
               </h3>
               <button
                 onClick={() => setEditingDomain(false)}
-                className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-700"
+                className="text-[11px] font-semibold text-amber-600 hover:text-amber-700"
               >
                 + Add Domain
               </button>
@@ -525,7 +525,7 @@ export default function SettingsPanel({
                 <p className="text-[12px] text-slate-500 mb-3">No domain agents yet</p>
                 <button
                   onClick={() => setEditingDomain(false)}
-                  className="px-4 py-1.5 text-[12px] font-semibold text-white bg-indigo-500 rounded-lg hover:bg-indigo-600 transition"
+                  className="px-4 py-1.5 text-[12px] font-semibold text-white bg-amber-500 rounded-lg hover:bg-amber-600 transition"
                 >
                   Add your first domain
                 </button>
@@ -547,8 +547,8 @@ export default function SettingsPanel({
 
           {/* Active domain info */}
           {activeDomainId && (
-            <div className="bg-indigo-50 border border-indigo-100 rounded-xl px-3 py-2">
-              <p className="text-[11px] text-indigo-700">
+            <div className="bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
+              <p className="text-[11px] text-amber-700">
                 <span className="font-bold">Active agent:</span>{" "}
                 {domains.find((d) => d.domainId === activeDomainId)?.displayName || activeDomainId}
                 {" — "}enriched analysis will run automatically after site scans.

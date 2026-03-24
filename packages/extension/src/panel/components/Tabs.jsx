@@ -13,7 +13,7 @@ export default function Tabs({ tabs, activeTab, onTabChange, counts }) {
             className={`
               px-3 py-2 text-[12px] font-medium -mb-px border-b-2 transition-colors
               ${isActive
-                ? "text-indigo-600 border-indigo-500"
+                ? "text-amber-600 border-amber-500"
                 : "text-slate-400 border-transparent hover:text-slate-600"
               }
             `}
@@ -21,7 +21,7 @@ export default function Tabs({ tabs, activeTab, onTabChange, counts }) {
             {tab.label}
             {count !== undefined && count > 0 && (
               <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
-                isActive ? "bg-indigo-100 text-indigo-600" : "bg-slate-100 text-slate-400"
+                isActive ? "bg-amber-100 text-amber-600" : "bg-slate-100 text-slate-400"
               }`}>
                 {count}
               </span>

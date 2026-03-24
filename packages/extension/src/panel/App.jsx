@@ -13,18 +13,18 @@ import useFairyCrawler from "./hooks/useFairyCrawler.js";
 import { useDomainAgent } from "./hooks/useDomainAgent.js";
 import { analyzeSession } from "./analysis-agent.js";
 
-// ── Fairy logo — CSS icon with gold star on dark navy ──
+// ── Fairy logo — inline SVG three-star mark on warm black ──
 function FairyLogo({ size = 28 }) {
+  const rx = Math.round(size * 0.22);
   return (
-    <span style={{
-      width: size, height: size,
-      borderRadius: Math.round(size * 0.3),
-      background: "#1e1b4b",
-      display: "grid", placeItems: "center",
-      fontSize: Math.round(size * 0.62), lineHeight: 1,
-      color: "#f59e0b",
-      flexShrink: 0,
-    }}>✦</span>
+    <svg width={size} height={size} viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+      <rect width="100" height="100" rx={rx} fill="#1c1917"/>
+      <svg viewBox="760 375 395 395" x="10" y="10" width="80" height="80">
+        <path fill="#d97706" d="M982.25,437.79c-32.89,60.79-82.78,110.69-143.58,143.58,60.79,32.9,110.69,82.78,143.58,143.58,32.9-60.8,82.79-110.69,143.58-143.58-60.79-32.89-110.69-82.78-143.58-143.58ZM982.13,669.53v1.18c0-.39,0-.78,0-1.18-.16-48.36-39.82-87.99-88.23-88.15-.39,0-.78,0-1.17,0h1.17c48.41-.16,88.07-39.79,88.23-88.16,0-.39,0-.78,0-1.17v1.17c.16,48.36,39.83,88,88.23,88.16h1.18c-.4,0-.78,0-1.18,0-48.41.16-88.07,39.79-88.23,88.15Z"/>
+        <path fill="#d97706" d="M1071.54,468.88v.76c0-.25,0-.5,0-.76-.1-31.02-25.54-56.43-56.59-56.54-.25,0-.5,0-.75,0h.75c31.05-.1,56.49-25.52,56.59-56.54,0-.25,0-.5,0-.75v.75c.1,31.02,25.55,56.44,56.59,56.54h.76c-.26,0-.5,0-.76,0-31.05.1-56.49,25.52-56.59,56.54Z"/>
+        <path fill="#d97706" d="M820.75,676.07v.39c0-.13,0-.26,0-.39-.05-16.03-13.2-29.17-29.25-29.23-.13,0-.26,0-.39,0h.39c16.05-.05,29.2-13.19,29.25-29.23,0-.13,0-.26,0-.39v.39c.05,16.03,13.2,29.17,29.25,29.23h.39c-.13,0-.26,0-.39,0-16.05.05-29.2,13.19-29.25,29.23Z"/>
+      </svg>
+    </svg>
   );
 }
 
@@ -322,7 +322,7 @@ export default function App() {
           onClick={() => handleModeChange("ga4")}
           className={`flex-1 px-3 py-1.5 text-[12px] font-semibold rounded-md transition ${
             mode === "ga4"
-              ? "bg-white text-indigo-600 shadow-sm"
+              ? "bg-white text-amber-600 shadow-sm"
               : "text-slate-400 hover:text-slate-600"
           }`}
         >
@@ -332,7 +332,7 @@ export default function App() {
           onClick={() => handleModeChange("gtm")}
           className={`flex-1 px-3 py-1.5 text-[12px] font-semibold rounded-md transition ${
             mode === "gtm"
-              ? "bg-white text-indigo-600 shadow-sm"
+              ? "bg-white text-amber-600 shadow-sm"
               : "text-slate-400 hover:text-slate-600"
           }`}
         >
@@ -374,7 +374,7 @@ export default function App() {
       {hasData && !showAgentReport && !recording && !crawling && (
         <button
           onClick={runAnalysis}
-          className="w-full mb-3 py-2 text-[12px] font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-lg hover:bg-indigo-100 hover:border-indigo-200 transition flex items-center justify-center gap-1.5"
+          className="w-full mb-3 py-2 text-[12px] font-semibold text-amber-600 bg-amber-50 border border-amber-100 rounded-lg hover:bg-amber-100 hover:border-amber-200 transition flex items-center justify-center gap-1.5"
         >
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />

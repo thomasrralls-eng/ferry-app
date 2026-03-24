@@ -9,16 +9,18 @@
   <meta property="og:description" content="When conversion events break, GTM drifts, or GA4 schemas change, ad platform AI optimizes toward the wrong outcomes. data fairy owns the signal layer and keeps it clean." />
   <meta property="og:url" content="https://datafairy.ai" />
   <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --indigo:      #6366f1;
-      --indigo-mid:  #4f46e5;
-      --indigo-deep: #3730a3;
-      --gold:        #f59e0b;
-      --violet:      #8b5cf6;
+      --indigo:      #d97706;
+      --indigo-mid:  #b45309;
+      --indigo-deep: #92400e;
+      --gold:        #d97706;
+      --violet:      #b45309;
+      --warm-black:  #1c1917;
       --slate-950:   #020617;
       --slate-900:   #0f172a;
       --slate-800:   #1e293b;
@@ -69,10 +71,7 @@
     }
     .brand-icon {
       width: 36px; height: 36px; border-radius: 12px;
-      background: #1e1b4b;
-      display: grid; place-items: center;
-      font-size: 17px; line-height: 1; flex: 0 0 auto;
-      color: var(--gold);
+      flex: 0 0 auto; display: block;
     }
     .brand-name { display: inline-flex; align-items: center; }
     .nav-links {
@@ -90,8 +89,8 @@
       transition: 0.15s ease; border: 1px solid transparent; cursor: pointer;
     }
     .btn:hover { transform: translateY(-1px); }
-    .btn-primary { background: var(--indigo); color: var(--white); box-shadow: 0 4px 14px rgba(99,102,241,0.25); }
-    .btn-primary:hover { background: var(--indigo-mid); box-shadow: 0 4px 18px rgba(99,102,241,0.35); }
+    .btn-primary { background: var(--indigo); color: var(--white); box-shadow: 0 4px 14px rgba(217,119,6,0.25); }
+    .btn-primary:hover { background: var(--indigo-mid); box-shadow: 0 4px 18px rgba(217,119,6,0.35); }
     .btn-secondary { background: var(--white); color: var(--slate-800); border-color: var(--slate-200); }
     .btn-secondary:hover { border-color: var(--slate-300); }
     .btn-lg { padding: 13px 24px; font-size: 14px; border-radius: 14px; }
@@ -111,9 +110,9 @@
     }
     .eyebrow {
       display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px;
-      border-radius: 999px; background: rgba(99,102,241,0.07);
+      border-radius: 999px; background: rgba(217,119,6,0.07);
       color: var(--indigo-deep); font-size: 12px; font-weight: 600;
-      border: 1px solid rgba(99,102,241,0.12); margin-bottom: 20px;
+      border: 1px solid rgba(217,119,6,0.12); margin-bottom: 20px;
     }
     h1 { color: var(--slate-950); letter-spacing: -0.045em; font-size: clamp(34px,5vw,54px); line-height: 1.0; margin-bottom: 20px; }
     .hero-copy > p { font-size: 17px; line-height: 1.7; color: var(--slate-600); max-width: 520px; margin-bottom: 32px; }
@@ -124,14 +123,14 @@
 
     /* Hero dashboard panel */
     .hero-panel {
-      border-radius: 28px; overflow: hidden; background: #1e1b4b;
+      border-radius: 28px; overflow: hidden; background: #1c1917;
       color: var(--white); padding: 22px;
-      box-shadow: 0 32px 64px rgba(30,27,75,0.28);
+      box-shadow: 0 32px 64px rgba(28,25,23,0.28);
       border: 1px solid rgba(255,255,255,0.07);
     }
     .panel-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
     .panel-brand { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; font-size: 13px; letter-spacing: -0.02em; }
-    .panel-brand-icon { width: 22px; height: 22px; border-radius: 6px; background: linear-gradient(135deg,var(--indigo),var(--violet)); display: grid; place-items: center; font-size: 11px; }
+    .panel-brand-icon { width: 22px; height: 22px; border-radius: 6px; display: block; flex: 0 0 auto; }
     .pill { padding: 4px 9px; border-radius: 999px; background: rgba(255,255,255,0.08); font-size: 11px; color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.1); }
     .health-score-row {
       display: grid; grid-template-columns: 96px 1fr; gap: 14px; align-items: center;
@@ -140,10 +139,10 @@
     }
     .score-ring {
       width: 96px; height: 96px; border-radius: 50%; position: relative;
-      background: conic-gradient(#6366f1 0 68%, rgba(255,255,255,0.08) 68% 100%);
+      background: conic-gradient(#d97706 0 68%, rgba(255,255,255,0.08) 68% 100%);
       display: grid; place-items: center;
     }
-    .score-ring-inner { width: 68px; height: 68px; border-radius: 50%; background: #1a1745; position: absolute; }
+    .score-ring-inner { width: 68px; height: 68px; border-radius: 50%; background: #1c1917; position: absolute; }
     .score-value { position: relative; z-index: 1; text-align: center; }
     .score-value strong { display: block; font-size: 28px; line-height: 1; }
     .score-value span { font-size: 11px; color: rgba(255,255,255,0.55); }
@@ -197,7 +196,7 @@
       z-index: 0; pointer-events: none;
     }
     .step-card { background: var(--white); border: 1px solid var(--slate-200); border-radius: var(--radius-xl); padding: 26px; box-shadow: var(--shadow); position: relative; z-index: 1; }
-    .step-num { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.12)); color: var(--indigo-deep); font-weight: 800; font-size: 13px; margin-bottom: 16px; border: 1px solid rgba(99,102,241,0.12); }
+    .step-num { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: rgba(217,119,6,0.1); color: var(--indigo-deep); font-weight: 800; font-size: 13px; margin-bottom: 16px; border: 1px solid rgba(217,119,6,0.15); }
     .step-card h3 { margin-bottom: 10px; font-size: 17px; letter-spacing: -0.025em; color: var(--slate-900); }
     .step-card p { color: var(--slate-500); line-height: 1.7; font-size: 14px; }
 
@@ -208,7 +207,7 @@
       border-radius: var(--radius-xl); padding: 26px; box-shadow: var(--shadow);
       display: flex; flex-direction: column;
     }
-    .module-card.live { border-color: rgba(99,102,241,0.2); box-shadow: 0 0 0 1px rgba(99,102,241,0.08), var(--shadow); }
+    .module-card.live { border-color: rgba(217,119,6,0.2); box-shadow: 0 0 0 1px rgba(217,119,6,0.08), var(--shadow); }
     .module-card.soon { opacity: 0.72; }
     .module-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; gap: 10px; }
     .module-icon { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; font-size: 22px; background: var(--slate-50); border: 1px solid var(--slate-200); flex: 0 0 auto; }
@@ -222,14 +221,14 @@
     .module-card p { color: var(--slate-500); font-size: 13.5px; line-height: 1.65; flex: 1; }
     .module-caps { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
     .cap { padding: 4px 9px; border-radius: 8px; background: var(--slate-50); border: 1px solid var(--slate-200); font-size: 11px; color: var(--slate-500); font-weight: 500; }
-    .module-card.live .cap { background: rgba(99,102,241,0.06); border-color: rgba(99,102,241,0.12); color: var(--indigo-deep); }
+    .module-card.live .cap { background: rgba(217,119,6,0.06); border-color: rgba(217,119,6,0.15); color: var(--indigo-deep); }
 
     /* ─── SAMPLE REPORT ───────────────────────────────────────────────────── */
     .report-shell { border-radius: var(--radius-xl); overflow: hidden; border: 1px solid var(--slate-200); box-shadow: var(--shadow-lg); }
     .report-topbar { padding: 16px 20px; border-bottom: 1px solid var(--slate-200); background: var(--slate-50); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .report-title { font-weight: 600; color: var(--slate-900); font-size: 14px; letter-spacing: -0.02em; }
     .report-body { display: grid; grid-template-columns: 260px 1fr; }
-    .report-sidebar { padding: 20px; background: linear-gradient(180deg,#f0f4ff 0%,var(--slate-50) 100%); border-right: 1px solid var(--slate-200); }
+    .report-sidebar { padding: 20px; background: linear-gradient(180deg,#fef3c7 0%,var(--slate-50) 100%); border-right: 1px solid var(--slate-200); }
     .report-main { padding: 22px; background: var(--white); }
     .metric-stack { display: grid; gap: 10px; margin-bottom: 18px; }
     .metric { background: var(--white); border: 1px solid var(--slate-200); border-radius: var(--radius-lg); padding: 14px; }
@@ -259,7 +258,7 @@
       border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow);
       display: flex; flex-direction: column;
     }
-    .pricing-card.featured { border-color: rgba(99,102,241,0.3); box-shadow: 0 0 0 1px rgba(99,102,241,0.15), var(--shadow-lg); }
+    .pricing-card.featured { border-color: rgba(217,119,6,0.3); box-shadow: 0 0 0 1px rgba(217,119,6,0.15), var(--shadow-lg); }
     .pricing-badge { display: inline-flex; padding: 5px 10px; border-radius: 999px; margin-bottom: 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; align-self: flex-start; }
     .pricing-badge.popular { background: var(--indigo); color: var(--white); }
     .pricing-badge.soon { background: rgba(245,158,11,0.15); color: #92400e; border: 1px solid rgba(245,158,11,0.25); }
@@ -277,8 +276,8 @@
     /* ─── CTA BAND ────────────────────────────────────────────────────────── */
     .cta-band {
       padding: 48px; border-radius: 28px;
-      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
-      color: var(--white); box-shadow: 0 24px 64px rgba(30,27,75,0.2);
+      background: linear-gradient(135deg, #1c1917 0%, #292524 100%);
+      color: var(--white); box-shadow: 0 24px 64px rgba(28,25,23,0.2);
       display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: center;
     }
     .cta-band h2 { color: var(--white); font-size: clamp(24px,3vw,36px); margin-bottom: 10px; }
@@ -312,7 +311,7 @@
   <header class="site-header">
     <div class="container header-inner">
       <a href="#top" class="brand">
-        <span class="brand-icon">✦</span>
+        <img src="favicon.svg" alt="" class="brand-icon">
         <span class="brand-name">data fairy</span>
       </a>
       <nav class="nav-links">
@@ -334,7 +333,7 @@
     <section class="hero">
       <div class="container hero-grid">
         <div class="hero-copy">
-          <div class="eyebrow">✦ Autonomous Reliability Layer for Marketing Data</div>
+          <div class="eyebrow"><img src="favicon.svg" alt="" width="14" height="14" style="border-radius:4px;flex:0 0 auto;"> Autonomous Reliability Layer for Marketing Data</div>
           <h1>Marketing automation is only as good as the signals feeding it.</h1>
           <p>Ad platforms are AI optimization systems now. When conversion events break, GTM tags drift, or GA4 schemas change — your automation keeps spending, just toward the wrong outcomes.</p>
           <p class="hero-subtext">data fairy is the autonomous agent that keeps your marketing signals trustworthy.</p>
@@ -352,7 +351,7 @@
         <div class="hero-panel">
           <div class="panel-top">
             <div class="panel-brand">
-              <span class="panel-brand-icon">✦</span>
+              <img src="favicon.svg" alt="" class="panel-brand-icon">
               data fairy signal monitor
             </div>
             <span class="pill">sampledomain.com</span>
@@ -749,7 +748,7 @@
   <footer>
     <div class="container footer-row">
       <div class="brand">
-        <span class="brand-icon" style="width:28px;height:28px;border-radius:8px;font-size:13px;">✦</span>
+        <img src="favicon.svg" alt="" width="28" height="28" style="border-radius:8px;flex:0 0 auto;">
         <span class="brand-name">data fairy</span>
       </div>
       <div class="footer-links">

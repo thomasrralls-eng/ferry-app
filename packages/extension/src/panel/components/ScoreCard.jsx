@@ -1,7 +1,7 @@
 import React from "react";
 
 const VARIANTS = {
-  events:           { border: "border-l-indigo-500",  text: "text-indigo-900" },
+  events:           { border: "border-l-amber-500",  text: "text-amber-900" },
   eventsWithErrors: { border: "border-l-rose-400",    text: "text-rose-600" },
   errors:           { border: "border-l-red-500",     text: "text-red-600" },
   warnings:         { border: "border-l-amber-500",   text: "text-amber-600" },

@@ -69,7 +69,7 @@ export default function CrawlPanel({
               </button>
               <button
                 onClick={handleStart}
-                className="px-2.5 py-1 text-xs font-medium text-white bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-md hover:from-indigo-600 hover:to-indigo-700 transition"
+                className="px-2.5 py-1 text-xs font-medium text-white bg-gradient-to-r from-amber-500 to-amber-600 rounded-md hover:from-amber-600 hover:to-amber-700 transition"
               >
                 Scan Again
               </button>
@@ -120,14 +120,14 @@ export default function CrawlPanel({
 
     return (
       <div className="space-y-3">
-        <div className="rounded-lg border border-indigo-200 bg-indigo-50/50 p-4">
+        <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
               </span>
-              <span className="text-sm font-semibold text-indigo-700">Scanning...</span>
+              <span className="text-sm font-semibold text-amber-700">Scanning...</span>
             </div>
             <button
               onClick={onStopCrawl}
@@ -140,18 +140,18 @@ export default function CrawlPanel({
           {/* Progress bar */}
           <div className="w-full bg-white/60 rounded-full h-1.5 mb-2">
             <div
-              className="bg-indigo-500 h-1.5 rounded-full transition-all duration-500 ease-out"
+              className="bg-amber-500 h-1.5 rounded-full transition-all duration-500 ease-out"
               style={{ width: `${Math.min(pct, 100)}%` }}
             />
           </div>
 
-          <div className="flex justify-between text-xs text-indigo-600">
+          <div className="flex justify-between text-xs text-amber-600">
             <span>{visited} / {max} pages</span>
             <span>{progress?.queued || 0} queued</span>
           </div>
 
           {progress?.currentUrl && (
-            <p className="text-[11px] text-indigo-400 mt-2 truncate" title={progress.currentUrl}>
+            <p className="text-[11px] text-amber-400 mt-2 truncate" title={progress.currentUrl}>
               {progress.currentUrl}
             </p>
           )}
@@ -185,12 +185,12 @@ export default function CrawlPanel({
               onChange={(e) => setMaxPages(Math.max(1, parseInt(e.target.value) || 50))}
               min={1}
               max={500}
-              className="w-20 px-2.5 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-200 focus:border-indigo-400 bg-indigo-50/30"
+              className="w-20 px-2.5 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 bg-amber-50/30"
             />
           </div>
           <button
             onClick={handleStart}
-            className="flex-1 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg hover:from-indigo-600 hover:to-indigo-700 shadow-sm transition"
+            className="flex-1 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-amber-600 rounded-lg hover:from-amber-600 hover:to-amber-700 shadow-sm transition"
           >
             Scan This Site
           </button>
@@ -228,7 +228,7 @@ function PageList({ pages }) {
                 </span>
                 <span className="flex items-center gap-1.5 flex-shrink-0">
                   {eventCount > 0 ? (
-                    <span className="text-[10px] px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded font-medium">
+                    <span className="text-[10px] px-1.5 py-0.5 bg-amber-50 text-amber-600 rounded font-medium">
                       {eventCount} event{eventCount !== 1 ? "s" : ""}
                     </span>
                   ) : (
@@ -276,8 +276,8 @@ function EventMini({ evt }) {
   const source = evt.source || "dataLayer";
 
   const sourceColors = {
-    dataLayer: "bg-indigo-50 text-indigo-600",
-    gtag: "bg-violet-50 text-violet-600",
+    dataLayer: "bg-amber-50 text-amber-600",
+    gtag: "bg-amber-50 text-amber-600",
   };
 
   return (

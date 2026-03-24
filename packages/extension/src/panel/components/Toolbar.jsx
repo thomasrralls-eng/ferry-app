@@ -6,7 +6,7 @@ export default function Toolbar({ recording, onStart, onStop, onExport, onClear,
       {!recording ? (
         <button
           onClick={onStart}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-indigo-500 text-white text-[12px] font-semibold hover:bg-indigo-600 active:bg-indigo-700 transition-colors shadow-sm"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-amber-500 text-white text-[12px] font-semibold hover:bg-amber-600 active:bg-amber-700 transition-colors shadow-sm"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-red-300" />
           Record
@@ -48,7 +48,7 @@ export default function Toolbar({ recording, onStart, onStop, onExport, onClear,
         title="Domain agent settings"
         className={`relative p-1.5 rounded-md border transition-colors ${
           hasAgent
-            ? "border-indigo-200 bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
+            ? "border-amber-200 bg-amber-50 text-amber-600 hover:bg-amber-100"
             : "border-slate-200 bg-white text-slate-400 hover:bg-slate-50 hover:text-slate-600"
         }`}
       >
@@ -57,7 +57,7 @@ export default function Toolbar({ recording, onStart, onStop, onExport, onClear,
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
         {hasAgent && (
-          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-indigo-500 border-2 border-white" />
+          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-500 border-2 border-white" />
         )}
       </button>
     </div>

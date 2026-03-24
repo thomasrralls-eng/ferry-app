@@ -32,10 +32,10 @@ export default function AgentReportPanel({ report, agentAnalysis, onDismiss, onV
   return (
     <div className="space-y-3 animate-in">
       {/* ── Health Score Card ── */}
-      <div className="rounded-xl border border-indigo-100 bg-gradient-to-br from-white to-indigo-50/30 p-4 shadow-sm">
+      <div className="rounded-xl border border-amber-100 bg-gradient-to-br from-white to-amber-50/30 p-4 shadow-sm">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-indigo-900">
+            <span className="text-sm font-semibold text-amber-900">
               {analysisLabel}
             </span>
             {ga4Version && ga4Version.version !== "free" && (
@@ -52,7 +52,7 @@ export default function AgentReportPanel({ report, agentAnalysis, onDismiss, onV
             {onViewFindings && (
               <button
                 onClick={onViewFindings}
-                className="px-2.5 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-md hover:bg-indigo-100 transition"
+                className="px-2.5 py-1 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 rounded-md hover:bg-amber-100 transition"
               >
                 All Findings
               </button>
@@ -95,8 +95,8 @@ export default function AgentReportPanel({ report, agentAnalysis, onDismiss, onV
 
       {/* ── Insights ── */}
       {insights.length > 0 && (
-        <div className="rounded-lg border border-violet-100 bg-violet-50/30 p-3">
-          <h4 className="text-[11px] font-semibold text-violet-500 uppercase tracking-wider mb-2">
+        <div className="rounded-lg border border-amber-100 bg-amber-50/30 p-3">
+          <h4 className="text-[11px] font-semibold text-amber-500 uppercase tracking-wider mb-2">
             Session Overview
           </h4>
           <div className="space-y-2">
@@ -153,7 +153,7 @@ export default function AgentReportPanel({ report, agentAnalysis, onDismiss, onV
               </div>
               <div className="flex items-center gap-1.5">
                 {hasProActions && (
-                  <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-violet-100 text-violet-600">
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-amber-100 text-amber-600">
                     PRO
                   </span>
                 )}
@@ -205,7 +205,7 @@ export default function AgentReportPanel({ report, agentAnalysis, onDismiss, onV
 
       {/* ── Pro Upgrade Nudge ── */}
       {tierBreakdown?.pro > 0 && (
-        <div className="rounded-lg border border-violet-200 bg-gradient-to-r from-violet-50 to-indigo-50 p-4">
+        <div className="rounded-lg border border-amber-200 bg-gradient-to-r from-amber-50 to-amber-50 p-4">
           <div className="flex items-start gap-3">
             <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center flex-shrink-0 shadow-sm">
               <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -220,7 +220,7 @@ export default function AgentReportPanel({ report, agentAnalysis, onDismiss, onV
                 Medium- and high-risk changes require connecting your GTM container or GA4 property
                 so data fairy can safely apply changes, preview them, and roll back if needed.
               </p>
-              <button className="px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-indigo-500 to-violet-500 rounded-lg hover:from-indigo-600 hover:to-violet-600 shadow-sm transition">
+              <button className="px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-amber-500 to-amber-500 rounded-lg hover:from-amber-600 hover:to-amber-600 shadow-sm transition">
                 Connect GTM/GA4 — Coming Soon
               </button>
             </div>
@@ -245,9 +245,9 @@ const BUCKET_META = {
   },
   low: {
     icon: "+",
-    iconBg: "bg-violet-100",
-    headerBg: "bg-violet-50/40",
-    borderColor: "border-violet-200",
+    iconBg: "bg-amber-100",
+    headerBg: "bg-amber-50/40",
+    borderColor: "border-amber-200",
   },
   medium: {
     icon: "~",
@@ -330,10 +330,10 @@ function HealthRing({ score, label, scoreLabel = "Implementation Score" }) {
 
 function StatPill({ value, label, color }) {
   const colors = {
-    indigo: "bg-indigo-50 text-indigo-600 border-indigo-100",
+    indigo: "bg-amber-50 text-amber-600 border-amber-100",
     red: "bg-red-50 text-red-600 border-red-100",
     amber: "bg-amber-50 text-amber-600 border-amber-100",
-    blue: "bg-violet-50 text-violet-600 border-violet-100",
+    blue: "bg-amber-50 text-amber-600 border-amber-100",
   };
 
   return (
@@ -346,12 +346,12 @@ function StatPill({ value, label, color }) {
 
 function InsightIcon({ type }) {
   const icons = {
-    "measurement-ids": <span className="text-[10px] w-4 h-4 rounded bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">G</span>,
-    "event-variety": <span className="text-[10px] w-4 h-4 rounded bg-violet-100 text-violet-600 flex items-center justify-center font-bold">#</span>,
+    "measurement-ids": <span className="text-[10px] w-4 h-4 rounded bg-amber-100 text-amber-600 flex items-center justify-center font-bold">G</span>,
+    "event-variety": <span className="text-[10px] w-4 h-4 rounded bg-amber-100 text-amber-600 flex items-center justify-center font-bold">#</span>,
     "ecommerce": <span className="text-[10px] w-4 h-4 rounded bg-amber-100 text-amber-600 flex items-center justify-center font-bold">$</span>,
     "error-ratio": <span className="text-[10px] w-4 h-4 rounded bg-red-100 text-red-600 flex items-center justify-center font-bold">!</span>,
     "clean": <span className="text-[10px] w-4 h-4 rounded bg-green-100 text-green-600 flex items-center justify-center font-bold">✓</span>,
-    "no-data": <span className="text-[10px] w-4 h-4 rounded bg-violet-50 text-violet-400 flex items-center justify-center font-bold">?</span>,
+    "no-data": <span className="text-[10px] w-4 h-4 rounded bg-amber-50 text-amber-400 flex items-center justify-center font-bold">?</span>,
   };
 
   return icons[type] || (
@@ -360,7 +360,7 @@ function InsightIcon({ type }) {
 }
 
 function SeverityDot({ severity }) {
-  const colors = { error: "bg-red-400", warning: "bg-amber-400", info: "bg-violet-400" };
+  const colors = { error: "bg-red-400", warning: "bg-amber-400", info: "bg-amber-400" };
   return <span className={`w-1.5 h-1.5 rounded-full ${colors[severity] || "bg-gray-300"} flex-shrink-0 mt-1`} />;
 }
 
@@ -374,20 +374,20 @@ function ConnectedInsights({ agentAnalysis }) {
   const { ga4Snapshot, gtmSnapshot, bqSnapshot, aiAnalysis, masterPatterns, masterBusinessType } = agentAnalysis;
 
   return (
-    <div className="rounded-lg border border-indigo-200 bg-gradient-to-br from-indigo-50/60 to-violet-50/40 overflow-hidden">
+    <div className="rounded-lg border border-amber-200 bg-gradient-to-br from-amber-50/60 to-amber-50/40 overflow-hidden">
       {/* Header */}
       <button
         onClick={() => setExpanded((v) => !v)}
-        className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-indigo-50/60 transition"
+        className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-amber-50/60 transition"
       >
         <div className="flex items-center gap-2">
-          <span className="w-5 h-5 rounded-full bg-indigo-500 flex items-center justify-center">
+          <span className="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center">
             <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </span>
-          <span className="text-xs font-semibold text-indigo-900">Connected Insights</span>
-          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-600 font-medium">Live</span>
+          <span className="text-xs font-semibold text-amber-900">Connected Insights</span>
+          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-600 font-medium">Live</span>
         </div>
         <ChevronIcon rotated={expanded} />
       </button>
@@ -396,8 +396,8 @@ function ConnectedInsights({ agentAnalysis }) {
         <div className="px-3 pb-3 space-y-3">
           {/* AI Analysis (Gemini) */}
           {aiAnalysis && (
-            <div className="p-2.5 rounded-lg bg-white/70 border border-indigo-100">
-              <h5 className="text-[10px] font-semibold text-indigo-500 uppercase tracking-wider mb-1.5">
+            <div className="p-2.5 rounded-lg bg-white/70 border border-amber-100">
+              <h5 className="text-[10px] font-semibold text-amber-500 uppercase tracking-wider mb-1.5">
                 AI Analysis
               </h5>
               <p className="text-[12px] text-gray-600 leading-relaxed">{aiAnalysis}</p>
@@ -406,8 +406,8 @@ function ConnectedInsights({ agentAnalysis }) {
 
           {/* GA4 Snapshot */}
           {ga4Snapshot && (
-            <div className="p-2.5 rounded-lg bg-white/70 border border-indigo-100">
-              <h5 className="text-[10px] font-semibold text-indigo-500 uppercase tracking-wider mb-2">
+            <div className="p-2.5 rounded-lg bg-white/70 border border-amber-100">
+              <h5 className="text-[10px] font-semibold text-amber-500 uppercase tracking-wider mb-2">
                 GA4 — Last 30 Days
               </h5>
               <div className="grid grid-cols-3 gap-2 text-center mb-2">
@@ -424,11 +424,11 @@ function ConnectedInsights({ agentAnalysis }) {
                     {ga4Snapshot.topEvents.slice(0, 8).map((e) => (
                       <span
                         key={e.eventName}
-                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-indigo-50 border border-indigo-100 text-[11px] font-mono text-indigo-700"
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-50 border border-amber-100 text-[11px] font-mono text-amber-700"
                         title={`${fmtNum(e.eventCount)} events`}
                       >
                         {e.eventName}
-                        <span className="text-[10px] text-indigo-400">{fmtCompact(e.eventCount)}</span>
+                        <span className="text-[10px] text-amber-400">{fmtCompact(e.eventCount)}</span>
                       </span>
                     ))}
                   </div>
@@ -439,11 +439,11 @@ function ConnectedInsights({ agentAnalysis }) {
 
           {/* GTM Snapshot */}
           {gtmSnapshot && (
-            <div className="p-2.5 rounded-lg bg-white/70 border border-indigo-100">
-              <h5 className="text-[10px] font-semibold text-indigo-500 uppercase tracking-wider mb-2">
+            <div className="p-2.5 rounded-lg bg-white/70 border border-amber-100">
+              <h5 className="text-[10px] font-semibold text-amber-500 uppercase tracking-wider mb-2">
                 GTM Container
                 {gtmSnapshot.containerId && (
-                  <span className="ml-1.5 font-mono text-indigo-400 normal-case">{gtmSnapshot.containerId}</span>
+                  <span className="ml-1.5 font-mono text-amber-400 normal-case">{gtmSnapshot.containerId}</span>
                 )}
               </h5>
               <div className="flex gap-3 text-center mb-2">
@@ -491,8 +491,8 @@ function ConnectedInsights({ agentAnalysis }) {
 
           {/* BigQuery Snapshot */}
           {bqSnapshot?.events?.length > 0 && (
-            <div className="p-2.5 rounded-lg bg-white/70 border border-indigo-100">
-              <h5 className="text-[10px] font-semibold text-indigo-500 uppercase tracking-wider mb-2">
+            <div className="p-2.5 rounded-lg bg-white/70 border border-amber-100">
+              <h5 className="text-[10px] font-semibold text-amber-500 uppercase tracking-wider mb-2">
                 BigQuery — Raw GA4 360 Events
               </h5>
               <p className="text-[10px] text-gray-400 mb-1.5">
@@ -511,11 +511,11 @@ function ConnectedInsights({ agentAnalysis }) {
 
           {/* Fairy Master — Industry Patterns */}
           {masterPatterns?.length > 0 && (
-            <div className="p-2.5 rounded-lg bg-white/70 border border-violet-100">
-              <h5 className="text-[10px] font-semibold text-violet-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+            <div className="p-2.5 rounded-lg bg-white/70 border border-amber-100">
+              <h5 className="text-[10px] font-semibold text-amber-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                 <span>Industry Patterns</span>
                 {masterBusinessType && (
-                  <span className="font-mono font-normal text-violet-300 normal-case">
+                  <span className="font-mono font-normal text-amber-300 normal-case">
                     — {masterBusinessType}
                   </span>
                 )}
@@ -528,7 +528,7 @@ function ConnectedInsights({ agentAnalysis }) {
                   const severityColor = {
                     error: "text-red-600 bg-red-50 border-red-100",
                     warning: "text-amber-600 bg-amber-50 border-amber-100",
-                    info: "text-violet-600 bg-violet-50 border-violet-100",
+                    info: "text-amber-600 bg-amber-50 border-amber-100",
                   }[p.severity] || "text-gray-600 bg-gray-50 border-gray-100";
                   return (
                     <div key={i} className={`rounded border px-2 py-1.5 ${severityColor}`}>
@@ -574,8 +574,8 @@ function CrawlSummary({ crawlAnalysis }) {
   const [expandedIssue, setExpandedIssue] = useState(null);
 
   return (
-    <div className="rounded-lg border border-indigo-100 bg-indigo-50/40 p-3">
-      <h4 className="text-[11px] font-semibold text-indigo-600 uppercase tracking-wider mb-2">
+    <div className="rounded-lg border border-amber-100 bg-amber-50/40 p-3">
+      <h4 className="text-[11px] font-semibold text-amber-600 uppercase tracking-wider mb-2">
         Site Scan Summary
       </h4>
       <div className="grid grid-cols-3 gap-2 text-center mb-2">
@@ -611,7 +611,7 @@ function CrawlIssueCard({ issue, isExpanded, onToggle }) {
   const PREVIEW_LIMIT = 3;
 
   return (
-    <div className="mt-2 rounded bg-white/60 border border-indigo-100 overflow-hidden">
+    <div className="mt-2 rounded bg-white/60 border border-amber-100 overflow-hidden">
       <button
         onClick={onToggle}
         className="w-full text-left p-2 hover:bg-white/80 transition"
@@ -640,7 +640,7 @@ function CrawlIssueCard({ issue, isExpanded, onToggle }) {
           {!isExpanded && pageCount > PREVIEW_LIMIT && (
             <button
               onClick={onToggle}
-              className="text-[10px] text-indigo-500 hover:text-indigo-700 font-medium mt-1 transition"
+              className="text-[10px] text-amber-500 hover:text-amber-700 font-medium mt-1 transition"
             >
               Show {pageCount - PREVIEW_LIMIT} more page{pageCount - PREVIEW_LIMIT !== 1 ? "s" : ""}
             </button>
@@ -689,7 +689,7 @@ function ConversationalGroup({ action, isExpanded, onToggle }) {
   const severityColors = {
     error:   { dot: "bg-red-400",    accent: "text-red-600",    bg: "bg-red-50" },
     warning: { dot: "bg-amber-400",  accent: "text-amber-600",  bg: "bg-amber-50" },
-    info:    { dot: "bg-violet-400", accent: "text-violet-600", bg: "bg-violet-50" },
+    info:    { dot: "bg-amber-400", accent: "text-amber-600", bg: "bg-amber-50" },
   };
 
   const effortLabels = { quick: "Quick fix", medium: "Moderate effort", large: "Major project" };
@@ -735,7 +735,7 @@ function ConversationalGroup({ action, isExpanded, onToggle }) {
                 {!showAllItems && hiddenCount > 0 && (
                   <button
                     onClick={(e) => { e.stopPropagation(); setShowAllItems(true); }}
-                    className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] text-indigo-500 hover:text-indigo-700 hover:bg-indigo-50 font-medium transition"
+                    className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] text-amber-500 hover:text-amber-700 hover:bg-amber-50 font-medium transition"
                   >
                     +{hiddenCount} more
                   </button>
@@ -768,7 +768,7 @@ function ConversationalGroup({ action, isExpanded, onToggle }) {
                 {effortLabels[action.effort] || action.effort}
               </span>
               {action.tier === "pro" && (
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-violet-100 text-violet-600">
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-amber-100 text-amber-600">
                   PRO
                 </span>
               )}
@@ -783,8 +783,8 @@ function ConversationalGroup({ action, isExpanded, onToggle }) {
         <div className="px-3 pb-3 border-t border-gray-100 bg-gray-50/30">
           {/* Why this matters */}
           {action.rationale && (
-            <div className="mt-2 p-2 rounded bg-indigo-50/50 border border-indigo-100">
-              <p className="text-[11px] text-indigo-700 leading-relaxed">
+            <div className="mt-2 p-2 rounded bg-amber-50/50 border border-amber-100">
+              <p className="text-[11px] text-amber-700 leading-relaxed">
                 {action.rationale}
               </p>
             </div>
@@ -825,7 +825,7 @@ function ConversationalGroup({ action, isExpanded, onToggle }) {
               href={action.docs}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-[11px] text-indigo-500 hover:text-indigo-700 mt-2 no-underline"
+              className="inline-flex items-center gap-1 text-[11px] text-amber-500 hover:text-amber-700 mt-2 no-underline"
             >
               View documentation
               <ExternalLinkIcon />
@@ -853,8 +853,8 @@ function ItemTag({ item, isExpandedInline, onToggleDetail }) {
           onClick={onToggleDetail}
           className={`px-1 py-0.5 text-[10px] font-semibold border-l border-gray-200 transition
             ${isExpandedInline
-              ? "bg-indigo-100 text-indigo-600"
-              : "bg-gray-50 text-gray-400 hover:bg-indigo-50 hover:text-indigo-500"}`}
+              ? "bg-amber-100 text-amber-600"
+              : "bg-gray-50 text-gray-400 hover:bg-amber-50 hover:text-amber-500"}`}
           title={`${item.count} occurrences — click for details`}
         >
           ×{item.count}
@@ -915,7 +915,7 @@ function ActionCard({ action, isExpanded, onToggle }) {
   const severityColors = {
     error:   { border: "border-l-red-400",   badge: "bg-red-100 text-red-700",     num: "bg-red-500" },
     warning: { border: "border-l-amber-400", badge: "bg-amber-100 text-amber-700", num: "bg-amber-500" },
-    info:    { border: "border-l-violet-400",  badge: "bg-violet-100 text-violet-700",   num: "bg-violet-500" },
+    info:    { border: "border-l-amber-400",  badge: "bg-amber-100 text-amber-700",   num: "bg-amber-500" },
   };
 
   const effortLabels = { quick: "Quick fix", medium: "Moderate effort", large: "Major project" };
@@ -945,7 +945,7 @@ function ActionCard({ action, isExpanded, onToggle }) {
                 </span>
               )}
               {action.tier === "pro" && (
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-violet-100 text-violet-600">
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-amber-100 text-amber-600">
                   PRO
                 </span>
               )}
@@ -965,8 +965,8 @@ function ActionCard({ action, isExpanded, onToggle }) {
         <div className="px-3 pb-3 border-t border-gray-100 bg-gray-50/30">
           {/* Risk rationale */}
           {action.rationale && (
-            <div className="mt-2 p-2 rounded bg-indigo-50/50 border border-indigo-100">
-              <p className="text-[11px] text-indigo-700 leading-relaxed">
+            <div className="mt-2 p-2 rounded bg-amber-50/50 border border-amber-100">
+              <p className="text-[11px] text-amber-700 leading-relaxed">
                 <strong>Why this risk level:</strong> {action.rationale}
               </p>
             </div>
@@ -1012,7 +1012,7 @@ function ActionCard({ action, isExpanded, onToggle }) {
               href={action.docs}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-[11px] text-indigo-500 hover:text-indigo-700 mt-2 no-underline"
+              className="inline-flex items-center gap-1 text-[11px] text-amber-500 hover:text-amber-700 mt-2 no-underline"
             >
               View documentation
               <ExternalLinkIcon />

@@ -3,7 +3,7 @@ import React, { useState } from "react";
 const SEVERITY_STYLES = {
   error:   { bg: "bg-red-50",    border: "border-l-red-500",    badge: "bg-red-100 text-red-700" },
   warning: { bg: "bg-amber-50",  border: "border-l-amber-500",  badge: "bg-amber-100 text-amber-700" },
-  info:    { bg: "bg-violet-50", border: "border-l-violet-400", badge: "bg-violet-100 text-violet-700" },
+  info:    { bg: "bg-amber-50", border: "border-l-amber-400", badge: "bg-amber-100 text-amber-700" },
 };
 
 const CATEGORY_LABELS = {
@@ -124,7 +124,7 @@ export function GroupedFindingCard({ ruleId, findings }) {
               href={representative.docs}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-[11px] text-indigo-500 hover:text-indigo-700 mt-2 no-underline"
+              className="inline-flex items-center gap-1 text-[11px] text-amber-500 hover:text-amber-700 mt-2 no-underline"
             >
               View documentation
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -167,7 +167,7 @@ export default function FindingCard({ finding }) {
           href={finding.docs}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-[11px] text-indigo-500 hover:text-indigo-700 mt-1.5 no-underline"
+          className="inline-flex items-center gap-1 text-[11px] text-amber-500 hover:text-amber-700 mt-1.5 no-underline"
         >
           View documentation
           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

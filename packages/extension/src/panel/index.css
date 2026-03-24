@@ -2,31 +2,32 @@
 
 /* ── data fairy Design Tokens ── */
 :root {
-  /* Primary — Indigo */
-  --fairy-50: #EEF2FF;
-  --fairy-100: #E0E7FF;
-  --fairy-200: #C7D2FE;
-  --fairy-400: #818CF8;
-  --fairy-500: #6366F1;
-  --fairy-600: #4F46E5;
-  --fairy-700: #4338CA;
-  --fairy-900: #312E81;
+  /* Primary — Amber */
+  --fairy-50: #FFFBEB;
+  --fairy-100: #FEF3C7;
+  --fairy-200: #FDE68A;
+  --fairy-400: #FBBF24;
+  --fairy-500: #D97706;
+  --fairy-600: #B45309;
+  --fairy-700: #92400E;
+  --fairy-900: #1c1917;
 
-  /* Secondary — Lavender */
-  --lavender-50: #F5F3FF;
-  --lavender-100: #EDE9FE;
-  --lavender-200: #DDD6FE;
-  --lavender-300: #C4B5FD;
-  --lavender-400: #A78BFA;
-  --lavender-500: #8B5CF6;
+  /* Secondary — Warm Stone */
+  --lavender-50: #FAFAF9;
+  --lavender-100: #F5F5F4;
+  --lavender-200: #E7E5E4;
+  --lavender-300: #D6D3D1;
+  --lavender-400: #A8A29E;
+  --lavender-500: #78716C;
 
-  /* Accent — Gold (complement to indigo) */
+  /* Brand Dark */
+  --warm-black: #1c1917;
   --gold-50: #FFFBEB;
   --gold-100: #FEF3C7;
   --gold-200: #FDE68A;
   --gold-300: #FCD34D;
   --gold-400: #FBBF24;
-  --gold-500: #F59E0B;
+  --gold-500: #D97706;
 
   /* Semantic */
   --error: #DC2626;

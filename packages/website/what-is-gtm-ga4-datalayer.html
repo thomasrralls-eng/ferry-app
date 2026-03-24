@@ -9,15 +9,17 @@
   <meta property="og:description" content="Understand how GTM, GA4, and your dataLayer actually work together — and what breaks when they don't." />
   <meta property="og:type" content="article" />
   <link rel="canonical" href="https://datafairy.ai/what-is-gtm-ga4-datalayer" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --indigo:      #6366f1;
-      --indigo-mid:  #4f46e5;
-      --indigo-deep: #3730a3;
-      --gold:        #f59e0b;
+      --indigo:      #d97706;
+      --indigo-mid:  #b45309;
+      --indigo-deep: #92400e;
+      --gold:        #d97706;
+      --warm-black:  #1c1917;
       --slate-950:   #020617;
       --slate-900:   #0f172a;
       --slate-800:   #1e293b;
@@ -65,11 +67,11 @@
       width: min(1120px, calc(100% - 48px)); margin: 0 auto;
     }
     .brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; letter-spacing: -0.03em; color: var(--slate-900); font-size: 17px; }
-    .brand-icon { width: 36px; height: 36px; border-radius: 12px; background: #1e1b4b; display: grid; place-items: center; font-size: 17px; line-height: 1; flex: 0 0 auto; color: var(--gold); }
+    .brand-icon { width: 36px; height: 36px; border-radius: 12px; flex: 0 0 auto; display: block; }
     .brand-name { display: inline-flex; align-items: center; }
     .btn { display: inline-flex; align-items: center; gap: 7px; border-radius: 12px; padding: 10px 18px; font-weight: 600; font-size: 13px; font-family: inherit; transition: 0.15s ease; border: 1px solid transparent; cursor: pointer; }
     .btn:hover { transform: translateY(-1px); }
-    .btn-primary { background: var(--indigo); color: var(--white); box-shadow: 0 4px 14px rgba(99,102,241,0.25); }
+    .btn-primary { background: var(--indigo); color: var(--white); box-shadow: 0 4px 14px rgba(217,119,6,0.25); }
     .btn-primary:hover { background: var(--indigo-mid); }
 
     /* ARTICLE HERO */
@@ -80,9 +82,9 @@
     }
     .article-hero .eyebrow {
       display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px;
-      border-radius: 999px; background: rgba(99,102,241,0.07);
+      border-radius: 999px; background: rgba(217,119,6,0.07);
       color: var(--indigo-deep); font-size: 12px; font-weight: 600;
-      border: 1px solid rgba(99,102,241,0.12); margin-bottom: 20px;
+      border: 1px solid rgba(217,119,6,0.12); margin-bottom: 20px;
     }
     .article-hero h1 { font-size: clamp(30px, 4.5vw, 46px); letter-spacing: -0.04em; line-height: 1.06; color: var(--slate-950); margin-bottom: 18px; }
     .article-hero .lead { font-size: 17px; line-height: 1.7; color: var(--slate-600); max-width: 640px; margin-bottom: 28px; }
@@ -110,7 +112,7 @@
     }
     .label-gtm { background: rgba(26,115,232,0.08); color: #1a5fba; border: 1px solid rgba(26,115,232,0.15); }
     .label-ga4 { background: rgba(232,113,10,0.08); color: #b85a08; border: 1px solid rgba(232,113,10,0.15); }
-    .label-dl { background: rgba(99,102,241,0.08); color: var(--indigo-deep); border: 1px solid rgba(99,102,241,0.15); }
+    .label-dl { background: rgba(217,119,6,0.08); color: var(--indigo-deep); border: 1px solid rgba(217,119,6,0.15); }
     .label-hygiene { background: rgba(34,197,94,0.08); color: #166534; border: 1px solid rgba(34,197,94,0.15); }
 
     h2 { font-size: clamp(22px, 2.8vw, 30px); letter-spacing: -0.035em; line-height: 1.15; color: var(--slate-950); margin-bottom: 14px; }
@@ -127,7 +129,7 @@
       border-radius: 16px; padding: 20px 24px; margin: 28px 0;
       border-left: 3px solid;
     }
-    .callout-indigo { background: rgba(99,102,241,0.05); border-color: var(--indigo); }
+    .callout-indigo { background: rgba(217,119,6,0.05); border-color: var(--indigo); }
     .callout-amber  { background: rgba(245,158,11,0.06); border-color: var(--amber); }
     .callout-green  { background: rgba(34,197,94,0.06); border-color: var(--green); }
     .callout-red    { background: rgba(239,68,68,0.06);  border-color: var(--red); }
@@ -175,7 +177,7 @@
       color: var(--slate-300); font-size: 18px;
     }
     .node-user    { background: var(--slate-50);  border-color: var(--slate-200); color: var(--slate-800); }
-    .node-dl      { background: rgba(99,102,241,0.07); border-color: rgba(99,102,241,0.2); color: var(--indigo-deep); }
+    .node-dl      { background: rgba(217,119,6,0.07); border-color: rgba(217,119,6,0.2); color: var(--indigo-deep); }
     .node-gtm     { background: rgba(26,115,232,0.07); border-color: rgba(26,115,232,0.2); color: #1a5fba; }
     .node-ga4     { background: rgba(232,113,10,0.07); border-color: rgba(232,113,10,0.2); color: #b85a08; }
     .node-report  { background: rgba(34,197,94,0.07);  border-color: rgba(34,197,94,0.2);  color: #166534; }
@@ -299,7 +301,7 @@
       font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
       font-family: inherit; white-space: nowrap;
     }
-    .a-fn   { background: rgba(99,102,241,0.07); border-color: var(--indigo); color: var(--indigo-deep); }
+    .a-fn   { background: rgba(217,119,6,0.07); border-color: var(--indigo); color: var(--indigo-deep); }
     .a-name { background: rgba(232,113,10,0.07); border-color: var(--ga4-orange); color: #b85a08; }
     .a-key  { background: rgba(34,197,94,0.07);  border-color: var(--green);     color: #166534; }
     .a-val  { background: rgba(245,158,11,0.07); border-color: var(--amber);     color: #92400e; }
@@ -309,7 +311,7 @@
 
     /* CTA */
     .guide-cta {
-      margin-top: 80px; background: linear-gradient(135deg, #2e2b6e 0%, #4338ca 100%);
+      margin-top: 80px; background: linear-gradient(135deg, #1c1917 0%, #292524 100%);
       border-radius: 28px; padding: 48px; text-align: center; color: white;
     }
     .guide-cta h2 { color: white; margin-bottom: 12px; }
@@ -449,7 +451,7 @@
   <header class="site-header">
     <div class="header-inner">
       <a href="index.html" class="brand">
-        <span class="brand-icon">✦</span>
+        <img src="favicon.svg" alt="" class="brand-icon">
         <span class="brand-name">data fairy</span>
       </a>
       <a href="index.html#cta" class="btn btn-primary">Start a free scan</a>
@@ -461,7 +463,7 @@
     <!-- HERO -->
     <section class="article-hero">
       <div class="container">
-        <div class="eyebrow">GA4 &amp; GTM Guide ✦ data fairy</div>
+        <div class="eyebrow">GA4 &amp; GTM Guide <img src="favicon.svg" alt="" width="13" height="13" style="border-radius:3px;flex:0 0 auto;"> data fairy</div>
         <h1>What is GTM, GA4,<br>and the dataLayer?</h1>
         <p class="lead">A plain-English visual guide to how Google Tag Manager, Google Analytics 4, and your dataLayer actually work together — and what breaks when they don't.</p>
         <div class="article-meta">
@@ -479,144 +481,71 @@
         <nav class="toc" aria-label="Table of contents">
           <h4>In this guide</h4>
           <ol>
-            <li><a href="#what-is-ga4">What is GA4?</a></li>
-            <li><a href="#what-is-gtm">What is Google Tag Manager (GTM)?</a></li>
+            <li><a href="#metaphor">The restaurant metaphor</a></li>
             <li><a href="#what-is-datalayer">What is the dataLayer?</a></li>
+            <li><a href="#what-is-gtm">What is Google Tag Manager (GTM)?</a></li>
+            <li><a href="#what-is-ga4">What is GA4?</a></li>
             <li><a href="#datalayer-variables">What are dataLayer variables?</a></li>
             <li><a href="#data-hygiene">Why GA4 data hygiene matters</a></li>
             <li><a href="#common-issues">Common implementation issues</a></li>
           </ol>
         </nav>
 
-        <!-- ── SECTION 1: GA4 ── -->
-        <article class="article-section" id="what-is-ga4">
-          <span class="section-label label-ga4">Google Analytics 4</span>
-          <h2>What is GA4?</h2>
-          <p>Google Analytics 4 (GA4) is Google's current analytics platform. It replaced Universal Analytics in July 2023. GA4 is built around <strong>events</strong> — every interaction on your site (a page view, a button click, a purchase) is recorded as an event with attached parameters.</p>
-          <p>Unlike its predecessor, GA4 is designed for a world without cookies, with built-in privacy controls and a measurement model that works across web and app.</p>
+        <!-- ── SECTION 0: METAPHOR ── -->
+        <article class="article-section" id="metaphor">
+          <span class="section-label label-hygiene">The Metaphor</span>
+          <h2>Think of it like a restaurant</h2>
+          <p>Before diving into the technical details, here's a mental model that makes the relationship click.</p>
 
-          <div class="callout callout-indigo">
-            <strong>The core shift</strong>
-            <p>Universal Analytics counted <em>sessions and pageviews</em>. GA4 counts <em>events and parameters</em>. Every piece of data — from a page load to a purchase — is an event object with key-value pairs attached to it.</p>
-          </div>
-
-          <!-- Event anatomy diagram — pieces appear left-to-right like typing -->
-          <div class="event-anatomy">
-            <h4>Anatomy of a GA4 event</h4>
-            <div style="overflow-x:auto;">
-              <div class="anatomy-row" style="margin-bottom: 36px;">
-                <div class="anatomy-piece a-fn">gtag<span class="anatomy-label" style="color:#4f46e5;">Function</span></div>
-                <div class="anatomy-piece" style="padding: 10px 4px; font-size: 12px; color: var(--slate-400); font-family: monospace; border-top: 2px solid transparent;">(</div>
-                <div class="anatomy-piece a-name">'event'<span class="anatomy-label" style="color:#b85a08;">Type</span></div>
-                <div class="anatomy-piece" style="padding: 10px 4px; font-size: 12px; color: var(--slate-400); font-family: monospace; border-top: 2px solid transparent;">,&nbsp;</div>
-                <div class="anatomy-piece a-name">'purchase'<span class="anatomy-label" style="color:#b85a08;">Event name</span></div>
-                <div class="anatomy-piece" style="padding: 10px 4px; font-size: 12px; color: var(--slate-400); font-family: monospace; border-top: 2px solid transparent;">, {</div>
-                <div class="anatomy-piece a-key">value<span class="anatomy-label" style="color:#166534;">Parameter</span></div>
-                <div class="anatomy-piece" style="padding: 10px 4px; font-size: 12px; color: var(--slate-400); font-family: monospace; border-top: 2px solid transparent;">:&nbsp;</div>
-                <div class="anatomy-piece a-val">99.00<span class="anatomy-label" style="color:#92400e;">Value</span></div>
-                <div class="anatomy-piece" style="padding: 10px 4px; font-size: 12px; color: var(--slate-400); font-family: monospace; border-top: 2px solid transparent;">} )</div>
-              </div>
+          <div class="impact-grid anim-cards">
+            <div class="impact-card" style="border-top-color: var(--indigo);">
+              <div class="icon">🍳</div>
+              <h4>The Prep Station (dataLayer)</h4>
+              <p>When an order comes in, kitchen staff label and organize every ingredient before it leaves the pass. The dataLayer works the same way — your site structures each event into a named, labelled object before anything acts on it.</p>
             </div>
-            <div class="anatomy-legend">
-              <div class="anatomy-legend-item"><span class="legend-dot" style="background:var(--indigo);"></span>Function call that sends data</div>
-              <div class="anatomy-legend-item"><span class="legend-dot" style="background:var(--ga4-orange);"></span>Event name &amp; type</div>
-              <div class="anatomy-legend-item"><span class="legend-dot" style="background:var(--green);"></span>Parameter key (what you're measuring)</div>
-              <div class="anatomy-legend-item"><span class="legend-dot" style="background:var(--amber);"></span>Parameter value (the actual data)</div>
+            <div class="impact-card" style="border-top-color: var(--gtm-blue);">
+              <div class="icon">🤵</div>
+              <h4>The Waiter (GTM)</h4>
+              <p>The waiter watches the pass. When an order appears, they route it to the right table — GA4, Google Ads, Meta Pixel. GTM does the same: it listens for dataLayer events and fires the right tags to the right destinations.</p>
+            </div>
+            <div class="impact-card" style="border-top-color: var(--ga4-orange);">
+              <div class="icon">🖥️</div>
+              <h4>The POS System (GA4 &amp; Partners)</h4>
+              <p>Every order lands in the POS, which tracks revenue and tells the kitchen what's selling. GA4 is your POS — it aggregates events, surfaces trends in reports, and shares conversion signals with ad platforms that bid on your data.</p>
             </div>
           </div>
 
-          <!-- GA4 flow — nodes slide in left to right -->
-          <div class="diagram">
-            <p style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--slate-400); margin-bottom: 14px;">How GA4 data flows</p>
-            <div class="flow">
-              <div class="flow-node">
-                <div class="flow-box node-user">🧑 User action<br><span style="font-weight:400;color:var(--slate-500);">click, purchase, page load</span></div>
-              </div>
-              <div class="flow-arrow">→</div>
-              <div class="flow-node">
-                <div class="flow-box node-ga4">📡 GA4 event fired<br><span style="font-weight:400;color:var(--slate-500);">via gtag() or GTM</span></div>
-              </div>
-              <div class="flow-arrow">→</div>
-              <div class="flow-node">
-                <div class="flow-box node-ga4">☁️ GA4 servers<br><span style="font-weight:400;color:var(--slate-500);">/collect endpoint</span></div>
-              </div>
-              <div class="flow-arrow">→</div>
-              <div class="flow-node">
-                <div class="flow-box node-report">📊 Reports<br><span style="font-weight:400;color:var(--slate-500);">Explore, Looker Studio</span></div>
-              </div>
+          <h3 style="margin-top: 40px;">When the handoff breaks</h3>
+          <p>Small errors at the prep station cascade into real business problems. Two scenarios that play out on real sites every day:</p>
+
+          <div class="compare-grid anim-cards">
+            <div class="compare-card compare-bad">
+              <div class="compare-head"><span class="dot"></span>The Wrong Label</div>
+              <p style="font-size:13px;color:var(--slate-600);margin-bottom:14px;">A developer wires the "Add to Cart" button to a <em>purchase</em> event by mistake. The bowl leaves the prep station with the wrong label.</p>
+              <ul class="compare-list">
+                <li>GTM faithfully fires a purchase tag — for a $5 salad instead of a $50 steak.</li>
+                <li>GA4 logs hundreds of fake purchases. Revenue looks fine; conversion rate looks great.</li>
+                <li>Google Ads optimizes toward users who never actually bought. Spend inflates silently.</li>
+              </ul>
+            </div>
+            <div class="compare-card compare-bad">
+              <div class="compare-head"><span class="dot"></span>The Double Punch</div>
+              <p style="font-size:13px;color:var(--slate-600);margin-bottom:14px;">The checkout page fires the same event twice — once from legacy code, once from the new implementation.</p>
+              <ul class="compare-list">
+                <li>GTM sees two bowls and punches the order twice into the POS.</li>
+                <li>GA4 counts one purchase as two. Reported revenue is doubled.</li>
+                <li>Smart Bidding gets duplicate signals and over-bids. Retargeting lists fill with false converters.</li>
+              </ul>
             </div>
           </div>
 
-          <p>GA4 events arrive at the <code style="background:var(--slate-100);padding:2px 6px;border-radius:5px;font-size:13px;">/collect</code> endpoint and are processed into your reports within 24–48 hours (real-time data appears within minutes). Every event you fire — and every parameter you attach — becomes available for analysis.</p>
-        </article>
-
-        <hr class="section-divider">
-
-        <!-- ── SECTION 2: GTM ── -->
-        <article class="article-section" id="what-is-gtm">
-          <span class="section-label label-gtm">Google Tag Manager</span>
-          <h2>What is Google Tag Manager (GTM)?</h2>
-          <p>Google Tag Manager is a <strong>tag management system</strong>. It gives marketers and analysts a way to add, edit, and manage tracking code on a website without touching the underlying codebase for every change.</p>
-          <p>Instead of asking a developer to add GA4 tracking, a Facebook pixel, and a LinkedIn insight tag to every page, you add one GTM snippet to your site — and then manage everything else from the GTM interface.</p>
-
-          <!-- GTM architecture — reveals bottom-to-top to show data flow direction -->
-          <div class="arch-diagram">
-            <div class="arch-title">Inside a GTM container</div>
-            <div class="arch-container">
-              <span class="arch-container-label">GTM Container</span>
-              <div class="arch-row">
-                <div class="arch-pill highlight">🏷 GA4 Event Tag<small>Fires the GA4 purchase event</small></div>
-                <div class="arch-pill highlight">🏷 Google Ads Tag<small>Conversion tracking</small></div>
-                <div class="arch-pill highlight">🏷 Meta Pixel Tag<small>Audience retargeting</small></div>
-              </div>
-              <div style="text-align:center;font-size:11px;color:var(--slate-400);padding:6px 0;">▲ Tags fire when triggered by…</div>
-              <div class="arch-row">
-                <div class="arch-pill">⚡ Trigger: All Pages<small>Page view event</small></div>
-                <div class="arch-pill">⚡ Trigger: Purchase<small>Custom event</small></div>
-                <div class="arch-pill">⚡ Trigger: Click - CTA<small>Element ID match</small></div>
-              </div>
-              <div style="text-align:center;font-size:11px;color:var(--slate-400);padding:6px 0;">▲ Triggers read data from…</div>
-              <div class="arch-row">
-                <div class="arch-pill">📦 Variable: Page URL</div>
-                <div class="arch-pill">📦 Variable: DL - value</div>
-                <div class="arch-pill">📦 Variable: Click ID</div>
-              </div>
-            </div>
-            <div class="arch-connector">↕</div>
-            <div style="text-align:center;">
-              <div class="arch-pill" style="display:inline-block;padding:12px 24px;">🌐 Your website (one GTM snippet in the <code style="font-size:12px;">&lt;head&gt;</code>)</div>
-            </div>
-          </div>
-
-          <p>GTM containers have three building blocks:</p>
-
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:28px 0;">
-            <div style="background:var(--slate-50);border:1px solid var(--slate-200);border-radius:16px;padding:20px;">
-              <div style="font-size:20px;margin-bottom:10px;">🏷</div>
-              <h3 style="font-size:15px;margin-bottom:6px;">Tags</h3>
-              <p style="font-size:13px;margin:0;">Code snippets that run on your site — GA4 events, pixels, scripts. Tags <em>do</em> the thing.</p>
-            </div>
-            <div style="background:var(--slate-50);border:1px solid var(--slate-200);border-radius:16px;padding:20px;">
-              <div style="font-size:20px;margin-bottom:10px;">⚡</div>
-              <h3 style="font-size:15px;margin-bottom:6px;">Triggers</h3>
-              <p style="font-size:13px;margin:0;">Rules that decide <em>when</em> a tag fires. "Fire when the URL contains /confirmation" is a trigger.</p>
-            </div>
-            <div style="background:var(--slate-50);border:1px solid var(--slate-200);border-radius:16px;padding:20px;">
-              <div style="font-size:20px;margin-bottom:10px;">📦</div>
-              <h3 style="font-size:15px;margin-bottom:6px;">Variables</h3>
-              <p style="font-size:13px;margin:0;">Dynamic values GTM reads — from the page, clicks, or your dataLayer — to pass into tags.</p>
-            </div>
-          </div>
-
-          <div class="callout callout-amber">
-            <strong>Why this matters</strong>
-            <p>GTM creates speed and independence for marketing teams. But it also creates risk — anyone with container access can deploy new tags or change trigger logic, which means your GA4 data can change without any code review. This is one of the most common sources of data quality issues.</p>
+          <div class="callout callout-indigo" style="margin-top:28px;">
+            <strong>The point</strong>
+            <p>It doesn't matter how capable your waiter is, or how powerful your POS — if the prep station sends mislabelled or duplicate bowls, everything downstream is wrong. Your analytics stack is only as reliable as what gets pushed into the dataLayer.</p>
           </div>
         </article>
 
-        <hr class="section-divider">
-
-        <!-- ── SECTION 3: DATALAYER ── -->
+        <!-- ── SECTION 1: DATALAYER ── -->
         <article class="article-section" id="what-is-datalayer">
           <span class="section-label label-dl">The dataLayer</span>
           <h2>What is the dataLayer?</h2>
@@ -702,6 +631,134 @@
 
         <hr class="section-divider">
 
+        <!-- ── SECTION 2: GTM ── -->
+        <article class="article-section" id="what-is-gtm">
+          <span class="section-label label-gtm">Google Tag Manager</span>
+          <h2>What is Google Tag Manager (GTM)?</h2>
+          <p>Google Tag Manager is a <strong>tag management system</strong>. It gives marketers and analysts a way to add, edit, and manage tracking code on a website without touching the underlying codebase for every change.</p>
+          <p>Instead of asking a developer to add GA4 tracking, a Facebook pixel, and a LinkedIn insight tag to every page, you add one GTM snippet to your site — and then manage everything else from the GTM interface.</p>
+
+          <!-- GTM architecture — reveals bottom-to-top to show data flow direction -->
+          <div class="arch-diagram">
+            <div class="arch-title">Inside a GTM container</div>
+            <div class="arch-container">
+              <span class="arch-container-label">GTM Container</span>
+              <div class="arch-row">
+                <div class="arch-pill highlight">🏷 GA4 Event Tag<small>Fires the GA4 purchase event</small></div>
+                <div class="arch-pill highlight">🏷 Google Ads Tag<small>Conversion tracking</small></div>
+                <div class="arch-pill highlight">🏷 Meta Pixel Tag<small>Audience retargeting</small></div>
+              </div>
+              <div style="text-align:center;font-size:11px;color:var(--slate-400);padding:6px 0;">▲ Tags fire when triggered by…</div>
+              <div class="arch-row">
+                <div class="arch-pill">⚡ Trigger: All Pages<small>Page view event</small></div>
+                <div class="arch-pill">⚡ Trigger: Purchase<small>Custom event</small></div>
+                <div class="arch-pill">⚡ Trigger: Click - CTA<small>Element ID match</small></div>
+              </div>
+              <div style="text-align:center;font-size:11px;color:var(--slate-400);padding:6px 0;">▲ Triggers read data from…</div>
+              <div class="arch-row">
+                <div class="arch-pill">📦 Variable: Page URL</div>
+                <div class="arch-pill">📦 Variable: DL - value</div>
+                <div class="arch-pill">📦 Variable: Click ID</div>
+              </div>
+            </div>
+            <div class="arch-connector">↕</div>
+            <div style="text-align:center;">
+              <div class="arch-pill" style="display:inline-block;padding:12px 24px;">🌐 Your website (one GTM snippet in the <code style="font-size:12px;">&lt;head&gt;</code>)</div>
+            </div>
+          </div>
+
+          <p>GTM containers have three building blocks:</p>
+
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:28px 0;">
+            <div style="background:var(--slate-50);border:1px solid var(--slate-200);border-radius:16px;padding:20px;">
+              <div style="font-size:20px;margin-bottom:10px;">🏷</div>
+              <h3 style="font-size:15px;margin-bottom:6px;">Tags</h3>
+              <p style="font-size:13px;margin:0;">Code snippets that run on your site — GA4 events, pixels, scripts. Tags <em>do</em> the thing.</p>
+            </div>
+            <div style="background:var(--slate-50);border:1px solid var(--slate-200);border-radius:16px;padding:20px;">
+              <div style="font-size:20px;margin-bottom:10px;">⚡</div>
+              <h3 style="font-size:15px;margin-bottom:6px;">Triggers</h3>
+              <p style="font-size:13px;margin:0;">Rules that decide <em>when</em> a tag fires. "Fire when the URL contains /confirmation" is a trigger.</p>
+            </div>
+            <div style="background:var(--slate-50);border:1px solid var(--slate-200);border-radius:16px;padding:20px;">
+              <div style="font-size:20px;margin-bottom:10px;">📦</div>
+              <h3 style="font-size:15px;margin-bottom:6px;">Variables</h3>
+              <p style="font-size:13px;margin:0;">Dynamic values GTM reads — from the page, clicks, or your dataLayer — to pass into tags.</p>
+            </div>
+          </div>
+
+          <div class="callout callout-amber">
+            <strong>Why this matters</strong>
+            <p>GTM creates speed and independence for marketing teams. But it also creates risk — anyone with container access can deploy new tags or change trigger logic, which means your GA4 data can change without any code review. This is one of the most common sources of data quality issues.</p>
+          </div>
+        </article>
+
+        <hr class="section-divider">
+
+        <!-- ── SECTION 3: GA4 ── -->
+        <article class="article-section" id="what-is-ga4">
+          <span class="section-label label-ga4">Google Analytics 4</span>
+          <h2>What is GA4?</h2>
+          <p>Google Analytics 4 (GA4) is Google's current analytics platform. It replaced Universal Analytics in July 2023. GA4 is built around <strong>events</strong> — every interaction on your site (a page view, a button click, a purchase) is recorded as an event with attached parameters.</p>
+          <p>Unlike its predecessor, GA4 is designed for a world without cookies, with built-in privacy controls and a measurement model that works across web and app.</p>
+
+          <div class="callout callout-indigo">
+            <strong>The core shift</strong>
+            <p>Universal Analytics counted <em>sessions and pageviews</em>. GA4 counts <em>events and parameters</em>. Every piece of data — from a page load to a purchase — is an event object with key-value pairs attached to it.</p>
+          </div>
+
+          <!-- Event anatomy diagram — pieces appear left-to-right like typing -->
+          <div class="event-anatomy">
+            <h4>Anatomy of a GA4 event</h4>
+            <div style="overflow-x:auto;">
+              <div class="anatomy-row" style="margin-bottom: 36px;">
+                <div class="anatomy-piece a-fn">gtag<span class="anatomy-label" style="color:#4f46e5;">Function</span></div>
+                <div class="anatomy-piece" style="padding: 10px 4px; font-size: 12px; color: var(--slate-400); font-family: monospace; border-top: 2px solid transparent;">(</div>
+                <div class="anatomy-piece a-name">'event'<span class="anatomy-label" style="color:#b85a08;">Type</span></div>
+                <div class="anatomy-piece" style="padding: 10px 4px; font-size: 12px; color: var(--slate-400); font-family: monospace; border-top: 2px solid transparent;">,&nbsp;</div>
+                <div class="anatomy-piece a-name">'purchase'<span class="anatomy-label" style="color:#b85a08;">Event name</span></div>
+                <div class="anatomy-piece" style="padding: 10px 4px; font-size: 12px; color: var(--slate-400); font-family: monospace; border-top: 2px solid transparent;">, {</div>
+                <div class="anatomy-piece a-key">value<span class="anatomy-label" style="color:#166534;">Parameter</span></div>
+                <div class="anatomy-piece" style="padding: 10px 4px; font-size: 12px; color: var(--slate-400); font-family: monospace; border-top: 2px solid transparent;">:&nbsp;</div>
+                <div class="anatomy-piece a-val">99.00<span class="anatomy-label" style="color:#92400e;">Value</span></div>
+                <div class="anatomy-piece" style="padding: 10px 4px; font-size: 12px; color: var(--slate-400); font-family: monospace; border-top: 2px solid transparent;">} )</div>
+              </div>
+            </div>
+            <div class="anatomy-legend">
+              <div class="anatomy-legend-item"><span class="legend-dot" style="background:var(--indigo);"></span>Function call that sends data</div>
+              <div class="anatomy-legend-item"><span class="legend-dot" style="background:var(--ga4-orange);"></span>Event name &amp; type</div>
+              <div class="anatomy-legend-item"><span class="legend-dot" style="background:var(--green);"></span>Parameter key (what you're measuring)</div>
+              <div class="anatomy-legend-item"><span class="legend-dot" style="background:var(--amber);"></span>Parameter value (the actual data)</div>
+            </div>
+          </div>
+
+          <!-- GA4 flow — nodes slide in left to right -->
+          <div class="diagram">
+            <p style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--slate-400); margin-bottom: 14px;">How GA4 data flows</p>
+            <div class="flow">
+              <div class="flow-node">
+                <div class="flow-box node-user">🧑 User action<br><span style="font-weight:400;color:var(--slate-500);">click, purchase, page load</span></div>
+              </div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-node">
+                <div class="flow-box node-ga4">📡 GA4 event fired<br><span style="font-weight:400;color:var(--slate-500);">via gtag() or GTM</span></div>
+              </div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-node">
+                <div class="flow-box node-ga4">☁️ GA4 servers<br><span style="font-weight:400;color:var(--slate-500);">/collect endpoint</span></div>
+              </div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-node">
+                <div class="flow-box node-report">📊 Reports<br><span style="font-weight:400;color:var(--slate-500);">Explore, Looker Studio</span></div>
+              </div>
+            </div>
+          </div>
+
+          <p>GA4 events arrive at the <code style="background:var(--slate-100);padding:2px 6px;border-radius:5px;font-size:13px;">/collect</code> endpoint and are processed into your reports within 24–48 hours (real-time data appears within minutes). Every event you fire — and every parameter you attach — becomes available for analysis.</p>
+        </article>
+
+        <hr class="section-divider">
+
         <!-- ── SECTION 4: DL VARIABLES ── -->
         <article class="article-section" id="datalayer-variables">
           <span class="section-label label-dl">dataLayer Variables</span>
@@ -712,7 +769,7 @@
           <div class="var-map">
             <div class="var-side">
               <h4>dataLayer push (from site)</h4>
-              <div class="var-row" style="background:rgba(99,102,241,0.05);"><span class="var-key">event:</span> <span class="var-val">'purchase'</span></div>
+              <div class="var-row" style="background:rgba(217,119,6,0.05);"><span class="var-key">event:</span> <span class="var-val">'purchase'</span></div>
               <div class="var-row" style="background:rgba(245,158,11,0.06);"><span class="var-key">transaction_id:</span> <span class="var-val">'T-88231'</span></div>
               <div class="var-row" style="background:rgba(34,197,94,0.06);"><span class="var-key">value:</span> <span class="var-val">129.99</span></div>
               <div class="var-row" style="background:rgba(232,113,10,0.06);"><span class="var-key">currency:</span> <span class="var-val">'USD'</span></div>
@@ -795,8 +852,8 @@
             <div class="compare-card compare-bad">
               <div class="compare-head"><span class="dot"></span>Poor hygiene — what we see constantly</div>
               <ul class="compare-list">
-                <li>Events with spaces or special characters in the name (<code style="font-size:11px;">add to cart</code> instead of <code style="font-size:11px;">add_to_cart</code>)</li>
-                <li>Missing <code style="font-size:11px;">transaction_id</code> on purchase events — purchases can't be deduplicated</li>
+                <li>Events with spaces or special characters in the name (e.g. "add to cart" instead of "add_to_cart")</li>
+                <li>Missing transaction_id on purchase events — purchases can't be deduplicated</li>
                 <li>Duplicate page_view fires because GTM and gtag.js are both on the page</li>
                 <li>Parameters that are silently truncated because they exceed GA4's 100-character limit</li>
                 <li>dataLayer pushes that fire before GTM has loaded — GTM misses the event entirely</li>
@@ -807,8 +864,8 @@
               <div class="compare-head"><span class="dot"></span>Good hygiene — what to aim for</div>
               <ul class="compare-list">
                 <li>Event names use only lowercase letters, numbers, and underscores</li>
-                <li>Every purchase includes a unique <code style="font-size:11px;">transaction_id</code> for deduplication</li>
-                <li>A single tag management approach — GTM <em>or</em> direct gtag, not both</li>
+                <li>Every purchase includes a unique transaction_id for deduplication</li>
+                <li>A single tag management approach — GTM or direct gtag, not both</li>
                 <li>Parameter values stay within GA4's character limits (100 for strings)</li>
                 <li>dataLayer initialised before the GTM snippet to avoid missed events</li>
                 <li>All custom dimensions and metrics registered in GA4 before being sent</li>
@@ -818,7 +875,7 @@
 
           <div class="callout callout-red">
             <strong>The silent failure problem</strong>
-            <p>Most GA4 data quality issues produce no errors. Events fire, GTM shows green, GA4 receives the hit — but the data is wrong. A purchase event with a missing <code style="font-size:12px;">transaction_id</code> still lands in GA4. It just can't be deduplicated, so every page refresh on the thank-you page creates a duplicate conversion. You won't see this in the UI unless you're actively looking.</p>
+            <p>Most GA4 data quality issues produce no errors. Events fire, GTM shows green, GA4 receives the hit — but the data is wrong. A purchase event with a missing transaction_id still lands in GA4. It just can't be deduplicated, so every page refresh on the thank-you page creates a duplicate conversion. You won't see this in the UI unless you're actively looking.</p>
           </div>
         </article>
 
@@ -866,7 +923,7 @@
                 <h4 style="font-size:14px;font-weight:700;color:var(--slate-900);margin-bottom:4px;">Event names with spaces or invalid characters</h4>
                 <p style="font-size:13px;margin:0;line-height:1.6;">GA4 silently rejects event names that contain spaces, hyphens, or start with a number. The event fires, GTM shows success, but the data never appears in GA4 reports. Use only lowercase letters, numbers, and underscores.</p>
               </div>
-              <span style="padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(99,102,241,0.1);color:var(--indigo-deep);white-space:nowrap;">Warning</span>
+              <span style="padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(217,119,6,0.1);color:var(--indigo-deep);white-space:nowrap;">Warning</span>
             </div>
 
             <div style="background:var(--slate-50);border:1px solid var(--slate-200);border-radius:16px;padding:20px 24px;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:start;">
@@ -875,7 +932,7 @@
                 <h4 style="font-size:14px;font-weight:700;color:var(--slate-900);margin-bottom:4px;">Missing GTM noscript fallback</h4>
                 <p style="font-size:13px;margin:0;line-height:1.6;">The GTM noscript tag belongs immediately after the opening <code style="font-size:12px;">&lt;body&gt;</code> tag. Without it, users with JavaScript disabled (or who block scripts) won't be tracked at all. Low risk for most sites, but easy to fix.</p>
               </div>
-              <span style="padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(99,102,241,0.1);color:var(--indigo-deep);white-space:nowrap;">Info</span>
+              <span style="padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(217,119,6,0.1);color:var(--indigo-deep);white-space:nowrap;">Info</span>
             </div>
 
           </div>
@@ -883,7 +940,7 @@
 
         <!-- CTA -->
         <div class="guide-cta">
-          <div class="eyebrow" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.15);color:rgba(255,255,255,0.85);margin-bottom:20px;display:inline-flex;">✦ data fairy · datafairy.ai</div>
+          <div class="eyebrow" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.15);color:rgba(255,255,255,0.85);margin-bottom:20px;display:inline-flex;"><img src="favicon.svg" alt="" width="14" height="14" style="border-radius:4px;flex:0 0 auto;"> data fairy · datafairy.ai</div>
           <h2>See what's wrong with your GA4 &amp; GTM right now</h2>
           <p>data fairy audits your GA4 and GTM implementation in real time — catching every broken event, duplicate tag, and missing parameter. No setup required.</p>
           <a href="index.html#cta" class="btn btn-primary btn-lg">Start a free scan →</a>
@@ -897,7 +954,7 @@
   <footer>
     <div class="footer-row">
       <a href="index.html" class="brand">
-        <span class="brand-icon" style="width:28px;height:28px;border-radius:8px;font-size:13px;">✦</span>
+        <img src="favicon.svg" alt="" width="28" height="28" style="border-radius:8px;flex:0 0 auto;">
         <span class="brand-name">data fairy</span>
       </a>
       <div class="footer-links">
