@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#4338ca"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" rx="40" ry="40" fill="url(#bg)"/>
+
+  <!-- UPPER WING — large dragonfly teardrop, sweeping up-left from body -->
+  <path d="M 108 82 C 100 70, 74 54, 54 58 C 38 62, 36 78, 48 92
+           C 60 106, 86 110, 104 106 C 112 104, 116 96, 112 88 Z"
+        fill="white" opacity="0.42"/>
+
+  <!-- LOWER WING — smaller, angled lower-left -->
+  <path d="M 106 98 C 96 102, 70 114, 58 108 C 48 104, 54 94, 72 91
+           C 88 88, 104 96, 106 100 Z"
+        fill="white" opacity="0.28"/>
+
+  <!-- HAIR BUN -->
+  <circle cx="120" cy="53" r="6" fill="white"/>
+  <!-- HEAD -->
+  <circle cx="113" cy="62" r="10" fill="white"/>
+
+  <!-- WAND ARM — ribbon path right arm raised up-right -->
+  <path d="
+    M 121 73 C 128 65, 140 52, 152 40 C 156 35, 159 31, 160 29 L 164 31
+    C 162 34, 158 40, 154 45 C 141 58, 129 71, 124 78 C 122 81, 120 79, 121 75 Z
+  " fill="white"/>
+
+  <!-- LEFT ARM — lower-left gesture -->
+  <path d="
+    M 104 80 C 96 84, 86 91, 78 98 C 74 102, 73 105, 75 107
+    C 77 109, 81 107, 86 103 C 94 97, 104 89, 108 84 C 109 81, 107 79, 104 80 Z
+  " fill="white"/>
+
+  <!-- TORSO — slim, slightly tapered -->
+  <path d="
+    M 106 74 C 101 77, 98 85, 98 94 C 98 103, 101 111, 105 118 L 121 118
+    C 125 111, 128 103, 128 94 C 128 85, 125 77, 120 74 Z
+  " fill="white"/>
+
+  <!-- SKIRT — short tulip flare -->
+  <path d="
+    M 100 114 C 95 120, 90 128, 88 135 C 87 138, 89 140, 93 137
+    L 113 129 L 133 137 C 137 140, 139 138, 138 135
+    C 136 128, 131 120, 126 114 Z
+  " fill="white"/>
+
+  <!-- FRONT LEG — straight down, slight forward lean -->
+  <path d="
+    M 123 132 C 125 143, 127 156, 128 165 C 128 168, 126 170, 124 169
+    C 121 169, 119 167, 119 164 C 118 155, 116 142, 115 132 Z
+  " fill="white"/>
+  <ellipse cx="125" cy="169" rx="5" ry="2.5" fill="white"/>
+
+  <!-- BACK LEG — angled back-left, slightly bent -->
+  <path d="
+    M 103 132 C 100 140, 95 152, 89 160 C 86 165, 83 168, 81 170
+    C 79 172, 77 171, 77 168 C 77 165, 80 161, 83 157
+    C 89 149, 94 138, 97 128 C 99 123, 102 123, 104 128 Z
+  " fill="white"/>
+  <ellipse cx="79" cy="169" rx="5" ry="2.5" transform="rotate(-25,79,169)" fill="white"/>
+
+  <!-- WAND STICK -->
+  <path d="M 160 28 L 164 15 L 166 16 L 162 29 Z" fill="white"/>
+
+  <!-- GOLD STAR — 4-point -->
+  <path d="M 164 13 L 167 6 L 170 13 L 177 16 L 170 19 L 167 26 L 164 19 L 157 16 Z"
+        fill="#fbbf24"/>
+</svg>

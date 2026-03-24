@@ -81,6 +81,8 @@ out
 # Nuxt.js build / generate output
 .nuxt
 dist
+# Chrome extension dist is committed so loading unpacked always works without a local build
+!packages/extension/dist/
 
 # Gatsby files
 .cache/
@@ -137,9 +139,6 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
-
-# Build output
-packages/extension/dist/
 
 # Terraform
 packages/cloud/terraform/.terraform/
